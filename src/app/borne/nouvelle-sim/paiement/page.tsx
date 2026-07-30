@@ -35,10 +35,10 @@ export default function Paiement() {
   return (
     <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Colonne 1: Détails de la commande */}
-        <Card className="p-6">
-          <h3 className="font-bold text-primary mb-6 text-lg">Détails de la commande</h3>
+        <Card className="p-4">
+          <h3 className="font-bold text-primary mb-4 text-base">Détails de la commande</h3>
           
           <div className="flex items-start gap-4 mb-6">
             <div className="p-3 bg-gray-50 rounded-lg border border-border-light">
@@ -79,8 +79,8 @@ export default function Paiement() {
         </Card>
 
         {/* Colonne 2: Modes de paiement */}
-        <Card className="p-6">
-          <h3 className="font-bold text-primary mb-6 text-lg">Mode de paiement</h3>
+        <Card className="p-4">
+          <h3 className="font-bold text-primary mb-4 text-base">Mode de paiement</h3>
           
           <div className="flex flex-col gap-4">
             {/* Orange Money */}
@@ -122,7 +122,7 @@ export default function Paiement() {
         </Card>
 
         {/* Colonne 3: Formulaire Dynamique */}
-        <Card className="p-6">
+        <Card className="p-4">
           {method === 'orange-money' && (
             <div className="flex flex-col h-full">
               <h3 className="font-bold text-primary mb-6 text-lg text-center border-b border-border-light pb-4">Orange Money</h3>
@@ -234,7 +234,7 @@ export default function Paiement() {
       </div>
 
       {/* Footer Validation */}
-      <div className="bg-white border border-border-light rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between shadow-sm gap-4">
+      <div className="bg-white border border-border-light rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between shadow-sm gap-3">
          <div>
             <p className="text-text-muted font-medium mb-1">Total à régler</p>
             <p className="text-3xl font-extrabold text-primary">20 000 GNF</p>

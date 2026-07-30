@@ -20,29 +20,29 @@ export default function Offres() {
 
   return (
     <div className="flex flex-col w-full pb-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-primary mb-2">Choisissez votre offre</h1>
+      <div className="text-center mb-4">
+        <h1 className="text-2xl font-bold text-primary mb-1">Choisissez votre offre</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {MOCK_OFFERS.map((offer) => {
           const isSelected = selectedOffer === offer.id;
           return (
             <Card 
               key={offer.id}
-              className={`relative overflow-hidden cursor-pointer transition-all duration-300 p-8 flex flex-col items-center text-center ${isSelected ? 'border-accent shadow-md border-2' : 'hover:border-primary/30 border-border-light'}`}
+              className={`relative overflow-hidden cursor-pointer transition-all duration-300 p-5 flex flex-col items-center text-center ${isSelected ? 'border-accent shadow-md border-2' : 'hover:border-primary/30 border-border-light'}`}
               onClick={() => setSelectedOffer(offer.id)}
             >
-              <div className="relative mb-6">
-                <Microchip className="w-16 h-16 text-accent" strokeWidth={1} />
+              <div className="relative mb-3">
+                <Microchip className="w-12 h-12 text-accent" strokeWidth={1} />
                 {getIcon(offer.type)}
               </div>
               
-              <h3 className="text-xl font-bold text-primary mb-2">{offer.titre}</h3>
-              <p className="text-sm text-text-muted mb-8 pb-8 border-b border-border-light w-full">{offer.description}</p>
+              <h3 className="text-lg font-bold text-primary mb-1">{offer.titre}</h3>
+              <p className="text-sm text-text-muted mb-4 pb-4 border-b border-border-light w-full">{offer.description}</p>
               
-              <div className="mb-8">
-                <span className="text-3xl font-extrabold text-primary">{offer.prixGNF.toLocaleString('fr-FR')}</span>
+              <div className="mb-4">
+                <span className="text-2xl font-extrabold text-primary">{offer.prixGNF.toLocaleString('fr-FR')}</span>
                 <span className="text-text-muted font-medium ml-1">GNF</span>
               </div>
               

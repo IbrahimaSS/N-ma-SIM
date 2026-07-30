@@ -15,39 +15,37 @@ export default function Accueil() {
   return (
     <div
       className="relative z-10 flex flex-col items-center"
-      style={{ width: "100%", paddingTop: "28px", paddingBottom: "90px" }}
+      style={{ width: "100%", paddingTop: "16px", paddingBottom: "60px" }}
     >
 
       {/* =============================================
           1. LOGO — image réelle, centrée en haut
       ============================================= */}
-      <div style={{
-        width: "clamp(280px, 36vw, 400px)",
-        height: "clamp(85px, 10vw, 120px)", // Hauteur encore un peu augmentée
-        background: "white",
-        borderRadius: "0 0 24px 24px",
-        boxShadow: "0 4px 24px rgba(31,2,112,0.10)",
-        overflow: "hidden",
-        marginBottom: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}>
+      <div 
+        className="w-[260px] h-[80px] lg:w-[360px] lg:h-[120px]"
+        style={{
+          background: "white",
+          borderRadius: "0 0 24px 24px",
+          boxShadow: "0 4px 24px rgba(31,2,112,0.10)",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          paddingTop: 10,
+        }}
+      >
         <img
           src="/logo-transparent.png"
           alt="N'ma SIM Logo"
-          style={{
-            width: "100%",
-            transform: "scale(1.3)", // Zoom très réduit pour être sûr que tout rentre
-            display: "block",
-          }}
+          className="w-[95%] scale-[1.15] lg:w-[100%] lg:scale-[1.2]"
+          style={{ display: "block" }}
         />
       </div>
 
       {/* =============================================
           2. SLOGAN
       ============================================= */}
-      <p style={{ marginTop: 20, marginBottom: 32, fontSize: 20, fontWeight: 700, textAlign: "center" }}>
+      <p style={{ marginTop: 24, marginBottom: 20, fontSize: "clamp(16px, 1.4vw, 20px)", fontWeight: 700, textAlign: "center" }}>
         <span style={{ color: "#1F0270" }}>Votre SIM, </span>
         <span style={{ color: "#FFBA08" }}>en toute simplicité.</span>
       </p>
@@ -56,11 +54,11 @@ export default function Accueil() {
           3. CARTE CENTRALE
       ============================================= */}
       <div style={{
-        width: 680,
-        maxWidth: "90vw",
+        width: 660,
+        maxWidth: "92vw",
         background: "white",
-        borderRadius: 28,
-        padding: "44px 52px",
+        borderRadius: 24,
+        padding: "clamp(24px, 3vh, 40px) clamp(28px, 4vw, 48px)",
         boxShadow: "0 8px 48px rgba(31,2,112,0.09)",
         display: "flex",
         flexDirection: "column",
@@ -69,28 +67,28 @@ export default function Accueil() {
       }}>
 
         {/* Icône */}
-        <div style={{ position: "relative", marginBottom: 22 }}>
+        <div style={{ position: "relative", marginBottom: 16 }}>
           <div style={{
-            width: 92, height: 92, borderRadius: "50%",
+            width: 72, height: 72, borderRadius: "50%",
             background: "#EEEEF8",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <UserIcon size={46} color="#1F0270" strokeWidth={1.5} />
+            <UserIcon size={36} color="#1F0270" strokeWidth={1.5} />
           </div>
           <div style={{
             position: "absolute", bottom: 0, right: 0,
             background: "white", borderRadius: "50%",
             padding: 3, boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
           }}>
-            <Hand size={22} color="#FFBA08" />
+            <Hand size={18} color="#FFBA08" />
           </div>
         </div>
 
-        <h1 style={{ fontSize: 36, fontWeight: 900, color: "#1F0270", margin: "0 0 14px 0" }}>
+        <h1 style={{ fontSize: "clamp(26px, 2.8vw, 36px)", fontWeight: 900, color: "#1F0270", margin: "0 0 10px 0" }}>
           Bienvenue !
         </h1>
 
-        <p style={{ fontSize: 16, color: "#6B7280", marginBottom: 32, maxWidth: 420, lineHeight: 1.65 }}>
+        <p style={{ fontSize: "clamp(13px, 1.2vw, 16px)", color: "#6B7280", marginBottom: 24, maxWidth: 420, lineHeight: 1.6 }}>
           Obtenez votre SIM, gérez vos services rapidement et en toute sécurité.
         </p>
 
@@ -99,12 +97,12 @@ export default function Accueil() {
           onClick={() => setAccepted(!accepted)}
           style={{
             width: "100%",
-            display: "flex", alignItems: "center", gap: 14,
-            padding: "14px 20px",
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "12px 16px",
             border: `1.5px solid ${accepted ? "#1F0270" : "#E5E7EB"}`,
-            borderRadius: 14,
+            borderRadius: 12,
             cursor: "pointer",
-            marginBottom: 20,
+            marginBottom: 16,
             background: "#FAFAFA",
             transition: "border-color 0.2s",
           }}
@@ -127,11 +125,11 @@ export default function Accueil() {
         <button
           onClick={() => accepted && router.push("/borne/services")}
           style={{
-            width: "100%", height: 66,
+            width: "100%", height: 58,
             background: accepted ? "#FFBA08" : "#F3F4F6",
             color: accepted ? "#1F0270" : "#9CA3AF",
-            fontWeight: 800, fontSize: 20,
-            borderRadius: 16, border: "none",
+            fontWeight: 800, fontSize: "clamp(16px, 1.4vw, 20px)",
+            borderRadius: 14, border: "none",
             cursor: accepted ? "pointer" : "not-allowed",
             display: "flex", alignItems: "center", justifyContent: "center",
             position: "relative",
@@ -154,7 +152,7 @@ export default function Accueil() {
       {/* =============================================
           4. SÉLECTEURS LANGUE ET PROFIL
       ============================================= */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 28 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 20 }}>
 
         {/* Langue */}
         <div style={{

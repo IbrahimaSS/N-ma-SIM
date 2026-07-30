@@ -18,24 +18,24 @@ export default function ScanPiece() {
       
       <CardContent>
         {/* Boutons d'action haut */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <button className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group">
+        <div className="grid grid-cols-2 gap-4 mb-5">
+          <button className="flex flex-col items-center justify-center p-4 min-h-[52px] border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group">
             <Upload className="w-8 h-8 text-primary mb-2 group-hover:-translate-y-1 transition-transform" />
             <span className="font-bold text-primary">Importer une image</span>
             <span className="text-xs text-text-muted">Téléchargez un fichier (JPG, PNG)</span>
           </button>
-          <button className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group">
+          <button className="flex flex-col items-center justify-center p-4 min-h-[52px] border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group">
             <Camera className="w-8 h-8 text-primary mb-2 group-hover:scale-110 transition-transform" />
             <span className="font-bold text-primary">Prendre une photo</span>
             <span className="text-xs text-text-muted">Utilisez votre caméra</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
           {/* Aperçu */}
           <div className="border border-border-light rounded-xl p-6 bg-gray-50 flex flex-col">
             <h4 className="font-bold text-text-main mb-4">Aperçu du document</h4>
-            <div className="w-full h-48 bg-white rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm">
+            <div className="w-full h-36 bg-white rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm">
               {/* Simulation de carte scannée */}
               <div className="w-[85%] h-[70%] bg-pink-50/50 rounded flex relative border border-pink-100">
                 <div className="w-16 h-20 bg-gray-200 rounded absolute left-4 top-1/2 -translate-y-1/2"></div>

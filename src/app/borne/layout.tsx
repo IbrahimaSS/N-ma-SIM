@@ -61,7 +61,12 @@ export default function BorneLayout({ children }: { children: ReactNode }) {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "clamp(16px, 4vh, 40px) clamp(60px, 8vw, 160px)",
+          /* paddingTop compensates the fixed header (≈80px) */
+          paddingTop: "clamp(80px, 9vh, 110px)",
+          paddingBottom: "clamp(16px, 3vh, 40px)",
+          /* Reduced lateral padding: was 8vw, now 3vw to avoid wasting 200px+ on 1366px screens */
+          paddingLeft: "clamp(16px, 3vw, 60px)",
+          paddingRight: "clamp(16px, 3vw, 60px)",
           minHeight: "100vh",
         }}
       >

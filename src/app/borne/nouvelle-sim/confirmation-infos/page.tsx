@@ -11,7 +11,7 @@ export default function ConfirmationInfos() {
 
   return (
     <Card className="w-full p-2">
-      <CardHeader className="flex flex-col md:flex-row md:items-start justify-between pb-6 gap-4">
+      <CardHeader className="flex flex-col md:flex-row md:items-start justify-between pb-4 gap-4">
         <div>
           <CardTitle className="text-2xl">Étape 2/6 — Confirmation des informations</CardTitle>
           <p className="text-text-muted mt-2 max-w-xl">
@@ -35,7 +35,7 @@ export default function ConfirmationInfos() {
       
       <CardContent>
         {/* Formulaire pré-rempli */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 mb-5">
           <Input label="Nom" required defaultValue="MANDJOU" />
           <Input label="Prénom" required defaultValue="MARADOU" />
           <Input label="Date de naissance" required defaultValue="15/05/1995" type="date" />
@@ -54,7 +54,7 @@ export default function ConfirmationInfos() {
           <Input label="Numéro de pièce" required defaultValue="R67234567" />
         </div>
 
-        <div className="flex items-center gap-3 text-sm text-text-muted mb-8">
+        <div className="flex items-center gap-3 text-sm text-text-muted mb-4">
           <Info className="w-5 h-5 text-primary" />
           Vous pouvez modifier les champs en cas d'erreur d'extraction.
         </div>

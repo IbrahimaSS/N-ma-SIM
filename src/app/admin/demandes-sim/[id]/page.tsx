@@ -1,12 +1,14 @@
 "use client";
+import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Printer, CheckCircle2, XCircle, Clock, FileText, Maximize2, Zap, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle2, XCircle, Clock, FileText, Maximize2, Zap, AlertTriangle, X } from "lucide-react";
 import { MOCK_DEMANDES } from "@/data/admin-mock-data";
 
 export default function DetailDemande() {
   const router = useRouter();
   const { id } = useParams();
   const demande = MOCK_DEMANDES.find(d => d.id === id) || MOCK_DEMANDES[0];
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   return (
     <div>
@@ -79,7 +81,7 @@ export default function DetailDemande() {
                   </div>
                 </div>
               </div>
-              <button style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, fontSize: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>
+              <button onClick={() => setFullscreenImage("cni")} style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, fontSize: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>
                 <Maximize2 size={12} /> Voir en plein écran
               </button>
             </div>
@@ -91,7 +93,7 @@ export default function DetailDemande() {
               <div style={{ background: "#1a2a1a", borderRadius: 12, minHeight: 160, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 50 }}>
                 😊
               </div>
-              <button style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, fontSize: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>
+              <button onClick={() => setFullscreenImage("selfie")} style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, fontSize: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>
                 <Maximize2 size={12} /> Voir en plein écran
               </button>
             </div>
@@ -147,7 +149,7 @@ export default function DetailDemande() {
                 <span style={{ background: "#DBEAFE", color: "#1D4ED8", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 700 }}>87%</span>
               </div>
             </div>
-            <div style={{ background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 10, padding: 12, marginTop: 10 }}>
+            {/* <div style={{ background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 10, padding: 12, marginTop: 10 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
                 <AlertTriangle size={16} style={{ color: "#D97706", marginTop: 1, flexShrink: 0 }} />
                 <div>
@@ -155,11 +157,11 @@ export default function DetailDemande() {
                   <div style={{ fontSize: 12, color: "#92400E", marginTop: 2 }}>La confiance est inférieure au seuil recommandé (90%).</div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
-          {/* Actions */}
-          <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+          {/* Actions - Commentées temporairement car validation automatique */}
+          {/* <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
               ⚡ Actions
             </h3>
@@ -179,7 +181,7 @@ export default function DetailDemande() {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Historique */}
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
@@ -207,6 +209,37 @@ export default function DetailDemande() {
           </div>
         </div>
       </div>
+
+      {/* Modal Plein Écran */}
+      {fullscreenImage && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }} onClick={() => setFullscreenImage(null)}>
+          <button onClick={() => setFullscreenImage(null)} style={{ position: "absolute", top: 24, right: 24, background: "white", borderRadius: "50%", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+            <X size={24} color="#111827" />
+          </button>
+          
+          {fullscreenImage === "cni" && (
+            <div style={{ background: "#1a4068", borderRadius: 16, padding: 32, width: "100%", maxWidth: 800, minHeight: 400, display: "flex", flexDirection: "column", gap: 16, cursor: "default" }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ color: "#FFB800", fontSize: 18, fontWeight: 600 }}>RÉPUBLIQUE DE GUINÉE</div>
+              <div style={{ color: "white", fontSize: 16, fontWeight: 600 }}>Carte Nationale d'Identité</div>
+              <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
+                <div style={{ width: 120, height: 160, background: "#2d5f8a", borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>👤</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                  <div style={{ fontSize: 14, color: "#aaa" }}>Nom: <span style={{ color: "white", fontWeight: 600, fontSize: 18 }}>CAMARA</span></div>
+                  <div style={{ fontSize: 14, color: "#aaa" }}>Prénom: <span style={{ color: "white", fontWeight: 600, fontSize: 18 }}>YAMOUSSA</span></div>
+                  <div style={{ fontSize: 14, color: "#aaa" }}>Né(e) le: <span style={{ color: "white", fontSize: 16 }}>15/04/1992</span></div>
+                  <div style={{ fontSize: 14, color: "#aaa" }}>N° CNI: <span style={{ color: "white", fontSize: 16 }}>CAU-01234567</span></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {fullscreenImage === "selfie" && (
+            <div style={{ background: "#1a2a1a", borderRadius: 16, width: "100%", maxWidth: 600, minHeight: 600, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 120, cursor: "default" }} onClick={(e) => e.stopPropagation()}>
+              😊
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

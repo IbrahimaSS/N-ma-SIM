@@ -11,18 +11,18 @@ export default function Identification() {
 
   return (
     <Card className="w-full p-2">
-      <CardHeader className="pb-6 text-center">
+      <CardHeader className="pb-4 text-center">
         <CardTitle className="text-3xl text-primary font-bold">Réactivation des puces</CardTitle>
         <p className="text-text-muted mt-2">Suivez les étapes pour réactiver votre puce SIM.</p>
       </CardHeader>
       
-      <CardContent className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8">
+      <CardContent className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
         {/* Colonne Gauche : Formulaire */}
         <div>
            <h3 className="font-bold text-primary mb-1">Informations personnelles</h3>
-           <p className="text-sm text-text-muted mb-6">Veuillez renseigner vos informations pour commencer la réactivation.</p>
+           <p className="text-sm text-text-muted mb-4">Veuillez renseigner vos informations pour commencer la réactivation.</p>
            
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <Input label="Numéro à réactiver" required placeholder="Ex. : 06 12 34 56 78" />
               <Select label="Motif de réactivation" required defaultValue="">
                 <option value="" disabled>Sélectionnez le motif</option>
@@ -33,7 +33,7 @@ export default function Identification() {
            </div>
 
            {/* Zone des numéros fréquents - CRUCIAL */}
-           <div className="bg-accent/10 border border-accent/20 rounded-xl p-6 mb-6">
+           <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 mb-4">
               <div className="flex items-center gap-3 mb-4">
                  <div className="p-2 bg-accent rounded-full text-primary">
                     <Phone className="w-5 h-5" />
@@ -43,13 +43,13 @@ export default function Identification() {
                     <p className="text-xs text-text-muted">Pour des raisons de sécurité, indiquez deux numéros que vous appelez souvent.</p>
                  </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <Input label="Numéro appelé fréquemment 1" required placeholder="Ex. : 06 98 76 54 32" className="bg-white" />
                  <Input label="Numéro appelé fréquemment 2" required placeholder="Ex. : 07 62 11 22 33" className="bg-white" />
               </div>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <Select label="Type de pièce" required defaultValue="">
                 <option value="" disabled>Sélectionnez le type de pièce</option>
                 <option value="cni">Carte d'identité</option>

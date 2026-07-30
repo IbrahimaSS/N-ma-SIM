@@ -2,6 +2,13 @@
 // DONNÉES MOCKÉES — ESPACE ADMIN N'MA SIM
 // ======================================================
 
+export const MOCK_BORNES = [
+  { id: "BRN-001", nom: "Borne Kaloum Centre", emplacement: "Agence Principale, Kaloum", statut: "En ligne", ip: "192.168.1.10", derniereSynchro: "Il y a 5 min", technicien: "Ahmed Diallo", version: "v1.4.2" },
+  { id: "BRN-002", nom: "Borne Dixinn", emplacement: "Université Gamal, Dixinn", statut: "Hors ligne", ip: "192.168.1.11", derniereSynchro: "Il y a 3 heures", technicien: "Non assigné", version: "v1.4.1" },
+  { id: "BRN-003", nom: "Borne Matoto", emplacement: "Marché Matoto", statut: "En ligne", ip: "192.168.1.12", derniereSynchro: "Il y a 12 min", technicien: "Sekou Touré", version: "v1.4.2" },
+  { id: "BRN-004", nom: "Borne Kipé", emplacement: "Prima Center, Kipé", statut: "En maintenance", ip: "192.168.1.15", derniereSynchro: "Il y a 1 jour", technicien: "Mamadou Sylla", version: "v1.3.9" },
+];
+
 export const MOCK_DEMANDES = [
   { id: "NMA-2026-000128", type: "Nouvelle SIM", client: { nom: "Camara Yamoussa", tel: "+224 620 12 34 56", avatar: null }, offre: "SIM + Internet", montant: 20000, paiement: "Payé", paiementStatut: "Confirmé", ia: "OK", iaDetail: "Identité valide", statut: "En attente de validation", date: "20/05/2026 10:24" },
   { id: "NMA-2026-000127", type: "Nouvelle SIM", client: { nom: "Mariama Diallo", tel: "+224 621 45 67 89", avatar: null }, offre: "SIM Standard", montant: 10000, paiement: "Payé", paiementStatut: "Confirmé", ia: "OK", iaDetail: "Identité valide", statut: "Validée", date: "20/05/2026 09:58" },

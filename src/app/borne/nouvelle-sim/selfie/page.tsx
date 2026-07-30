@@ -16,8 +16,8 @@ export default function Selfie() {
       
       <CardContent>
         {/* Boutons d'action haut */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <button className="flex items-center justify-center gap-4 p-4 border border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group bg-white shadow-sm">
+        <div className="grid grid-cols-2 gap-4 mb-5">
+          <button className="flex items-center justify-center gap-4 p-4 min-h-[52px] border border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group bg-white shadow-sm">
             <div className="p-3 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform">
               <Camera className="w-6 h-6" />
             </div>
@@ -26,7 +26,7 @@ export default function Selfie() {
               <span className="text-xs text-text-muted">Utilisez la caméra</span>
             </div>
           </button>
-          <button className="flex items-center justify-center gap-4 p-4 border border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group bg-white shadow-sm">
+          <button className="flex items-center justify-center gap-4 p-4 min-h-[52px] border border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group bg-white shadow-sm">
             <div className="p-3 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform">
               <Upload className="w-6 h-6" />
             </div>
@@ -37,9 +37,9 @@ export default function Selfie() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
           {/* Aperçu visage */}
-          <div className="rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center h-[350px]">
+          <div className="rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center" style={{ height: "clamp(200px, 28vh, 280px)" }}>
             {/* Simulation image visage */}
             <div className="w-full h-full bg-slate-300 relative">
               <div className="absolute inset-0 flex items-center justify-center flex-col text-slate-500">

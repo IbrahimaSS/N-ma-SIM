@@ -3,11 +3,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, FileText, CreditCard, Users, Tag,
-  UserCog, ScrollText, Settings, LogOut, ChevronRight
+  UserCog, ScrollText, Settings, LogOut, ChevronRight, MonitorSmartphone
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
+  { href: "/admin/bornes", label: "Bornes Kiosk", icon: MonitorSmartphone },
   { href: "/admin/demandes-sim", label: "Demandes SIM", icon: FileText },
   { href: "/admin/paiements", label: "Paiements", icon: CreditCard },
   { href: "/admin/clients", label: "Clients", icon: Users },
