@@ -6,6 +6,7 @@ import {
   Briefcase, X, UserPlus, CloudUpload, Camera, ShieldCheck, MessageSquare, Filter
 } from "lucide-react";
 import { MOCK_UTILISATEURS } from "@/data/admin-mock-data";
+import "../admin-responsive.css";
 
 // Type definitions
 interface Utilisateur {
@@ -213,7 +214,7 @@ export default function Utilisateurs() {
   return (
     <div style={{ minHeight: "100%", position: "relative" }}>
       {/* 1. TOP BAR (Breadcrumbs & User Profile) */}
-      <div style={{
+      <div className="users-topbar" style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -281,15 +282,15 @@ export default function Utilisateurs() {
       {!isAddingUser ? (
         /* ================= VUE TABLEAU & LISTE ================= */
         <div>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+          <div className="users-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
             <div>
               <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Utilisateurs</h1>
               <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Gestion des comptes et rôles</p>
             </div>
-            <div style={{ display: "flex", gap: 12 }}>
+            <div className="users-filters" style={{ display: "flex", gap: 12 }}>
               <div style={{ position: "relative" }}>
                 <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un utilisateur, un email..." style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, outline: "none", width: 300, background: "white" }} />
+                <input className="users-search-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un utilisateur, un email..." style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, outline: "none", width: 300, background: "white" }} />
               </div>
               <div style={{ position: "relative" }}>
                 <button onClick={() => setIsFilterOpen(!isFilterOpen)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: isFilterOpen ? "#F3F4F6" : "white", border: "1px solid #E5E7EB", color: "#374151", fontSize: 14, fontWeight: 500, cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
@@ -335,7 +336,7 @@ export default function Utilisateurs() {
           </div>
 
           {/* KPIs */}
-          <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+          <div className="users-kpi-row" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
             {[
               { icon: Shield, label: "Total utilisateurs", value: users.length.toString(), sub: `↑ ${users.filter(u => u.derniereConnexion.includes("Aujourd'hui")).length} actifs`, color: "#059669", bg: "#EEF2FF", iconColor: "#4F46E5" },
               { icon: Shield, label: "Administrateurs", value: users.filter(u => u.role === "Admin").length.toString(), sub: "Niveau max", color: "#059669", bg: "#FEF3C7", iconColor: "#D97706" },
@@ -343,7 +344,7 @@ export default function Utilisateurs() {
               { icon: Wrench, label: "Techniciens", value: users.filter(u => u.role === "Technicien").length.toString(), sub: "Maintenance", color: "#166534", bg: "#DCFCE7", iconColor: "#166534" },
               { icon: Shield, label: "Lecture seule", value: users.filter(u => u.role === "Lecture seule").length.toString(), sub: "Observateurs", color: "#6B7280", bg: "#F3F4F6", iconColor: "#4B5563" },
             ].map((k, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="users-kpi-card" key={i} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ background: k.bg, borderRadius: 10, padding: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <k.icon size={18} style={{ color: k.iconColor }} />
@@ -357,7 +358,7 @@ export default function Utilisateurs() {
           </div>
 
           {/* Table */}
-          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden", marginBottom: 24 }}>
+          <div className="users-table-wrapper" style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden", marginBottom: 24 }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>

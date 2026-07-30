@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Search, SlidersHorizontal, Calendar, FileText, User, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { MOCK_LOGS } from "@/data/admin-mock-data";
+import "../admin-responsive.css";
 
 function NiveauBadge({ niveau }: { niveau: string }) {
   const map: Record<string, { bg: string; color: string }> = {
@@ -78,15 +79,15 @@ export default function LogsHistorique() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+      <div className="logs-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Logs & Historique</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Traçabilité et audit système</p>
         </div>
-        <div style={{ display: "flex", gap: 12 }}>
+        <div className="logs-filters" style={{ display: "flex", gap: 12 }}>
           <div style={{ position: "relative" }}>
             <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher (utilisateur, action, référence...)" style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, outline: "none", width: 300, background: "white" }} />
+            <input className="logs-search-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher (utilisateur, action, référence...)" style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, outline: "none", width: 300, background: "white" }} />
           </div>
           <div style={{ position: "relative" }}>
             <button onClick={() => setIsDateFilterOpen(!isDateFilterOpen)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: isDateFilterOpen || startDate || endDate ? "#F3F4F6" : "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
@@ -140,7 +141,7 @@ export default function LogsHistorique() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+      <div className="logs-kpi-row" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { icon: FileText, label: "Actions totales", value: "1 248", sub: "100% du total", subSub: "↑ 18% vs période précédente", color: "#059669", bg: "#EEF2FF", iconColor: "#4F46E5" },
           { icon: User, label: "Connexions", value: "328", sub: "26,3% du total", subSub: "↑ 12% vs période précédente", color: "#059669", bg: "#E0F2FE", iconColor: "#0284C7" },
@@ -148,14 +149,14 @@ export default function LogsHistorique() {
           { icon: XCircle, label: "Rejets", value: "176", sub: "14,1% du total", subSub: "↓ 5% vs période précédente", color: "#DC2626", bg: "#FEE2E2", iconColor: "#991B1B" },
           { icon: AlertTriangle, label: "Alertes sécurité", value: "32", sub: "2,6% du total", subSub: "↑ 33% vs période précédente", color: "#059669", bg: "#FEF3C7", iconColor: "#D97706" },
         ].map((k, i) => (
-          <div key={i} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="logs-kpi-card" key={i} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ background: k.bg, borderRadius: 10, padding: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <k.icon size={18} style={{ color: k.iconColor }} />
               </div>
               <div style={{ fontSize: 12, color: "#1F0270", fontWeight: 700 }}>{k.label}</div>
             </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+            <div className="logs-kpi-value" style={{ fontSize: 26, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
             <div style={{ fontSize: 11, color: "#6B7280" }}>{k.sub}</div>
             <div style={{ fontSize: 10, color: k.color, fontWeight: 500, marginTop: 4 }}>{k.subSub}</div>
           </div>
@@ -163,11 +164,11 @@ export default function LogsHistorique() {
       </div>
 
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
+      <div className="logs-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
         {/* Colonne Gauche (Tableau + Graphique en bas) */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {viewMode === "logs" ? (
-            <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden", height: "fit-content" }}>
+            <div className="logs-table-wrapper" style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden", height: "fit-content" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
