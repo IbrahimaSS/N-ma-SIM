@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import {
   FileText, Clock, CheckCircle2, XCircle, CreditCard, RefreshCcw,
   Search, SlidersHorizontal, TrendingUp, TrendingDown, AlertTriangle,
-  BarChart3, Eye
+  BarChart3, Eye, Users
 } from "lucide-react";
 
 // --- Mini composants réutilisables ---
@@ -78,13 +78,14 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
-        <KpiCard icon={FileText} label="Demandes totales" value="135" sub="↑ 12 ce mois" subColor="#059669" iconBg="#EEF2FF" />
-        <KpiCard icon={Clock} label="En attente validation" value="52" sub="38,5% du total" badge="Priorité élevée" badgeColor="#FEF3C7" iconBg="#FEF3C7" />
-        <KpiCard icon={CheckCircle2} label="Validées" value="68" sub="↑ 8 ce mois" subColor="#059669" iconBg="#DCFCE7" />
-        <KpiCard icon={XCircle} label="Rejetées" value="15" sub="↓ 3 ce mois" subColor="#DC2626" iconBg="#FEE2E2" />
-        <KpiCard icon={CreditCard} label="Paiements confirmés" value="113" sub="↑ 12 ce mois" subColor="#059669" iconBg="#EEF2FF" />
-        <KpiCard icon={RefreshCcw} label="Réactivations" value="18" sub="↑ 5 ce mois" subColor="#059669" iconBg="#F0FDF4" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 24 }}>
+        <KpiCard icon={FileText} label="Demandes totales" value="135" iconBg="#EEF2FF" />
+        {/* <KpiCard icon={Clock} label="En attente validation" value="52" badge="Priorité élevée" badgeColor="#FEF3C7" iconBg="#FEF3C7" /> */}
+        {/* <KpiCard icon={CheckCircle2} label="Validées" value="68" iconBg="#DCFCE7" /> */}
+        {/* <KpiCard icon={XCircle} label="Rejetées" value="15" iconBg="#FEE2E2" /> */}
+        <KpiCard icon={CreditCard} label="Paiements confirmés" value="113" iconBg="#EEF2FF" />
+        <KpiCard icon={RefreshCcw} label="Réactivations" value="18" iconBg="#F0FDF4" />
+        <KpiCard icon={Users} label="Clients" value="5 240" iconBg="#EEF2FF" />
       </div>
 
       {/* Graphiques + Alertes */}
