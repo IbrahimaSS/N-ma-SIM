@@ -44,13 +44,12 @@ export default function Services() {
     <div style={{
       display: "flex", flexDirection: "column", alignItems: "center",
       width: "100%",
-      /* Sur grand écran → max 900px | Sur borne (petit écran) → plus étroit */
-      maxWidth: "clamp(560px, 70vw, 900px)",
-      paddingBottom: 40,
+      maxWidth: "clamp(560px, 80vw, 1000px)",
+      paddingBottom: 24,
     }}>
 
       {/* Titre */}
-      <div style={{ textAlign: "center", marginBottom: "clamp(20px, 3vh, 40px)" }}>
+      <div style={{ textAlign: "center", marginBottom: "clamp(14px, 2vh, 28px)" }}>
         <h1 style={{
           fontSize: "clamp(24px, 3vw, 36px)",
           fontWeight: 900, color: "#1F0270", margin: "0 0 10px 0"
@@ -66,9 +65,9 @@ export default function Services() {
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        gap: "clamp(12px, 1.5vw, 20px)",
+        gap: "clamp(10px, 1.2vw, 16px)",
         width: "100%",
-        marginBottom: "clamp(20px, 3vh, 36px)",
+        marginBottom: "clamp(14px, 2vh, 24px)",
       }}>
         {services.map((service) => (
           <div

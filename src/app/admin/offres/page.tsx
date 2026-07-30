@@ -1,8 +1,40 @@
 "use client";
-import { Plus, Edit2, Power, Eye, Tag } from "lucide-react";
+import { useState } from "react";
+import { Plus, Edit2, Power, Eye, Tag, X, CheckCircle2 } from "lucide-react";
 import { MOCK_OFFRES_ADMIN } from "@/data/admin-mock-data";
 
+// Composant générique pour les Modals
+function Modal({ isOpen, onClose, title, children }: any) {
+  if (!isOpen) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
+      <div style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 500, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1F0270", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -15, right: -15, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,184,0,0.10)" }} />
+          <div style={{ position: "absolute", bottom: -20, left: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+          <h3 style={{ fontWeight: 700, color: "#FFB800", margin: 0, fontSize: 18, position: "relative", zIndex: 1 }}>{title}</h3>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.12)", border: "none", cursor: "pointer", color: "white", display: "flex", padding: 7, borderRadius: 8, position: "relative", zIndex: 1 }}><X size={18} /></button>
+        </div>
+        <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Offres() {
+  const [offres, setOffres] = useState(MOCK_OFFRES_ADMIN);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editOffre, setEditOffre] = useState<any>(null);
+  const [deactivateOffre, setDeactivateOffre] = useState<any>(null);
+
+  const notifySuccess = () => {
+    setIsAddOpen(false);
+    setEditOffre(null);
+    setDeactivateOffre(null);
+  };
+
   return (
     <div>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
@@ -10,7 +42,7 @@ export default function Offres() {
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Offres</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Gestion des offres SIM</p>
         </div>
-        <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
+        <button onClick={() => setIsAddOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
           <Plus size={16} /> Ajouter une offre
         </button>
       </div>
@@ -48,11 +80,11 @@ export default function Offres() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_OFFRES_ADMIN.map((o) => (
-                <tr key={o.id} style={{ borderBottom: "1px solid #F9FAFB" }}>
+              {offres.map((o) => (
+                <tr key={o.id} style={{ borderBottom: "1px solid #F9FAFB", opacity: o.statut === "Inactive" ? 0.6 : 1 }}>
                   <td style={{ padding: "16px 20px" }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 10, background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
                         {o.icon}
                       </div>
                       <div>
@@ -71,23 +103,20 @@ export default function Offres() {
                   </td>
                   <td style={{ padding: "16px 20px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981" }} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#10B981" }}>{o.statut}</span>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: o.statut === "Active" ? "#10B981" : "#EF4444" }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: o.statut === "Active" ? "#10B981" : "#EF4444" }}>{o.statut}</span>
                     </div>
                   </td>
                   <td style={{ padding: "16px 20px" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       <div style={{ display: "flex", gap: 8 }}>
-                        <button style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
+                        <button onClick={() => setEditOffre(o)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
                           <Edit2 size={12} /> Modifier
                         </button>
-                        <button style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "1px solid #FEE2E2", background: "white", color: "#DC2626", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
-                          <Power size={12} /> Désactiver
+                        <button onClick={() => setDeactivateOffre(o)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "1px solid #FEE2E2", background: "white", color: "#DC2626", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
+                          <Power size={12} /> {o.statut === "Active" ? "Désactiver" : "Activer"}
                         </button>
                       </div>
-                      <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "1px solid #E5E7EB", background: "#F9FAFB", color: "#4F46E5", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-                        <Eye size={14} /> Voir détails
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -147,6 +176,64 @@ export default function Offres() {
           </div>
         </div>
       </div>
+
+      {/* --- MODALS --- */}
+
+      {/* Ajouter/Modifier une Offre */}
+      <Modal isOpen={isAddOpen || !!editOffre} onClose={notifySuccess} title={editOffre ? "Modifier l'offre" : "Nouvelle offre"}>
+        <div>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Nom de l'offre</label>
+          <input type="text" defaultValue={editOffre?.nom || ""} placeholder="Ex: SIM + Internet 5Go" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14 }} />
+        </div>
+        <div>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Description</label>
+          <textarea rows={3} defaultValue={editOffre?.description || ""} placeholder="Avantages de l'offre..." style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, resize: "none" }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Prix (GNF)</label>
+            <input type="number" defaultValue={editOffre?.prix || ""} placeholder="Ex: 10000" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14 }} />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Type de service</label>
+            <select defaultValue={editOffre?.typeService || "Nouvelle SIM"} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "white" }}>
+              <option value="Nouvelle SIM">Nouvelle SIM</option>
+              <option value="Réactivation">Réactivation</option>
+              <option value="Achat de pass">Achat de pass</option>
+            </select>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+          <button onClick={notifySuccess} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
+          <button onClick={notifySuccess} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {editOffre ? <><CheckCircle2 size={16} /> Enregistrer</> : <><Plus size={16} /> Créer l'offre</>}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Désactiver une Offre */}
+      <Modal isOpen={!!deactivateOffre} onClose={() => setDeactivateOffre(null)} title={deactivateOffre?.statut === "Active" ? "Désactiver l'offre" : "Activer l'offre"}>
+        <div style={{ background: deactivateOffre?.statut === "Active" ? "#FEE2E2" : "#DCFCE7", borderRadius: 8, padding: 16, display: "flex", gap: 12 }}>
+          <Power size={24} color={deactivateOffre?.statut === "Active" ? "#DC2626" : "#166534"} style={{ flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: deactivateOffre?.statut === "Active" ? "#991B1B" : "#166534" }}>
+              Voulez-vous {deactivateOffre?.statut === "Active" ? "désactiver" : "activer"} "{deactivateOffre?.nom}" ?
+            </div>
+            <div style={{ fontSize: 12, color: deactivateOffre?.statut === "Active" ? "#B91C1C" : "#15803D", marginTop: 4 }}>
+              {deactivateOffre?.statut === "Active" 
+                ? "Cette offre ne sera plus visible sur les bornes Kiosk ni sur la plateforme web." 
+                : "Cette offre sera à nouveau disponible pour les clients."}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+          <button onClick={() => setDeactivateOffre(null)} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
+          <button onClick={notifySuccess} style={{ flex: 1, padding: "12px", borderRadius: 8, background: deactivateOffre?.statut === "Active" ? "#DC2626" : "#166534", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <Power size={16} /> {deactivateOffre?.statut === "Active" ? "Désactiver" : "Activer"}
+          </button>
+        </div>
+      </Modal>
+
     </div>
   );
 }

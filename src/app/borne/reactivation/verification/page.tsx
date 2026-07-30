@@ -10,12 +10,12 @@ export default function Verification() {
 
   return (
     <Card className="w-full p-2">
-      <CardHeader className="pb-8 text-center">
+      <CardHeader className="pb-4 text-center">
         <CardTitle className="text-3xl text-primary font-bold">Réactivation des puces</CardTitle>
         <p className="text-text-muted mt-2">Nous vérifions les informations fournies pour sécuriser votre réactivation.</p>
       </CardHeader>
       
-      <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* Résumé */}
         <div>
@@ -49,8 +49,8 @@ export default function Verification() {
         </div>
 
         {/* Contrôle de ligne */}
-        <div className="bg-accent/5 border border-accent/20 rounded-2xl p-8">
-           <div className="flex items-start gap-4 mb-8">
+        <div className="bg-accent/5 border border-accent/20 rounded-2xl p-6">
+           <div className="flex items-start gap-4 mb-4">
               <div className="bg-accent/20 p-3 rounded-full flex-shrink-0">
                  <Hourglass className="w-8 h-8 text-accent animate-pulse" />
               </div>
@@ -60,7 +60,7 @@ export default function Verification() {
               </div>
            </div>
 
-           <div className="flex flex-col gap-6 mb-8">
+           <div className="flex flex-col gap-4 mb-4">
               <div className="flex gap-3">
                  <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
                  <div>

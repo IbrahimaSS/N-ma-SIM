@@ -11,24 +11,24 @@ export default function Recu() {
   return (
     <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* Message de succès */}
-        <Card className="p-8 flex flex-col items-center text-center justify-center">
-          <div className="w-24 h-24 bg-success rounded-full flex items-center justify-center mb-6 shadow-lg shadow-success/30 relative">
-             <CheckCircle className="w-12 h-12 text-white" />
+        <Card className="p-5 flex flex-col items-center text-center justify-center">
+          <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center mb-4 shadow-lg shadow-success/30 relative">
+             <CheckCircle className="w-8 h-8 text-white" />
              {/* Particules décoratives */}
              <div className="absolute top-2 right-2 w-2 h-2 bg-success rounded-full animate-ping"></div>
              <div className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-success rounded-full"></div>
           </div>
           
-          <h2 className="text-2xl font-bold text-primary mb-2">Demande enregistrée avec succès !</h2>
-          <p className="text-text-muted mb-8">Votre demande de nouvelle SIM a été prise en compte.</p>
+          <h2 className="text-xl font-bold text-primary mb-2">Demande enregistrée avec succès !</h2>
+          <p className="text-text-muted mb-4">Votre demande de nouvelle SIM a été prise en compte.</p>
           
-          <div className="w-full border-t border-b border-dashed border-border-light py-6 mb-6">
-            <p className="text-4xl font-extrabold text-accent tracking-wider">NMA-2026-0001</p>
+          <div className="w-full border-t border-b border-dashed border-border-light py-4 mb-4">
+            <p className="text-3xl font-extrabold text-accent tracking-wider">NMA-2026-0001</p>
           </div>
 
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-4">
             <span className="font-semibold text-text-muted">Statut :</span>
             <StatusBadge status="EN_ATTENTE_VALIDATION" />
           </div>
@@ -43,7 +43,7 @@ export default function Recu() {
         </Card>
 
         {/* Reçu détaillé */}
-        <Card className="p-8">
+        <Card className="p-5">
           <div className="text-center mb-8">
             <h3 className="font-bold text-primary text-xl tracking-widest uppercase">Reçu de demande</h3>
             <p className="text-primary font-medium">Nouvelle SIM</p>
@@ -99,20 +99,20 @@ export default function Recu() {
       </div>
 
       {/* Footer Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex gap-4">
-           <Button variant="outline" className="flex-1 bg-white h-14">
+           <Button variant="outline" className="flex-1 bg-white h-12">
              <Eye className="w-5 h-5 mr-2" /> Voir le reçu
            </Button>
-           <Button variant="primary" className="flex-1 h-14" onClick={() => router.push("/borne/accueil")}>
+           <Button variant="primary" className="flex-1 h-12" onClick={() => router.push("/borne/accueil")}>
              <Home className="w-5 h-5 mr-2" /> Retour à l'accueil
            </Button>
         </div>
         <div className="flex gap-4">
-           <Button variant="outline" className="flex-1 bg-white h-14">
+           <Button variant="outline" className="flex-1 bg-white h-12">
              <Printer className="w-5 h-5 mr-2" /> Imprimer
            </Button>
-           <Button variant="primary" className="flex-1 h-14" onClick={() => router.push("/borne/accueil")}>
+           <Button variant="primary" className="flex-1 h-12" onClick={() => router.push("/borne/accueil")}>
              <CheckCircle2 className="w-5 h-5 mr-2" /> Terminer
            </Button>
         </div>

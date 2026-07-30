@@ -27,17 +27,18 @@ export const BorneHeader = () => {
       padding: "16px 32px",
     }}>
       {/* Logo réel */}
-      <div style={{
-        background: "white",
-        borderRadius: "0 0 16px 16px",
-        boxShadow: "0 4px 16px rgba(31,2,112,0.10)",
-        overflow: "hidden",
-        width: 190, 
-        height: 70, // Hauteur encore un peu augmentée
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}>
+      <div 
+        className="w-[190px] h-[70px] lg:h-[90px] lg:-mt-[16px] lg:pt-[16px]"
+        style={{
+          background: "white",
+          borderRadius: "0 0 16px 16px",
+          boxShadow: "0 4px 16px rgba(31,2,112,0.10)",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <img
           src="/logo-transparent.png"
           alt="N'ma SIM"

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Search, SlidersHorizontal, Eye } from "lucide-react";
+import { Search, SlidersHorizontal, Eye, X, User, Phone, CheckCircle2, Clock, AlertCircle, Download } from "lucide-react";
 import { MOCK_PAIEMENTS } from "@/data/admin-mock-data";
 
 function StatutBadge({ statut }: { statut: string }) {
@@ -37,8 +37,29 @@ const repartition = [
   { label: "Espèces", pct: 13.9, n: 174, color: "#059669" },
 ];
 
+// Composant générique pour les Modals
+function Modal({ isOpen, onClose, title, customUI, children }: any) {
+  if (!isOpen) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
+      <div style={{ background: customUI ? "transparent" : "white", borderRadius: customUI ? 24 : 16, width: "100%", maxWidth: 460, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: customUI ? "none" : "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }} onClick={e => e.stopPropagation()}>
+        {!customUI && (
+          <div style={{ padding: "20px 24px", borderBottom: "1px solid #E5E7EB", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#F9FAFB" }}>
+            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 18 }}>{title}</h3>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B7280", display: "flex", padding: 0 }}><X size={20} /></button>
+          </div>
+        )}
+        <div style={customUI ? { width: "100%", overflowY: "auto", maxHeight: "90vh" } : { padding: 24, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Paiements() {
   const [search, setSearch] = useState("");
+  const [selectedPaiement, setSelectedPaiement] = useState<any>(null);
 
   const filtered = MOCK_PAIEMENTS.filter(p =>
     p.client.nom.toLowerCase().includes(search.toLowerCase()) ||
@@ -114,7 +135,7 @@ export default function Paiements() {
                   <td style={{ padding: "13px 12px" }}><StatutBadge statut={p.statut} /></td>
                   <td style={{ padding: "13px 12px", fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap" }}>{p.date}</td>
                   <td style={{ padding: "13px 12px" }}>
-                    <button style={{ background: "#EEF2FF", border: "none", borderRadius: 8, padding: "7px 10px", cursor: "pointer" }}>
+                    <button onClick={() => setSelectedPaiement(p)} style={{ background: "#EEF2FF", border: "none", borderRadius: 8, padding: "7px 10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "#E0E7FF"} onMouseOut={e => e.currentTarget.style.background = "#EEF2FF"}>
                       <Eye size={15} style={{ color: "#4F46E5" }} />
                     </button>
                   </td>
@@ -157,6 +178,157 @@ export default function Paiements() {
           </div>
         </div>
       </div>
+
+      {/* Modal Détails Paiement selon Maquette */}
+      <Modal isOpen={!!selectedPaiement} onClose={() => setSelectedPaiement(null)} customUI>
+        {selectedPaiement && (
+          <div style={{ background: "#F8F9FC", width: "100%", overflow: "hidden", position: "relative" }}>
+            {/* Header Section */}
+            <div style={{ background: "#1F0270", padding: "24px 24px 48px", position: "relative", overflow: "hidden" }}>
+              {/* Decorative circles */}
+              <div style={{ position: "absolute", top: -30, right: -30, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,184,0,0.10)" }} />
+              <div style={{ position: "absolute", top: 20, right: 20, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,184,0,0.07)" }} />
+              <div style={{ position: "absolute", bottom: -10, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+              
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 10 }}>
+                <div>
+                  <h2 style={{ margin: 0, color: "#FFB800", fontSize: 22, fontWeight: 800 }}>Détail Paiement</h2>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                    <span style={{ color: "#9CA3AF", fontSize: 13, fontFamily: "monospace" }}>{selectedPaiement.ref}</span>
+                    <button style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 4, padding: "2px 8px", color: "white", fontSize: 11, cursor: "pointer" }}>Copier</button>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedPaiement(null)} style={{ background: "rgba(255,255,255,0.1)", border: "none", width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer" }}>
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Body Content overlapping the header */}
+            <div style={{ padding: "0 24px 24px", marginTop: -32, position: "relative", zIndex: 20 }}>
+              
+              {/* Montant Payé Card */}
+              <div style={{ background: "white", borderRadius: 16, padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Montant Payé</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: "#1F0270" }}>{selectedPaiement.montant.toLocaleString("fr-FR")} <span style={{ fontSize: 14, color: "#6B7280" }}>GNF</span></div>
+                </div>
+                <StatutBadge statut={selectedPaiement.statut} />
+              </div>
+
+              {/* SUIVI DU PAIEMENT */}
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16, display: "flex", alignItems: "center" }}>
+                  Suivi du Paiement
+                  <div style={{ flex: 1, height: 1, background: "#E5E7EB", marginLeft: 12 }}></div>
+                </div>
+                
+                {/* Horizontal Stepper */}
+                <div style={{ display: "flex", justifyContent: "space-between", position: "relative" }}>
+                  <div style={{ position: "absolute", top: 12, left: 24, right: 24, height: 2, background: "#10B981", zIndex: 0 }}></div>
+                  {/* Step 1 */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", zIndex: 10, background: "#F8F9FC", padding: "0 4px" }}>
+                    <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#10B981", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}><CheckCircle2 size={14} /></div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginTop: 8 }}>Initié</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>14:30</div>
+                  </div>
+                  {/* Step 2 */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", zIndex: 10, background: "#F8F9FC", padding: "0 4px" }}>
+                    <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#10B981", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}><CheckCircle2 size={14} /></div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginTop: 8 }}>En traitement</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>14:31</div>
+                  </div>
+                  {/* Step 3 */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", zIndex: 10, background: "#F8F9FC", padding: "0 4px" }}>
+                    <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#10B981", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}><CheckCircle2 size={14} /></div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginTop: 8 }}>Confirmé</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>14:32</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CLIENT */}
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16, display: "flex", alignItems: "center" }}>
+                  Client
+                  <div style={{ flex: 1, height: 1, background: "#E5E7EB", marginLeft: 12 }}></div>
+                </div>
+                <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5", display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#FF6600", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "white" }}>
+                    {selectedPaiement.client.nom.charAt(0)}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#1F0270" }}>{selectedPaiement.client.nom}</div>
+                    <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>+224 {selectedPaiement.client.tel}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* TRANSACTION */}
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16, display: "flex", alignItems: "center" }}>
+                  Transaction
+                  <div style={{ flex: 1, height: 1, background: "#E5E7EB", marginLeft: 12 }}></div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                  <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Ticket</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{selectedPaiement.ticket || "NMA-2026-000128"}</div>
+                  </div>
+                  <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Service</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{selectedPaiement.service}</div>
+                  </div>
+                  <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 6 }}>Mode de paiement</div>
+                    <div style={{ margin: "-4px 0" }}><ModeBadge mode={selectedPaiement.mode} /></div>
+                  </div>
+                  <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Date & Heure</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{selectedPaiement.date} - 14:32</div>
+                  </div>
+                </div>
+                <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>ID Transaction Opérateur</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270", fontFamily: "monospace" }}>OM-TXN-8842-XK71-2026</div>
+                </div>
+              </div>
+
+              {/* DETAIL DU MONTANT */}
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16, display: "flex", alignItems: "center" }}>
+                  Détail du Montant
+                  <div style={{ flex: 1, height: 1, background: "#E5E7EB", marginLeft: 12 }}></div>
+                </div>
+                <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", border: "1px solid #EAECF5" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                    <span style={{ fontSize: 13, color: "#374151" }}>SIM + Internet</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{(selectedPaiement.montant - 500).toLocaleString("fr-FR")} GNF</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+                    <span style={{ fontSize: 13, color: "#374151" }}>Frais de transaction</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>500 GNF</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px dashed #E5E7EB", paddingTop: 16 }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: "#1F0270" }}>Total</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: "#1F0270" }}>{selectedPaiement.montant.toLocaleString("fr-FR")} GNF</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ACTIONS */}
+              <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                <button style={{ flex: 1, background: "#FFB800", color: "#111827", padding: "14px", borderRadius: 12, border: "none", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <Download size={16} /> Télécharger le reçu
+                </button>
+                <button style={{ flex: 1, background: "white", color: "#DC2626", padding: "14px", borderRadius: 12, border: "1px solid #FCA5A5", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                  Rembourser
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

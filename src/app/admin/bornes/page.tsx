@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Search, Plus, MonitorSmartphone, Settings, Power, Lock, UserCog, Signal, SignalHigh, WifiOff, Wrench, X, CheckCircle2 } from "lucide-react";
+import { Search, Plus, MonitorSmartphone, Settings, Power, Lock, UserCog, Signal, SignalHigh, WifiOff, Wrench, X, CheckCircle2, MapPin, Key, Copy } from "lucide-react";
 import { MOCK_BORNES } from "@/data/admin-mock-data";
 
 function StatutBadge({ statut }: { statut: string }) {
@@ -22,12 +22,14 @@ function Modal({ isOpen, onClose, title, children }: any) {
   if (!isOpen) return null;
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
-      <div style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 500, display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }} onClick={e => e.stopPropagation()}>
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid #E5E7EB", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#F9FAFB" }}>
-          <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 18 }}>{title}</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B7280", display: "flex" }}><X size={20} /></button>
+      <div style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 500, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1F0270", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -15, right: -15, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,184,0,0.10)" }} />
+          <div style={{ position: "absolute", bottom: -20, left: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+          <h3 style={{ fontWeight: 700, color: "#FFB800", margin: 0, fontSize: 18, position: "relative", zIndex: 1 }}>{title}</h3>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.12)", border: "none", cursor: "pointer", color: "white", display: "flex", padding: 7, borderRadius: 8, position: "relative", zIndex: 1 }}><X size={18} /></button>
         </div>
-        <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
           {children}
         </div>
       </div>
@@ -42,6 +44,7 @@ export default function BornesKiosk() {
   // States pour les Modals
   const [isAddBorneOpen, setIsAddBorneOpen] = useState(false);
   const [borneConfig, setBorneConfig] = useState<any>(null);
+  const [showMap, setShowMap] = useState(false);
   const [borneAssign, setBorneAssign] = useState<any>(null);
   const [borneLock, setBorneLock] = useState<any>(null);
   const [bornePower, setBornePower] = useState<any>(null);
@@ -63,6 +66,7 @@ export default function BornesKiosk() {
     // Dans la réalité, on utiliserait un toast. Ici on ferme juste la modale.
     setIsAddBorneOpen(false);
     setBorneConfig(null);
+    setShowMap(false);
     setBorneAssign(null);
     setBorneLock(null);
     setBornePower(null);
@@ -135,7 +139,6 @@ export default function BornesKiosk() {
                 <td style={{ padding: "14px 20px" }}><StatutBadge statut={b.statut} /></td>
                 <td style={{ padding: "14px 20px" }}>
                   <div style={{ fontSize: 12, color: "#374151", fontFamily: "monospace" }}>{b.ip}</div>
-                  <div style={{ fontSize: 11, color: "#9CA3AF" }}>{b.version}</div>
                 </td>
                 <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280" }}>{b.derniereSynchro}</td>
                 <td style={{ padding: "14px 20px" }}>
@@ -179,50 +182,122 @@ export default function BornesKiosk() {
       
       {/* Ajouter Borne */}
       <Modal isOpen={isAddBorneOpen} onClose={() => setIsAddBorneOpen(false)} title="Ajouter une nouvelle borne">
-        <div>
-          <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Nom de la borne</label>
-          <input type="text" placeholder="Ex: Borne Agence Madina" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14 }} />
+        <div style={{ marginBottom: 4, fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+          Renseignez les informations de la nouvelle borne pour générer sa clé d'activation sécurisée.
         </div>
-        <div>
-          <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Emplacement (Adresse / Lieu)</label>
-          <input type="text" placeholder="Ex: Marché Madina, Conakry" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14 }} />
+        
+        <div style={{ background: "white", padding: 16, borderRadius: 12, border: "1px solid #EAECF5", boxShadow: "0 2px 10px rgba(31,2,112,0.05)", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Nom de la borne</label>
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <MonitorSmartphone size={18} color="#9CA3AF" style={{ position: "absolute", left: 12 }} />
+              <input type="text" placeholder="Ex: Borne Agence Madina" style={{ width: "100%", padding: "12px 12px 12px 38px", borderRadius: 10, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", transition: "all 0.2s" }} onFocus={(e) => { e.target.style.background = "white"; e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)"; }} onBlur={(e) => { e.target.style.background = "#F9FAFB"; e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }} />
+            </div>
+          </div>
+          
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Emplacement (Adresse / Lieu)</label>
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <MapPin size={18} color="#9CA3AF" style={{ position: "absolute", left: 12 }} />
+              <input type="text" placeholder="Ex: Marché Madina, Conakry" style={{ width: "100%", padding: "12px 12px 12px 38px", borderRadius: 10, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", transition: "all 0.2s" }} onFocus={(e) => { e.target.style.background = "white"; e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)"; }} onBlur={(e) => { e.target.style.background = "#F9FAFB"; e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }} />
+            </div>
+          </div>
         </div>
-        <div>
-          <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Clé d'activation (Token)</label>
-          <input type="text" readOnly value="TKN-8F49-B2C1-90X7" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", fontFamily: "monospace", color: "#4F46E5", fontWeight: 600 }} />
-          <p style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>Utilisez cette clé pour enregistrer la borne lors de son premier allumage.</p>
+        
+        <div style={{ background: "#EEF2FF", borderRadius: 12, padding: 16, border: "1px dashed #C7D2FE", marginTop: 4 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#4338CA", marginBottom: 8 }}>
+            <Key size={16} /> Clé d'activation (Token)
+          </label>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input type="text" readOnly value="TKN-8F49-B2C1-90X7" style={{ flex: 1, padding: "12px", borderRadius: 8, border: "1px solid #C7D2FE", outline: "none", fontSize: 15, background: "white", fontFamily: "monospace", color: "#312E81", fontWeight: 700, letterSpacing: 1 }} />
+            <button title="Copier la clé" style={{ width: 44, height: 44, background: "#4F46E5", border: "none", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", flexShrink: 0, boxShadow: "0 2px 4px rgba(79,70,229,0.3)" }}>
+              <Copy size={18} />
+            </button>
+          </div>
+          <p style={{ fontSize: 11, color: "#6366F1", marginTop: 8, margin: "8px 0 0 0", lineHeight: 1.4 }}>
+            Veuillez copier cette clé. Elle sera requise pour associer physiquement la borne au système lors de son premier démarrage.
+          </p>
         </div>
+        
         <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-          <button onClick={() => setIsAddBorneOpen(false)} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
-          <button onClick={notifySuccess} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Plus size={16} /> Créer la borne</button>
+          <button onClick={() => setIsAddBorneOpen(false)} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer", fontSize: 14, transition: "all 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#F9FAFB"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>Annuler</button>
+          <button onClick={notifySuccess} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 14, boxShadow: "0 4px 12px rgba(31,2,112,0.2)", transition: "all 0.2s" }} onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(31,2,112,0.3)"; }} onMouseOut={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(31,2,112,0.2)"; }}>
+            <Plus size={18} /> Créer la borne
+          </button>
         </div>
       </Modal>
 
-      {/* Configurer Borne */}
-      <Modal isOpen={!!borneConfig} onClose={() => setBorneConfig(null)} title={`Paramètres - ${borneConfig?.nom}`}>
-        <div>
-          <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Adresse IP</label>
-          <input type="text" defaultValue={borneConfig?.ip} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, fontFamily: "monospace" }} />
-        </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #F3F4F6" }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Mode économie d'énergie</div>
-            <div style={{ fontSize: 12, color: "#6B7280" }}>Éteindre l'écran après 5 min d'inactivité</div>
+      {/* Configurer Borne / Vue Carte */}
+      <Modal isOpen={!!borneConfig} onClose={() => { setBorneConfig(null); setShowMap(false); }} title={showMap ? `Localisation - ${borneConfig?.nom}` : `Paramètres - ${borneConfig?.nom}`}>
+        {showMap ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+             <div style={{ width: "100%", height: 350, borderRadius: 12, overflow: "hidden", position: "relative", background: "#E5E7EB" }}>
+               {/* Iframe Google Maps centrée sur Conakry avec overlay pour empêcher le clic */}
+               <div style={{ position: "absolute", inset: 0, zIndex: 10 }}></div>
+               <iframe 
+                 width="100%" 
+                 height="100%" 
+                 frameBorder="0" 
+                 style={{ border: 0, opacity: 0.8 }} 
+                 src={`https://maps.google.com/maps?q=${encodeURIComponent(borneConfig?.emplacement + ", Conakry")}&t=&z=15&ie=UTF8&iwloc=&output=embed`} 
+                 allowFullScreen 
+               />
+               
+               {/* Icône personnalisée de la borne (Jaune et Bleu) */}
+               <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -100%)", zIndex: 20, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                 <div style={{ background: "#FFB800", padding: "10px", borderRadius: "50%", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", border: "3px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                   <MonitorSmartphone size={24} color="#1F0270" />
+                 </div>
+                 <div style={{ width: 0, height: 0, borderLeft: "8px solid transparent", borderRight: "8px solid transparent", borderTop: "10px solid white", marginTop: "-2px" }}></div>
+               </div>
+               
+               {/* Popup d'info sur la carte */}
+               <div style={{ position: "absolute", bottom: 16, left: 16, right: 16, background: "white", padding: "12px 16px", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.15)", zIndex: 20, display: "flex", alignItems: "center", gap: 12 }}>
+                 <div style={{ background: "#EEF2FF", padding: 8, borderRadius: 8 }}><MapPin size={18} color="#4F46E5" /></div>
+                 <div>
+                   <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{borneConfig?.nom}</div>
+                   <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{borneConfig?.emplacement}</div>
+                 </div>
+               </div>
+             </div>
+             <button onClick={() => setShowMap(false)} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Retour aux paramètres</button>
           </div>
-          <div style={{ width: 44, height: 24, background: "#1F0270", borderRadius: 12, position: "relative", cursor: "pointer" }}>
-            <div style={{ width: 20, height: 20, background: "white", borderRadius: "50%", position: "absolute", top: 2, right: 2 }} />
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Mises à jour auto</div>
-            <div style={{ fontSize: 12, color: "#6B7280" }}>Télécharger le logiciel automatiquement</div>
-          </div>
-          <div style={{ width: 44, height: 24, background: "#1F0270", borderRadius: 12, position: "relative", cursor: "pointer" }}>
-            <div style={{ width: 20, height: 20, background: "white", borderRadius: "50%", position: "absolute", top: 2, right: 2 }} />
-          </div>
-        </div>
-        <button onClick={notifySuccess} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>Enregistrer</button>
+        ) : (
+          <>
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Adresse IP</label>
+              <input type="text" defaultValue={borneConfig?.ip} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, fontFamily: "monospace" }} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #F3F4F6" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Mode économie d'énergie</div>
+                <div style={{ fontSize: 12, color: "#6B7280" }}>Éteindre l'écran après 5 min d'inactivité</div>
+              </div>
+              <div style={{ width: 44, height: 24, background: "#1F0270", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+                <div style={{ width: 20, height: 20, background: "white", borderRadius: "50%", position: "absolute", top: 2, right: 2 }} />
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Mises à jour auto</div>
+                <div style={{ fontSize: 12, color: "#6B7280" }}>Télécharger le logiciel automatiquement</div>
+              </div>
+              <div style={{ width: 44, height: 24, background: "#1F0270", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+                <div style={{ width: 20, height: 20, background: "white", borderRadius: "50%", position: "absolute", top: 2, right: 2 }} />
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #F3F4F6", borderTop: "1px solid #F3F4F6" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Localisation GPS</div>
+                <div style={{ fontSize: 12, color: "#6B7280" }}>{borneConfig?.emplacement}</div>
+              </div>
+              <button onClick={() => setShowMap(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: 8, background: "#EEF2FF", border: "none", color: "#4F46E5", fontWeight: 600, cursor: "pointer", fontSize: 12 }}>
+                <MapPin size={14} /> Voir sur la carte
+              </button>
+            </div>
+            <button onClick={notifySuccess} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>Enregistrer</button>
+          </>
+        )}
       </Modal>
 
       {/* Affecter Technicien */}

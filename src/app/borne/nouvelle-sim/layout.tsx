@@ -26,7 +26,7 @@ export default function NouvelleSIMLayout({ children }: { children: ReactNode })
   return (
     <div className="w-full flex flex-col items-center w-full animate-in fade-in duration-500">
       {/* Le Stepper est affiché en haut de chaque page de ce parcours */}
-      <div className="w-full max-w-4xl mb-12 mt-4">
+      <div className="w-full max-w-4xl mb-6 mt-2">
         <Stepper steps={steps} currentStep={currentStep} />
       </div>
       
