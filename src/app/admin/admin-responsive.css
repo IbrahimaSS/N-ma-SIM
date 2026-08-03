@@ -1,0 +1,319 @@
+/* ========================================
+   N'ma SIM — Admin Responsive Styles
+   Breakpoints:
+   - Desktop: > 1024px (default)
+   - Tablet: 768px - 1024px
+   - Mobile: < 768px
+   - Small Mobile: < 500px
+   ======================================== */
+
+/* ===== SIDEBAR RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    width: 200px !important;
+    min-width: 200px !important;
+  }
+
+  .admin-main {
+    margin-left: 200px !important;
+    max-width: calc(100vw - 200px) !important;
+    padding: 24px 20px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 100 !important;
+    width: 240px !important;
+    min-width: 240px !important;
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar-overlay {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .admin-sidebar-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .admin-main {
+    margin-left: 0 !important;
+    max-width: 100vw !important;
+    padding: 16px 14px !important;
+  }
+
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+}
+
+/* ===== LOGIN PAGE RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .login-container {
+    flex-direction: column !important;
+  }
+
+  .login-left {
+    flex: none !important;
+    padding: 32px 20px !important;
+    min-height: auto !important;
+  }
+
+  .login-right {
+    flex: none !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 40px !important;
+    border-bottom-right-radius: 40px !important;
+    padding: 36px 20px !important;
+    min-height: 320px;
+  }
+
+  .login-form-wrapper {
+    max-width: 100% !important;
+  }
+
+  .login-right-content {
+    max-width: 100% !important;
+  }
+
+  .login-right-title {
+    font-size: 24px !important;
+  }
+
+  .login-right-desc {
+    font-size: 14px !important;
+  }
+
+  .login-right-img-wrapper {
+    max-height: 240px !important;
+  }
+}
+
+@media (max-width: 500px) {
+  .login-left {
+    padding: 24px 16px !important;
+  }
+
+  .login-right {
+    padding: 28px 16px !important;
+    min-height: 260px;
+  }
+
+  .login-title {
+    font-size: 24px !important;
+  }
+
+  .login-subtitle {
+    font-size: 13px !important;
+  }
+
+  .login-right-title {
+    font-size: 20px !important;
+  }
+
+  .login-right-desc {
+    font-size: 13px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .login-right-img-wrapper {
+    max-height: 180px !important;
+    padding: 10px !important;
+  }
+}
+
+/* ===== DASHBOARD PAGE RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .dash-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .dash-kpi-card {
+    min-width: 120px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .dash-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .dash-filters {
+    flex-wrap: wrap !important;
+    width: 100%;
+  }
+
+  .dash-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .dash-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dash-kpi-row {
+    gap: 10px !important;
+  }
+
+  .dash-kpi-card {
+    min-width: 130px !important;
+    padding: 14px 14px !important;
+  }
+
+  .dash-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px !important;
+  }
+
+  .dash-table-wrapper table {
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 500px) {
+  .dash-kpi-row {
+    flex-direction: column !important;
+  }
+
+  .dash-kpi-card {
+    min-width: 100% !important;
+  }
+
+  .dash-table-wrapper {
+    padding: 12px !important;
+  }
+}
+
+/* ===== LOGS PAGE RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .logs-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .logs-sidebar {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .logs-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .logs-filters {
+    flex-wrap: wrap !important;
+    width: 100%;
+  }
+
+  .logs-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .logs-kpi-row {
+    gap: 10px !important;
+  }
+
+  .logs-kpi-card {
+    min-width: 130px !important;
+    padding: 14px 14px !important;
+  }
+
+  .logs-kpi-value {
+    font-size: 20px !important;
+  }
+
+  .logs-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .logs-table-wrapper table {
+    min-width: 700px;
+  }
+}
+
+@media (max-width: 500px) {
+  .logs-kpi-row {
+    flex-direction: column !important;
+  }
+  .logs-kpi-card {
+    min-width: 100% !important;
+  }
+}
+
+/* ===== UTILISATEURS PAGE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .users-topbar {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+  .users-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .users-filters {
+    flex-wrap: wrap !important;
+    width: 100%;
+  }
+  .users-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .users-kpi-row {
+    gap: 10px !important;
+  }
+  .users-kpi-card {
+    min-width: 130px !important;
+    padding: 14px 14px !important;
+  }
+  .users-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .users-table-wrapper table {
+    min-width: 650px;
+  }
+  .users-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .users-modal-overlay .users-modal {
+    width: 95vw !important;
+    max-height: 90vh !important;
+    padding: 20px !important;
+  }
+}
+
+@media (max-width: 500px) {
+  .users-kpi-row {
+    flex-direction: column !important;
+  }
+  .users-kpi-card {
+    min-width: 100% !important;
+  }
+  .users-topbar {
+    padding-bottom: 10px !important;
+    margin-bottom: 16px !important;
+  }
+}
