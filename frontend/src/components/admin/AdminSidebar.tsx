@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard, FileText, CreditCard, Users, Tag,
-  UserCog, ScrollText, Settings, LogOut, ChevronRight, MonitorSmartphone
+  UserCog, ScrollText, Settings, LogOut, ChevronRight, MonitorSmartphone, User
 } from "lucide-react";
 
 const navItems = [
@@ -16,14 +16,22 @@ const navItems = [
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: UserCog },
   { href: "/admin/logs", label: "Logs & Historique", icon: ScrollText },
   { href: "/admin/parametres", label: "Paramètres", icon: Settings },
+  { href: "/admin?tab=profil", label: "Mon profil", icon: User },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams ? searchParams.get("tab") : null;
 
   const isActive = (href: string, exact?: boolean) => {
-    if (exact) return pathname === href;
+    if (href.includes("?tab=profil")) {
+      return pathname === "/admin" && activeTab === "profil";
+    }
+    if (exact) {
+      return pathname === href && !activeTab;
+    }
     return pathname.startsWith(href);
   };
 
@@ -104,7 +112,10 @@ export function AdminSidebar() {
       {/* Footer */}
       <div style={{ padding: "12px 10px 20px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
         <button
-          onClick={() => router.push("/")}
+          onClick={() => {
+            localStorage.removeItem("admin_session");
+            router.push("/admin/login");
+          }}
           style={{
             display: "flex",
             alignItems: "center",

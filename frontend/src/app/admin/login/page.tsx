@@ -26,6 +26,22 @@ export default function AdminLogin() {
     // Simulation d'authentification
     setTimeout(() => {
       if (email === "admin@nmasim.gn" && password === "admin123") {
+        // Enregistrement des informations de session admin
+        const adminSession = {
+          name: "Ibrahima Sylla",
+          email: "admin@nmasim.gn",
+          role: "Administrateur Principal",
+          loginAt: new Date().toLocaleString("fr-FR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          })
+        };
+        localStorage.setItem("admin_session", JSON.stringify(adminSession));
+        
         setIsSuccess(true);
         setTimeout(() => {
           router.push("/admin");
