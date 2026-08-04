@@ -1,17 +1,40 @@
 "use client";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { useState } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import "./admin-responsive.css";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isLoginPage = pathname === "/admin/login";
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    if (!isLoginPage) {
+      const session = localStorage.getItem("admin_session");
+      if (!session) {
+        router.push("/admin/login");
+      } else {
+        setAuthorized(true);
+      }
+    } else {
+      setAuthorized(true);
+    }
+  }, [pathname, isLoginPage, router]);
 
   if (isLoginPage) {
     return <>{children}</>;
+  }
+
+  if (!authorized) {
+    return (
+      <div style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center", background: "#F4F6FB", fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ color: "#1F0270", fontWeight: 600, fontSize: 16 }}>Vérification des accès...</div>
+      </div>
+    );
   }
 
   return (
@@ -50,7 +73,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <div className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <AdminSidebar />
+        <Suspense fallback={<div style={{ width: 220, background: "#1F0270", minHeight: "100vh" }} />}>
+          <AdminSidebar />
+        </Suspense>
       </div>
 
       {/* Main content */}
