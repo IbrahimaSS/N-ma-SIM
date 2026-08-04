@@ -1,0 +1,224 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// =============================================
+// UTILISATEURS (Admin, Agent, Technicien...)
+// =============================================
+model Utilisateur {
+  id                String      @id @default(cuid())
+  nom               String
+  email             String      @unique
+  telephone         String?
+  motDePasse        String
+  role              Role        @default(AGENT)
+  statut            StatutUser  @default(ACTIF)
+  photoProfil       String?
+  permissions       String[]    @default([])
+  derniereConnexion DateTime?
+  refreshToken      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  logsCreated Log[]
+}
+
+enum Role {
+  ADMIN
+  AGENT
+  TECHNICIEN
+  LECTURE_SEULE
+}
+
+enum StatutUser {
+  ACTIF
+  BLOQUE
+  INACTIF
+}
+
+// =============================================
+// CLIENTS (créés via la borne SIM)
+// =============================================
+model Client {
+  id              String        @id @default(cuid())
+  numeroDossier   String        @unique @default(cuid())
+  nom             String
+  prenom          String
+  dateNaissance   DateTime?
+  lieuNaissance   String?
+  nationalite     String?       @default("Guinéenne")
+  profession      String?
+  typeClient      TypeClient    @default(RESIDENT)
+
+  // Pièce d'identité
+  typePiece       String?
+  numeroPiece     String?
+  photoPiece      String?       // URL image stockée
+
+  // Selfie
+  photoSelfie     String?       // URL image stockée
+
+  // Contact
+  telephone       String?
+  email           String?
+
+  statut          StatutClient  @default(EN_ATTENTE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  demandes DemandeSIM[]
+}
+
+enum TypeClient {
+  RESIDENT
+  ETRANGER
+}
+
+enum StatutClient {
+  EN_ATTENTE
+  VALIDE
+  REJETE
+}
+
+// =============================================
+// OFFRES SIM
+// =============================================
+model Offre {
+  id          String      @id @default(cuid())
+  nom         String
+  description String?
+  prix        Float
+  type        TypeOffre
+  duree       String?     // "30 jours", "illimité"
+  data        String?     // "5 Go", "Illimité"
+  appels      String?     // "100 min", "Illimité"
+  sms         String?     // "50 SMS"
+  estActif    Boolean     @default(true)
+  couleur     String?     // Pour l'affichage frontend
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  demandes DemandeSIM[]
+}
+
+enum TypeOffre {
+  SIM_STANDARD
+  SIM_INTERNET
+  SIM_ETUDIANT
+  SIM_ENTREPRISE
+}
+
+// =============================================
+// DEMANDES SIM (Nouvelle SIM + Réactivation)
+// =============================================
+model DemandeSIM {
+  id              String          @id @default(cuid())
+  numeroDossier   String          @unique
+  type            TypeDemande
+  statut          StatutDemande   @default(EN_ATTENTE_VALIDATION)
+
+  // Infos client
+  clientId        String
+  client          Client          @relation(fields: [clientId], references: [id])
+
+  // Offre choisie (pour nouvelle SIM)
+  offreId         String?
+  offre           Offre?          @relation(fields: [offreId], references: [id])
+
+  // Réactivation
+  numeroAReactiver  String?
+  motifReactivation String?
+
+  // Résultat vérification IA (à connecter plus tard)
+  scoreVerification Float?
+  verificationOCR   Boolean?
+  verificationSelfie Boolean?
+
+  // Commentaires admin
+  commentaireAdmin  String?
+  traitePar         String?       // nom de l'agent
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  paiement  Paiement?
+}
+
+enum TypeDemande {
+  NOUVELLE_SIM
+  REACTIVATION
+}
+
+enum StatutDemande {
+  EN_ATTENTE_VALIDATION
+  EN_COURS_DE_TRAITEMENT
+  VALIDEE
+  REJETEE
+}
+
+// =============================================
+// PAIEMENTS
+// =============================================
+model Paiement {
+  id            String         @id @default(cuid())
+  demandeId     String         @unique
+  demande       DemandeSIM     @relation(fields: [demandeId], references: [id])
+
+  montant       Float
+  devise        String         @default("GNF")
+  methodePaiement MethodePaiement
+  statut        StatutPaiement @default(EN_ATTENTE)
+
+  // Référence paiement externe (Orange Money, etc.)
+  referenceExterne String?
+  numeroPaieur     String?      // numéro de téléphone utilisé
+
+  confirmedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MethodePaiement {
+  ORANGE_MONEY
+  MTN_MOBILE_MONEY
+  WAVE
+  ESPECES
+}
+
+enum StatutPaiement {
+  EN_ATTENTE
+  CONFIRME
+  ECHOUE
+  REMBOURSE
+}
+
+// =============================================
+// LOGS SYSTEME
+// =============================================
+model Log {
+  id          String   @id @default(cuid())
+  type        String   // "Connexion", "Validation", "Paiement confirmé"...
+  description String
+  entiteId    String?  // ID de la demande / client / user concerné
+  entiteType  String?  // "DemandeSIM", "Client", "Utilisateur"...
+
+  utilisateurId String?
+  utilisateur   Utilisateur? @relation(fields: [utilisateurId], references: [id])
+
+  createdAt DateTime @default(now())
+}
