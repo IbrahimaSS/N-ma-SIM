@@ -6,11 +6,12 @@ import {
   Search, SlidersHorizontal, TrendingUp, TrendingDown, AlertTriangle,
   BarChart3, Eye, Users
 } from "lucide-react";
+import "./admin-responsive.css";
 
 // --- Mini composants réutilisables ---
 function KpiCard({ icon: Icon, label, value, sub, subColor, badge, badgeColor, iconBg }: any) {
   return (
-    <div style={{ background: "white", borderRadius: 16, padding: "20px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+    <div className="dash-kpi-card" style={{ background: "white", borderRadius: 16, padding: "20px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
         <div style={{ background: iconBg || "#F0EEFF", borderRadius: 10, padding: 10, display: "flex" }}>
           <Icon size={20} style={{ color: "#1F0270" }} />
@@ -56,18 +57,19 @@ export default function AdminDashboard() {
   return (
     <div>
       {/* En-tête */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, gap: 16, flexWrap: "wrap" }}>
+      <div className="dash-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, gap: 16, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Tableau de bord</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Vue globale du système</p>
         </div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <div className="dash-filters" style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <div style={{ position: "relative" }}>
             <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Rechercher un ticket, un client..."
+              className="dash-search-input"
               style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, color: "#374151", outline: "none", width: 300, background: "white" }}
             />
           </div>
@@ -78,18 +80,18 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 24 }}>
-        <KpiCard icon={FileText} label="Demandes totales" value="135" iconBg="#EEF2FF" />
-        {/* <KpiCard icon={Clock} label="En attente validation" value="52" badge="Priorité élevée" badgeColor="#FEF3C7" iconBg="#FEF3C7" /> */}
-        {/* <KpiCard icon={CheckCircle2} label="Validées" value="68" iconBg="#DCFCE7" /> */}
-        {/* <KpiCard icon={XCircle} label="Rejetées" value="15" iconBg="#FEE2E2" /> */}
-        <KpiCard icon={CreditCard} label="Paiements confirmés" value="113" iconBg="#EEF2FF" />
-        <KpiCard icon={RefreshCcw} label="Réactivations" value="18" iconBg="#F0FDF4" />
-        <KpiCard icon={Users} label="Clients" value="5 240" iconBg="#EEF2FF" />
+      <div className="dash-kpi-row" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 24 }}>
+        <KpiCard icon={FileText} label="Demandes totales" value="135" sub="↑ 12 ce mois" subColor="#059669" iconBg="#EEF2FF" />
+        <KpiCard icon={Clock} label="En attente validation" value="52" sub="38,5% du total" badge="Priorité élevée" badgeColor="#FEF3C7" iconBg="#FEF3C7" />
+        <KpiCard icon={CheckCircle2} label="Validées" value="68" sub="↑ 8 ce mois" subColor="#059669" iconBg="#DCFCE7" />
+        <KpiCard icon={XCircle} label="Rejetées" value="15" sub="↓ 3 ce mois" subColor="#DC2626" iconBg="#FEE2E2" />
+        <KpiCard icon={CreditCard} label="Paiements confirmés" value="113" sub="↑ 12 ce mois" subColor="#059669" iconBg="#EEF2FF" />
+        <KpiCard icon={RefreshCcw} label="Réactivations" value="18" sub="↑ 5 ce mois" subColor="#059669" iconBg="#F0FDF4" />
+        <KpiCard icon={Users} label="Clients" value="5 240" sub="↑ 150 ce mois" subColor="#059669" iconBg="#EEF2FF" />
       </div>
 
       {/* Graphiques + Alertes */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 320px", gap: 16, marginBottom: 24 }}>
+      <div className="dash-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 320px", gap: 16, marginBottom: 24 }}>
         {/* Demandes par service */}
         <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
@@ -182,7 +184,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Activité récente */}
-      <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+      <div className="dash-table-wrapper" style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0 }}>Activité récente</h3>
           <button style={{ fontSize: 13, color: "#6B7280", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Voir tout</button>
