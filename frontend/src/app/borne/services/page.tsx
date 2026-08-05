@@ -1,39 +1,47 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, RefreshCcw, Microchip, LayoutGrid, Lock, Globe, User as UserIcon, FileSignature } from "lucide-react";
+import { ArrowRight, RefreshCcw, Microchip, LayoutGrid, Lock, Globe, User as UserIcon, FileSignature, Briefcase } from "lucide-react";
 
 export default function Services() {
   const router = useRouter();
+  const [lang, setLang] = useState("fr");
+  const [profile, setProfile] = useState("resident");
+
+  useEffect(() => {
+    setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+    setProfile(sessionStorage.getItem("kiosk_profile") || "resident");
+  }, []);
 
   const services = [
     {
       id: "nouvelle-sim",
-      title: "Nouvelle SIM",
-      description: "Obtenez une nouvelle carte SIM en quelques minutes",
+      title: lang === "en" ? "New SIM" : "Nouvelle SIM",
+      description: lang === "en" ? "Get a new SIM card in minutes" : "Obtenez une nouvelle carte SIM en quelques minutes",
       icon: <Microchip size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
       action: () => router.push("/borne/nouvelle-sim/scan-piece"),
       disabled: false,
     },
     {
       id: "reactivation",
-      title: "Réactivation des puces",
-      description: "Réactivez une puce désactivée en toute sécurité",
+      title: lang === "en" ? "Reactivate SIM" : "Réactivation des puces",
+      description: lang === "en" ? "Securely reactivate a disabled chip" : "Réactivez une puce désactivée en toute sécurité",
       icon: <RefreshCcw size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
       action: () => router.push("/borne/reactivation/identification"),
       disabled: false,
     },
     {
       id: "remplacement",
-      title: "Remplacement SIM",
-      description: "Bientôt disponible",
+      title: lang === "en" ? "SIM Replacement" : "Remplacement SIM",
+      description: lang === "en" ? "Coming soon" : "Bientôt disponible",
       icon: <FileSignature size={52} strokeWidth={1.5} style={{ color: "#C0C0D8", marginBottom: 20 }} />,
       action: () => {},
       disabled: true,
     },
     {
       id: "autres",
-      title: "Autres services",
-      description: "Bientôt disponible",
+      title: lang === "en" ? "Other services" : "Autres services",
+      description: lang === "en" ? "Coming soon" : "Bientôt disponible",
       icon: <LayoutGrid size={52} strokeWidth={1.5} style={{ color: "#C0C0D8", marginBottom: 20 }} />,
       action: () => {},
       disabled: true,
@@ -54,10 +62,10 @@ export default function Services() {
           fontSize: "clamp(24px, 3vw, 36px)",
           fontWeight: 900, color: "#1F0270", margin: "0 0 10px 0"
         }}>
-          Choisissez un service
+          {lang === "en" ? "Choose a service" : "Choisissez un service"}
         </h1>
         <p style={{ fontSize: "clamp(13px, 1.4vw, 16px)", color: "#9CA3AF", margin: 0 }}>
-          Que souhaitez-vous faire aujourd'hui ?
+          {lang === "en" ? "What would you like to do today?" : "Que souhaitez-vous faire aujourd'hui ?"}
         </p>
       </div>
 
@@ -147,7 +155,7 @@ export default function Services() {
           borderRadius: 999, boxShadow: "0 2px 10px rgba(31,2,112,0.08)",
           fontSize: 14, fontWeight: 700, color: "#1F0270",
         }}>
-          <Globe size={15} color="#1F0270" /> Français
+          <Globe size={15} color="#1F0270" /> {lang === "en" ? "English" : "Français"}
         </div>
         <div style={{
           display: "flex", alignItems: "center", gap: 8,
@@ -155,7 +163,8 @@ export default function Services() {
           borderRadius: 999, boxShadow: "0 2px 10px rgba(31,2,112,0.08)",
           fontSize: 14, fontWeight: 700, color: "#1F0270",
         }}>
-          <UserIcon size={15} color="#1F0270" /> Résident
+          {profile === "etranger" ? <Briefcase size={15} color="#1F0270" /> : <UserIcon size={15} color="#1F0270" />}
+          {profile === "etranger" ? (lang === "en" ? "Foreigner" : "Étranger") : (lang === "en" ? "Resident" : "Résident")}
         </div>
       </div>
 
