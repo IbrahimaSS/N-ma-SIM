@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { BorneHeader } from "@/components/borne/BorneHeader";
+import { AgentIA } from "@/components/borne/AgentIA";
 
 export default function BorneLayout({ children }: { children: ReactNode }) {
   return (
@@ -71,6 +72,7 @@ export default function BorneLayout({ children }: { children: ReactNode }) {
         }}
       >
         {children}
+        <AgentIA />
       </main>
 
     </div>

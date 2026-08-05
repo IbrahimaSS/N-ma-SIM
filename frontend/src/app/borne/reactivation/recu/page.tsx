@@ -1,12 +1,28 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle } from "lucide-react";
+import { SuccessScreen } from "@/components/borne/SuccessScreen";
 
 export default function RecuReactivation() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RecuContent />
+    </Suspense>
+  );
+}
+
+function RecuContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const showSuccess = searchParams.get("success") === "true";
+
+  if (showSuccess) {
+    return <SuccessScreen type="reactivation" ticketRef="NMA-RE-0092" />;
+  }
 
   return (
     <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
@@ -33,7 +49,7 @@ export default function RecuReactivation() {
           <div className="w-full bg-primary/5 rounded-xl p-4 flex items-start gap-3 text-left">
             <Info className="w-6 h-6 text-primary flex-shrink-0 mt-0.5" />
             <div>
-               <p className="font-bold text-primary mb-1">Puce en cours d'activation.</p>
+               <p className="font-bold text-primary mb-1">Puce en cours d&apos;activation.</p>
                <p className="text-sm text-text-muted">Votre réseau sera disponible dans les 5 prochaines minutes.</p>
             </div>
           </div>
@@ -97,14 +113,14 @@ export default function RecuReactivation() {
              <Eye className="w-5 h-5 mr-2" /> Voir le reçu
            </Button>
            <Button variant="primary" className="flex-1 h-14" onClick={() => router.push("/borne/accueil")}>
-             <Home className="w-5 h-5 mr-2" /> Retour à l'accueil
+             <Home className="w-5 h-5 mr-2" /> Retour à l&apos;accueil
            </Button>
         </div>
         <div className="flex gap-4">
            <Button variant="outline" className="flex-1 bg-white h-14">
              <Printer className="w-5 h-5 mr-2" /> Imprimer
            </Button>
-           <Button variant="primary" className="flex-1 h-14" onClick={() => router.push("/borne/accueil")}>
+           <Button variant="primary" className="flex-1 h-14" onClick={() => router.push("?success=true")}>
              <CheckCircle2 className="w-5 h-5 mr-2" /> Terminer
            </Button>
         </div>

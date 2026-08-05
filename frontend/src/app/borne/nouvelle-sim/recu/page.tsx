@@ -1,12 +1,28 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle } from "lucide-react";
+import { SuccessScreen } from "@/components/borne/SuccessScreen";
 
 export default function Recu() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RecuContent />
+    </Suspense>
+  );
+}
+
+function RecuContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const showSuccess = searchParams.get("success") === "true";
+
+  if (showSuccess) {
+    return <SuccessScreen type="nouvelle-sim" ticketRef="NMA-2026-0001" />;
+  }
 
   return (
     <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
@@ -87,7 +103,6 @@ export default function Recu() {
 
             {/* QR Code */}
             <div className="w-40 h-40 bg-white border-2 border-border-light rounded-xl p-2 mx-auto flex-shrink-0 flex items-center justify-center">
-              {/* Simulation QR Code simple via div patterns */}
               <div className="w-full h-full bg-[repeating-conic-gradient(#12005A_0_90deg,#fff_0_180deg)] bg-[length:12px_12px] opacity-80 rounded flex items-center justify-center">
                  <div className="w-10 h-10 bg-white flex items-center justify-center rounded">
                     <span className="text-[10px] font-bold text-primary">NMA</span>
@@ -105,14 +120,14 @@ export default function Recu() {
              <Eye className="w-5 h-5 mr-2" /> Voir le reçu
            </Button>
            <Button variant="primary" className="flex-1 h-12" onClick={() => router.push("/borne/accueil")}>
-             <Home className="w-5 h-5 mr-2" /> Retour à l'accueil
+             <Home className="w-5 h-5 mr-2" /> Retour à l&apos;accueil
            </Button>
         </div>
         <div className="flex gap-4">
            <Button variant="outline" className="flex-1 bg-white h-12">
              <Printer className="w-5 h-5 mr-2" /> Imprimer
            </Button>
-           <Button variant="primary" className="flex-1 h-12" onClick={() => router.push("/borne/accueil")}>
+           <Button variant="primary" className="flex-1 h-12" onClick={() => router.push("?success=true")}>
              <CheckCircle2 className="w-5 h-5 mr-2" /> Terminer
            </Button>
         </div>

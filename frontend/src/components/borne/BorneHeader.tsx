@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { ArrowLeft } from "lucide-react";
@@ -6,6 +7,11 @@ import { ArrowLeft } from "lucide-react";
 export const BorneHeader = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const [lang, setLang] = useState("fr");
+
+  useEffect(() => {
+    setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+  }, [pathname]);
   
   // Cacher complètement sur la page d'accueil
   if (pathname === "/borne/accueil" || pathname === "/") {
@@ -53,7 +59,7 @@ export const BorneHeader = () => {
           className="rounded-full shadow-sm font-semibold"
           onClick={() => router.back()}
         >
-          <ArrowLeft className="w-5 h-5 mr-2" /> Retour
+          <ArrowLeft className="w-5 h-5 mr-2" /> {lang === "en" ? "Back" : "Retour"}
         </Button>
       )}
     </header>
