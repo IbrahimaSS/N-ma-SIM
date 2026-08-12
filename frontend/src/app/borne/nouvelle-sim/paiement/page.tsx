@@ -4,21 +4,45 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ShieldCheck, Lock, CreditCard, Receipt, Wifi, ArrowLeft, ChevronRight, CheckCircle2, Camera, ScanLine, Loader2 } from "lucide-react";
+import { MOCK_OFFERS } from "@/data/mock-data";
+import type { Offer } from "@/types";
 
 export default function Paiement() {
   const router = useRouter();
   const [method, setMethod] = useState("orange-money");
   const [lang, setLang] = useState("fr");
+  // Offre sélectionnée — chargée depuis sessionStorage (page offres)
+  const [offer, setOffer] = useState<Offer>(MOCK_OFFERS[0]);
 
-  const [omStep, setOmStep] = useState<"initial" | "requested">("initial");
-  const [omPhone, setOmPhone] = useState("");
-  const [omCode, setOmCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
-  const [visaStep, setVisaStep] = useState<"form" | "scanning">("form");
-  const [visaData, setVisaData] = useState({ number: "", exp: "", cvv: "" });
+  // Écouter le message de succès de l'Iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "LENGO_PAY_SUCCESS") {
+        const paymentInfo = {
+          method: "Lengo Pay",
+          reference: event.data?.pay_id || "NMA-PAY-LENG-01"
+        };
+        sessionStorage.setItem("kiosk_payment", JSON.stringify(paymentInfo));
+        router.push("/borne/nouvelle-sim/recu");
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [router]);
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+    // Charger l'offre choisie depuis sessionStorage
+    try {
+      const raw = sessionStorage.getItem("kiosk_offer");
+      if (raw) {
+        const parsed = JSON.parse(raw) as Offer;
+        setOffer(parsed);
+      }
+    } catch { /* garder l'offre par défaut */ }
   }, []);
 
   const t = {
@@ -49,13 +73,26 @@ export default function Paiement() {
     confirmPayment: lang === "en" ? "Confirm payment" : "Confirmer le paiement",
   };
 
-  const handleOmRequest = () => { if (omPhone) setOmStep("requested"); };
-  const handleScanCard = () => {
-    setVisaStep("scanning");
-    setTimeout(() => {
-      setVisaData({ number: "4567 8901 2345 6789", exp: "12/28", cvv: "" });
-      setVisaStep("form");
-    }, 3000);
+  const initLengoPay = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/paiement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: offer.prixGNF, currency: "GNF" })
+      });
+      const data = await res.json();
+      if (data.payment_url) {
+        setPaymentUrl(data.payment_url);
+      } else {
+        alert("Erreur lors de l'initialisation du paiement.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erreur réseau");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -66,15 +103,15 @@ export default function Paiement() {
           <h3 className="font-bold text-primary mb-4 text-base">{t.orderDetails}</h3>
           <div className="flex items-start gap-4 mb-6">
             <div className="p-3 bg-gray-50 rounded-lg border border-border-light"><Wifi className="w-6 h-6 text-primary" /></div>
-            <div><p className="text-sm text-text-muted">{t.offer}</p><p className="font-bold text-primary">SIM + Internet</p></div>
+            <div><p className="text-sm text-text-muted">{t.offer}</p><p className="font-bold text-primary">{offer.titre}</p></div>
           </div>
           <div className="flex items-start gap-4 mb-8">
             <div className="p-3 bg-gray-50 rounded-lg border border-border-light"><Receipt className="w-6 h-6 text-primary" /></div>
-            <div><p className="text-sm text-text-muted">{t.amount}</p><p className="font-bold text-primary text-xl">20 000 GNF</p></div>
+            <div><p className="text-sm text-text-muted">{t.amount}</p><p className="font-bold text-primary text-xl">{offer.prixGNF.toLocaleString('fr-FR')} GNF</p></div>
           </div>
           <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 flex justify-between items-center mb-6">
             <div className="flex items-center gap-2 text-primary font-semibold text-sm">{t.total}</div>
-            <div className="font-bold text-primary text-lg">20 000 GNF</div>
+            <div className="font-bold text-primary text-lg">{offer.prixGNF.toLocaleString('fr-FR')} GNF</div>
           </div>
           <div className="flex flex-col gap-3 pt-6 border-t border-border-light">
             <div className="flex items-center gap-3 text-sm text-text-main"><ShieldCheck className="w-5 h-5 text-accent" /> {t.secure}</div>
@@ -82,113 +119,49 @@ export default function Paiement() {
           </div>
         </Card>
 
-        {/* Colonne 2 */}
-        <Card className="p-4">
-          <h3 className="font-bold text-primary mb-4 text-base">{t.payMethod}</h3>
-          <div className="flex flex-col gap-4">
-            <div
-              className={`p-4 rounded-xl border-2 flex items-center justify-between cursor-pointer transition-colors ${method === 'orange-money' ? 'border-accent bg-accent/5' : 'border-border-light hover:border-primary/20'}`}
-              onClick={() => { setMethod('orange-money'); setOmStep('initial'); }}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === 'orange-money' ? 'border-accent' : 'border-gray-300'}`}>
-                  {method === 'orange-money' && <div className="w-2.5 h-2.5 bg-accent rounded-full"></div>}
-                </div>
-                <div className="w-10 h-10 bg-[#FF6600] rounded-lg flex items-center justify-center text-white font-bold text-xs">OM</div>
-                <div>
-                  <p className="font-bold text-primary">Orange Money</p>
-                  <p className="text-xs text-text-muted">{t.omFast}</p>
-                </div>
+        {/* Espace de paiement Lengo Pay */}
+        <Card className="p-0 lg:col-span-2 overflow-hidden flex flex-col items-center justify-center min-h-[400px] border-2 border-primary/10 relative">
+          {paymentUrl ? (
+            <>
+              <iframe 
+                src={paymentUrl} 
+                className="w-full h-full min-h-[500px] border-0" 
+                allow="payment"
+                title="Lengo Pay"
+              />
+              <div className="absolute top-2 right-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const paymentInfo = { method: "Lengo Pay (Mode Démo)", reference: "NMA-DEMO-2026" };
+                    sessionStorage.setItem("kiosk_payment", JSON.stringify(paymentInfo));
+                    router.push("/borne/nouvelle-sim/recu");
+                  }}
+                  className="text-xs bg-white text-gray-500 hover:text-primary shadow-sm"
+                >
+                  Bypass (Mode Démo)
+                </Button>
               </div>
-            </div>
-            <div
-              className={`p-4 rounded-xl border-2 flex items-center justify-between cursor-pointer transition-colors ${method === 'visa' ? 'border-primary bg-primary/5' : 'border-border-light hover:border-primary/20'}`}
-              onClick={() => setMethod('visa')}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === 'visa' ? 'border-primary' : 'border-gray-300'}`}>
-                  {method === 'visa' && <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>}
-                </div>
-                <div className="w-10 h-10 bg-[#1434CB] rounded-lg flex items-center justify-center text-white font-bold italic">VISA</div>
-                <div>
-                  <p className="font-bold text-primary">{t.visaCard}</p>
-                  <p className="text-xs text-text-muted">{t.visaFast}</p>
-                </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center p-8 text-center h-full">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                <CreditCard className="w-10 h-10 text-primary" />
               </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Colonne 3 */}
-        <Card className="p-4">
-          {method === 'orange-money' && (
-            <div className="flex flex-col h-full">
-              <h3 className="font-bold text-primary mb-6 text-lg text-center border-b border-border-light pb-4">Orange Money</h3>
-              {omStep === 'initial' ? (
-                <div className="flex flex-col gap-4 flex-grow">
-                  <div>
-                    <label className="text-sm font-semibold text-primary mb-2 block">{t.phoneNumber}</label>
-                    <input type="tel" placeholder="Ex: 620 00 00 00" className="w-full p-4 rounded-xl border border-border-light focus:border-accent outline-none bg-gray-50" value={omPhone} onChange={(e) => setOmPhone(e.target.value)} />
-                  </div>
-                  <div className="flex-grow"></div>
-                  <div className="bg-orange-50 p-4 rounded-xl mb-4 border border-orange-100">
-                    <p className="text-sm text-[#FF6600] mb-1">{t.totalDebit}</p>
-                    <p className="text-2xl font-black text-[#FF6600]">20 000 GNF</p>
-                  </div>
-                  <Button onClick={handleOmRequest} className="w-full py-6 text-md bg-[#FF6600] hover:bg-[#E65C00] text-white shadow-md border-none" disabled={!omPhone}>
-                    {t.sendRequest}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4 flex-grow animate-in slide-in-from-right-4 duration-300">
-                  <div className="bg-success/10 border border-success/30 text-success p-4 rounded-xl flex items-start gap-3">
-                    <CheckCircle2 className="w-6 h-6 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-lg">{t.requestSent}</p>
-                      <p className="text-sm mt-1">{t.checkPhone}</p>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="text-sm font-semibold text-primary mb-2 block">{t.confirmCode}</label>
-                    <input type="text" placeholder="Ex: 1234" className="w-full p-4 rounded-xl border border-border-light focus:border-accent outline-none bg-gray-50 text-center tracking-widest text-lg font-bold" value={omCode} onChange={(e) => setOmCode(e.target.value)} maxLength={4} />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {method === 'visa' && (
-            <div className="flex flex-col h-full">
-              <h3 className="font-bold text-primary mb-6 text-lg text-center border-b border-border-light pb-4">{t.bankCard}</h3>
-              {visaStep === 'scanning' ? (
-                <div className="flex flex-col items-center justify-center flex-grow py-12 bg-gray-50 rounded-xl border-2 border-dashed border-primary/30 animate-in zoom-in-95">
-                  <Camera className="w-16 h-16 text-primary mb-4 animate-pulse" />
-                  <p className="font-bold text-primary mb-2 text-lg">{t.placeCard}</p>
-                  <p className="text-sm text-text-muted text-center px-6">{t.scanning}</p>
-                  <Loader2 className="w-8 h-8 text-accent mt-6 animate-spin" />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4 flex-grow animate-in fade-in duration-300">
-                  <Button variant="outline" className="w-full mb-2 border-primary/20 text-primary bg-primary/5 hover:bg-primary/10" onClick={handleScanCard}>
-                    <ScanLine className="w-5 h-5 mr-2 text-accent" /> {t.scanCamera}
-                  </Button>
-                  <div className="relative">
-                    <label className="text-xs font-semibold text-text-muted mb-1 block uppercase tracking-wider">{t.cardNumber}</label>
-                    <input type="text" placeholder="0000 0000 0000 0000" className="w-full p-3 rounded-xl border border-border-light focus:border-accent outline-none font-mono text-primary bg-gray-50" value={visaData.number} onChange={(e) => setVisaData({...visaData, number: e.target.value})} />
-                    <CreditCard className="w-5 h-5 text-gray-400 absolute right-3 top-8" />
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="text-xs font-semibold text-text-muted mb-1 block uppercase tracking-wider">{t.expiry}</label>
-                      <input type="text" placeholder="MM/AA" className="w-full p-3 rounded-xl border border-border-light focus:border-accent outline-none font-mono text-primary bg-gray-50" value={visaData.exp} onChange={(e) => setVisaData({...visaData, exp: e.target.value})} />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs font-semibold text-text-muted mb-1 block uppercase tracking-wider">CVV</label>
-                      <input type="password" placeholder="•••" className="w-full p-3 rounded-xl border border-border-light focus:border-accent outline-none font-mono text-center text-primary bg-gray-50" value={visaData.cvv} onChange={(e) => setVisaData({...visaData, cvv: e.target.value})} maxLength={3} />
-                    </div>
-                  </div>
-                </div>
-              )}
+              <h3 className="text-xl font-bold text-primary mb-2">Paiement Sécurisé</h3>
+              <p className="text-text-muted mb-8 max-w-md">
+                Vous allez être redirigé vers la passerelle sécurisée Lengo Pay pour finaliser votre commande avec Orange Money, Mobile Money ou Carte Bancaire.
+              </p>
+              <Button 
+                size="lg" 
+                className="px-10 py-6 text-lg w-full max-w-sm shadow-md"
+                onClick={initLengoPay}
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 className="w-6 h-6 mr-2 animate-spin" /> : <ShieldCheck className="w-6 h-6 mr-2" />}
+                {isLoading ? "Initialisation..." : "Payer maintenant"}
+              </Button>
             </div>
           )}
         </Card>
@@ -197,19 +170,11 @@ export default function Paiement() {
       <div className="bg-white border border-border-light rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between shadow-sm gap-3">
         <div>
           <p className="text-text-muted font-medium mb-1">{t.totalToPay}</p>
-          <p className="text-3xl font-extrabold text-primary">20 000 GNF</p>
+          <p className="text-3xl font-extrabold text-primary">{offer.prixGNF.toLocaleString('fr-FR')} GNF</p>
         </div>
         <div className="flex gap-4">
           <Button variant="secondary" className="h-14 px-6" onClick={() => router.back()}>
             <ArrowLeft className="w-5 h-5 mr-2" /> {t.back}
-          </Button>
-          <Button
-            size="lg"
-            className="h-14 px-8 text-lg shadow-md"
-            onClick={() => router.push("/borne/nouvelle-sim/recu")}
-            disabled={(method === 'orange-money' && (!omCode || omCode.length < 4)) || (method === 'visa' && (!visaData.number || !visaData.cvv))}
-          >
-            {t.confirmPayment} <ChevronRight className="w-6 h-6 ml-2" />
           </Button>
         </div>
       </div>

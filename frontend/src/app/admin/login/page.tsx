@@ -12,7 +12,7 @@ export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -23,34 +23,43 @@ export default function AdminLogin() {
 
     setIsLoading(true);
 
-    // Simulation d'authentification
-    setTimeout(() => {
-      if (email === "admin@nmasim.gn" && password === "admin123") {
-        // Enregistrement des informations de session admin
-        const adminSession = {
-          name: "Ibrahima Sylla",
-          email: "admin@nmasim.gn",
-          role: "Administrateur Principal",
-          loginAt: new Date().toLocaleString("fr-FR", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit"
-          })
-        };
-        localStorage.setItem("admin_session", JSON.stringify(adminSession));
-        
-        setIsSuccess(true);
-        setTimeout(() => {
-          router.push("/admin");
-        }, 1000);
-      } else {
+    try {
+      const res = await fetch("http://localhost:3001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, motDePasse: password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Identifiants incorrects.");
         setIsLoading(false);
-        setError("Identifiants incorrects. Indice : admin@nmasim.gn / admin123");
+        return;
       }
-    }, 1200);
+
+      // Stocker le token JWT + infos utilisateur
+      const adminSession = {
+        token: data.data.accessToken,
+        refreshToken: data.data.refreshToken,
+        id: data.data.user.id,
+        name: data.data.user.nom,
+        email: data.data.user.email,
+        role: data.data.user.role,
+        loginAt: new Date().toLocaleString("fr-FR", {
+          day: "2-digit", month: "2-digit", year: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit"
+        })
+      };
+      localStorage.setItem("admin_session", JSON.stringify(adminSession));
+
+      setIsSuccess(true);
+      setTimeout(() => router.push("/admin"), 1000);
+    } catch (err) {
+      console.error("[LOGIN]", err);
+      setError("Impossible de joindre le serveur. Vérifiez que le backend est démarré.");
+      setIsLoading(false);
+    }
   };
 
   return (

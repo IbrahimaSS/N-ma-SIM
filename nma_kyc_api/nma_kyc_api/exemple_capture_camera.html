@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N'ma SIM — Vérification d'identité</title>
+<style>
+  :root{
+    --orange:#ff7900;          /* accent Orange */
+    --noir:#0a0a0a; --gris:#6b7280; --clair:#f5f5f4;
+    --vert:#16a34a; --rouge:#dc2626; --ambre:#d97706;
+    --bord:#e7e5e4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--clair);color:var(--noir);line-height:1.5;
+    display:flex;justify-content:center;padding:20px;
+  }
+  .app{width:100%;max-width:480px}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+  header .dot{width:12px;height:12px;background:var(--orange);border-radius:3px}
+  header h1{font-size:18px;font-weight:700;letter-spacing:-0.02em}
+  .etape{
+    background:#fff;border:1px solid var(--bord);border-radius:14px;
+    padding:18px;margin-bottom:14px;
+  }
+  .etape.inactive{opacity:0.45;pointer-events:none}
+  .etape h2{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .etape .num{
+    width:22px;height:22px;background:var(--noir);color:#fff;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;
+  }
+  .etape.ok .num{background:var(--vert)}
+  .etape p.hint{font-size:13px;color:var(--gris);margin:2px 0 12px 30px}
+  .cadre{
+    position:relative;width:100%;aspect-ratio:1.585;background:#000;
+    border-radius:10px;overflow:hidden;
+  }
+  .cadre.selfie{aspect-ratio:1}
+  video,canvas,img.apercu{width:100%;height:100%;object-fit:cover;display:block}
+  .guide{
+    position:absolute;inset:12px;border:2px dashed rgba(255,255,255,.6);
+    border-radius:8px;pointer-events:none;
+  }
+  .actions{display:flex;gap:8px;margin-top:12px}
+  button{
+    flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;
+    cursor:pointer;transition:opacity .15s;
+  }
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .btn-primary{background:var(--orange);color:#fff}
+  .btn-ghost{background:var(--clair);color:var(--noir);border:1px solid var(--bord)}
+  .btn-noir{background:var(--noir);color:#fff}
+  .resultat{border-radius:14px;padding:18px;margin-top:14px;display:none}
+  .resultat.show{display:block}
+  .resultat.accepte{background:#f0fdf4;border:1px solid #bbf7d0}
+  .resultat.manuelle{background:#fffbeb;border:1px solid #fde68a}
+  .resultat.rejete{background:#fef2f2;border:1px solid #fecaca}
+  .resultat h3{font-size:16px;margin-bottom:10px}
+  .resultat .champ{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+  .resultat .champ b{color:var(--gris);font-weight:500}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><span class="dot"></span><h1>N'ma SIM — Vérification d'identité</h1></header>
+
+  <!-- ÉTAPE 1 : RECTO -->
+  <section class="etape ok" id="etape-recto">
+    <h2><span class="num">1</span> Scannez le recto de votre pièce</h2>
+    <p class="hint">CNI, passeport ou carte d'électeur. Tenez la pièce bien à plat dans le cadre.</p>
+    <div class="cadre"><video id="v-recto" autoplay playsinline></video><div class="guide"></div></div>
+    <div class="actions">
+      <button class="btn-primary" id="cap-recto">Capturer</button>
+    </div>
+  </section>
+
+  <!-- ÉTAPE 2 : VERSO -->
+  <section class="etape inactive" id="etape-verso">
+    <h2><span class="num">2</span> Scannez le verso <span style="font-weight:400;color:var(--gris);font-size:12px">(sauf carte d'électeur)</span></h2>
+    <p class="hint">Retournez la pièce. Pour une carte d'électeur, passez cette étape.</p>
+    <div class="cadre"><video id="v-verso" autoplay playsinline></video><div class="guide"></div></div>
+    <div class="actions">
+      <button class="btn-ghost" id="skip-verso">Passer</button>
+      <button class="btn-primary" id="cap-verso">Capturer</button>
+    </div>
+  </section>
+
+  <!-- ÉTAPE 3 : SELFIE -->
+  <section class="etape inactive" id="etape-selfie">
+    <h2><span class="num">3</span> Prenez un selfie</h2>
+    <p class="hint">Regardez la caméra, visage bien éclairé, sans lunettes de soleil ni casquette.</p>
+    <div class="cadre selfie"><video id="v-selfie" autoplay playsinline></video><div class="guide" style="border-radius:50%"></div></div>
+    <div class="actions">
+      <button class="btn-primary" id="cap-selfie">Capturer</button>
+    </div>
+  </section>
+
+  <!-- ÉTAPE 4 : ENVOI -->
+  <section class="etape inactive" id="etape-envoi">
+    <h2><span class="num">4</span> Vérification</h2>
+    <p class="hint">Nous vérifions votre identité. Cela prend quelques secondes.</p>
+    <div class="actions">
+      <button class="btn-noir" id="envoyer">Vérifier mon identité</button>
+    </div>
+  </section>
+
+  <!-- RÉSULTAT -->
+  <div class="resultat" id="resultat"></div>
+</div>
+
+<!-- canvas cachés pour capturer les images -->
+<canvas id="canvas" style="display:none"></canvas>
+
+<script>
+// ⚠️ ADAPTE cette URL à l'adresse de ton API
+const API_URL = "http://localhost:8000/kyc";
+
+const images = { recto:null, verso:null, selfie:null };
+const flux = {};   // flux caméra par étape
+
+// --- Démarre la caméra pour une étape donnée ---
+async function demarrerCamera(videoId, facingMode) {
+  const video = document.getElementById(videoId);
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: facingMode, width:{ideal:1280}, height:{ideal:720} },
+      audio: false
+    });
+    video.srcObject = stream;
+    flux[videoId] = stream;
+  } catch (e) {
+    alert("Impossible d'accéder à la caméra : " + e.message);
+  }
+}
+
+// --- Capture l'image courante d'une vidéo en Blob (fichier image) ---
+function capturer(videoId) {
+  const video = document.getElementById(videoId);
+  const canvas = document.getElementById("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+  // arrête la caméra de cette étape (on a l'image)
+  if (flux[videoId]) flux[videoId].getTracks().forEach(t => t.stop());
+  return new Promise(res => canvas.toBlob(res, "image/jpeg", 0.92));
+}
+
+function activer(id){ document.getElementById(id).classList.remove("inactive"); }
+function marquerOk(id){ document.getElementById(id).classList.add("ok"); }
+
+// --- ÉTAPE 1 : recto ---
+demarrerCamera("v-recto", "environment");   // caméra arrière
+document.getElementById("cap-recto").onclick = async () => {
+  images.recto = await capturer("v-recto");
+  marquerOk("etape-recto");
+  activer("etape-verso");
+  demarrerCamera("v-verso", "environment");
+};
+
+// --- ÉTAPE 2 : verso ---
+document.getElementById("cap-verso").onclick = async () => {
+  images.verso = await capturer("v-verso");
+  marquerOk("etape-verso");
+  activer("etape-selfie");
+  demarrerCamera("v-selfie", "user");        // caméra avant
+};
+document.getElementById("skip-verso").onclick = () => {
+  if (flux["v-verso"]) flux["v-verso"].getTracks().forEach(t => t.stop());
+  marquerOk("etape-verso");
+  activer("etape-selfie");
+  demarrerCamera("v-selfie", "user");
+};
+
+// --- ÉTAPE 3 : selfie ---
+document.getElementById("cap-selfie").onclick = async () => {
+  images.selfie = await capturer("v-selfie");
+  marquerOk("etape-selfie");
+  activer("etape-envoi");
+};
+
+// --- ÉTAPE 4 : envoi à l'API ---
+document.getElementById("envoyer").onclick = async () => {
+  const btn = document.getElementById("envoyer");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Vérification…';
+
+  const form = new FormData();
+  form.append("recto", images.recto, "recto.jpg");
+  form.append("selfie", images.selfie, "selfie.jpg");
+  if (images.verso) form.append("verso", images.verso, "verso.jpg");
+
+  try {
+    const rep = await fetch(API_URL, { method:"POST", body: form });
+    const data = await rep.json();
+    afficherResultat(data);
+  } catch (e) {
+    alert("Erreur réseau : " + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "Vérifier mon identité";
+  }
+};
+
+// --- Affichage du résultat ---
+function afficherResultat(data) {
+  const box = document.getElementById("resultat");
+  const dec = data.decision || "";
+  let cls = "manuelle";
+  if (dec.startsWith("✅")) cls = "accepte";
+  else if (dec.startsWith("❌")) cls = "rejete";
+
+  const c = data.champs || {};
+  box.className = "resultat show " + cls;
+  box.innerHTML = `
+    <h3>${dec}</h3>
+    <div class="champ"><b>Type de pièce</b><span>${data.type_piece || "-"}</span></div>
+    <div class="champ"><b>Nom</b><span>${c.nom || "-"}</span></div>
+    <div class="champ"><b>Prénom</b><span>${c.prenom || "-"}</span></div>
+    <div class="champ"><b>Date de naissance</b><span>${c.date_naissance || "-"}</span></div>
+    <div class="champ"><b>Âge</b><span>${data.age ?? "-"}</span></div>
+    <div class="champ"><b>Visage concordant</b><span>${data.face?.verifie ? "Oui" : "Non/À vérifier"}</span></div>
+    <div class="champ"><b>Selfie vivant</b><span>${data.liveness_selfie?.vrai ? "Oui" : "Non/À vérifier"}</span></div>
+    <div class="champ"><b>Clé unique</b><span>${data.cle || "-"}</span></div>
+  `;
+  box.scrollIntoView({ behavior:"smooth" });
+}
+</script>
+</body>
+</html>

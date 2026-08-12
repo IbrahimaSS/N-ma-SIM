@@ -1,0 +1,19 @@
+# --- API web ---
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9          # nécessaire pour recevoir les fichiers uploadés
+
+# --- OCR (PP-OCRv5 mobile, CPU) ---
+paddlepaddle==3.2.0
+paddleocr>=3.0
+
+# --- Traitement image ---
+opencv-python==4.10.0.84
+numpy<2.0
+
+# --- Vérification faciale (InsightFace / ArcFace) ---
+insightface==0.7.3
+onnxruntime==1.19.2
+
+# --- Utilitaires ---
+rapidfuzz==3.9.7

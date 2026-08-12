@@ -1,64 +1,127 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { Search, SlidersHorizontal, Eye } from "lucide-react";
-import { MOCK_DEMANDES } from "@/data/admin-mock-data";
+import { Search, SlidersHorizontal, Eye, Loader2, RefreshCcw } from "lucide-react";
 
+const BACKEND = "http://localhost:3001";
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const s = localStorage.getItem("admin_session");
+  if (!s) return null;
+  return JSON.parse(s).token ?? null;
+}
+
+async function apiFetch(path: string) {
+  const token = getToken();
+  const res = await fetch(`${BACKEND}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
+  return res.json();
+}
+
+// ─── Badges ─────────────────────────────────────────────────────────────────
 function TypeBadge({ type }: { type: string }) {
-  const isReact = type === "Réactivation";
+  const isReact = type === "NOUVELLE_SIM"; // Adapt to DB values
+  const label = type === "NOUVELLE_SIM" ? "Nouvelle SIM" : type;
   return (
     <span style={{
-      background: isReact ? "#EEF2FF" : "#F0FDF4",
-      color: isReact ? "#4338CA" : "#166534",
-      border: `1px solid ${isReact ? "#C7D2FE" : "#BBF7D0"}`,
+      background: isReact ? "#F0FDF4" : "#EEF2FF",
+      color: isReact ? "#166534" : "#4338CA",
+      border: `1px solid ${isReact ? "#BBF7D0" : "#C7D2FE"}`,
       borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600
-    }}>{type}</span>
+    }}>{label}</span>
   );
 }
 
 function StatutBadge({ statut }: { statut: string }) {
   const map: Record<string, { bg: string; color: string }> = {
-    "Validée": { bg: "#DCFCE7", color: "#166534" },
-    "En attente de validation": { bg: "#FEF3C7", color: "#92400E" },
-    "Rejetée": { bg: "#FEE2E2", color: "#991B1B" },
+    "VALIDEE":                 { bg: "#DCFCE7", color: "#166534" },
+    "EN_ATTENTE_VALIDATION":   { bg: "#FEF3C7", color: "#92400E" },
+    "EN_COURS_DE_TRAITEMENT":  { bg: "#EEF2FF", color: "#4338CA" },
+    "REJETEE":                 { bg: "#FEE2E2", color: "#991B1B" },
+  };
+  const label: Record<string, string> = {
+    "VALIDEE":                "Validée",
+    "EN_ATTENTE_VALIDATION":  "En attente",
+    "EN_COURS_DE_TRAITEMENT": "En cours",
+    "REJETEE":                "Rejetée",
   };
   const s = map[statut] || { bg: "#F3F4F6", color: "#374151" };
-  return <span style={{ ...s, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>{statut}</span>;
+  return (
+    <span style={{ ...s, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>
+      {label[statut] || statut}
+    </span>
+  );
 }
 
 function PaiementBadge({ statut }: { statut: string }) {
   const map: Record<string, { bg: string; color: string }> = {
-    "Confirmé": { bg: "#DCFCE7", color: "#166534" },
-    "En attente de paiement": { bg: "#FEF3C7", color: "#92400E" },
-    "Remboursé": { bg: "#EEF2FF", color: "#4338CA" },
+    "CONFIRME": { bg: "#DCFCE7", color: "#166534" },
+    "EN_ATTENTE": { bg: "#FEF3C7", color: "#92400E" },
+    "ECHOUE": { bg: "#FEE2E2", color: "#991B1B" },
   };
+  const label: Record<string, string> = {
+    "CONFIRME": "Confirmé",
+    "EN_ATTENTE": "En attente",
+    "ECHOUE": "Échoué",
+  }
   const s = map[statut] || { bg: "#F3F4F6", color: "#374151" };
-  return <span style={{ ...s, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>{statut}</span>;
+  return <span style={{ ...s, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>{label[statut] || statut}</span>;
 }
 
 function IaBadge({ ia, detail }: { ia: string; detail: string }) {
   const map: Record<string, { bg: string; color: string }> = {
     "OK": { bg: "#DCFCE7", color: "#166534" },
-    "En attente": { bg: "#FEF3C7", color: "#92400E" },
-    "Rejetée": { bg: "#FEE2E2", color: "#991B1B" },
+    "WARNING": { bg: "#FEF3C7", color: "#92400E" },
+    "REJECTED": { bg: "#FEE2E2", color: "#991B1B" },
   };
   const s = map[ia] || { bg: "#F3F4F6", color: "#374151" };
   return (
     <div>
-      <span style={{ ...s, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>{ia}</span>
-      <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{detail}</div>
+      <span style={{ ...s, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>{ia === 'WARNING' ? 'Alerte' : ia === 'REJECTED' ? 'Rejetée' : 'OK'}</span>
+      {detail && <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{detail}</div>}
     </div>
   );
 }
 
-export default function DemandesSIM() {
+function DemandesContent() {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const [demandes, setDemandes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>(null);
 
-  const filtered = MOCK_DEMANDES.filter(d =>
-    d.client.nom.toLowerCase().includes(search.toLowerCase()) ||
-    d.id.toLowerCase().includes(search.toLowerCase())
-  );
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [demandesRes, statsRes] = await Promise.all([
+        apiFetch("/api/demandes?orderBy=createdAt&order=desc"),
+        apiFetch("/api/stats"),
+      ]);
+      setDemandes(demandesRes.data?.demandes || demandesRes.data || []);
+      setStats(statsRes.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const filtered = demandes.filter((d: any) => {
+    const s = search.toLowerCase();
+    const nom = d.client?.nom?.toLowerCase() || "";
+    const prenom = d.client?.prenom?.toLowerCase() || "";
+    const num = d.numeroDossier?.toLowerCase() || "";
+    return nom.includes(s) || prenom.includes(s) || num.includes(s);
+  });
 
   return (
     <div>
@@ -69,6 +132,9 @@ export default function DemandesSIM() {
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Dashboard administrateur</p>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <button onClick={fetchData} disabled={loading} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: loading ? "not-allowed" : "pointer", fontSize: 14, color: "#374151" }}>
+             <RefreshCcw size={16} style={{ animation: loading ? "spin 1s linear infinite" : "none" }} />
+          </button>
           <div style={{ position: "relative" }}>
             <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un ticket, un client..." style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, outline: "none", width: 300, background: "white" }} />
@@ -82,10 +148,10 @@ export default function DemandesSIM() {
       {/* KPIs */}
       <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
         {[
-          { label: "En attente de validation", value: "52", sub: "40,6% du total", badge: "Priorité élevée", color: "#D97706" },
-          { label: "Validées", value: "68", sub: "↑ 8 ce mois", color: "#059669" },
-          { label: "Rejetées", value: "15", sub: "↓ 3 ce mois", color: "#DC2626" },
-          { label: "Paiements confirmés", value: "113", sub: "↑ 12 ce mois", color: "#059669" },
+          { label: "En attente de validation", value: stats?.demandes?.enAttente ?? "-", sub: "À traiter d'urgence", badge: "Priorité élevée", color: "#D97706" },
+          { label: "Validées", value: stats?.demandes?.validees ?? "-", sub: "Ce mois", color: "#059669" },
+          { label: "Rejetées", value: stats?.demandes?.rejetees ?? "-", sub: "Ce mois", color: "#DC2626" },
+          { label: "Paiements confirmés", value: stats?.paiements?.confirmes ?? "-", sub: "Transactions réussies", color: "#059669" },
         ].map(k => (
           <div key={k.label} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 160, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8, fontWeight: 500 }}>{k.label}</div>
@@ -98,64 +164,79 @@ export default function DemandesSIM() {
 
       {/* Table */}
       <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
-              {["Ticket", "Type de service", "Client", "Offre", "Paiement", "Résultat IA", "Statut demande", "Statut paiement", "Action"].map(h => (
-                <th key={h} style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((d, i) => (
-              <tr key={d.id} style={{ borderBottom: "1px solid #F9FAFB", transition: "background 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-              >
-                <td style={{ padding: "14px 12px", fontSize: 13, color: "#4F46E5", fontWeight: 600, whiteSpace: "nowrap" }}>{d.id}</td>
-                <td style={{ padding: "14px 12px" }}><TypeBadge type={d.type} /></td>
-                <td style={{ padding: "14px 12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: "#4F46E5", flexShrink: 0 }}>
-                      {d.client.nom.charAt(0)}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{d.client.nom}</div>
-                      <div style={{ fontSize: 11, color: "#9CA3AF" }}>{d.client.tel}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ padding: "14px 12px" }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{d.offre}</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF" }}>{d.montant.toLocaleString("fr-FR")} GNF</div>
-                </td>
-                <td style={{ padding: "14px 12px" }}>
-                  <span style={{ background: d.paiement === "Payé" ? "#DCFCE7" : "#FEF3C7", color: d.paiement === "Payé" ? "#166534" : "#92400E", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>{d.paiement}</span>
-                </td>
-                <td style={{ padding: "14px 12px" }}><IaBadge ia={d.ia} detail={d.iaDetail} /></td>
-                <td style={{ padding: "14px 12px" }}><StatutBadge statut={d.statut} /></td>
-                <td style={{ padding: "14px 12px" }}><PaiementBadge statut={d.paiementStatut} /></td>
-                <td style={{ padding: "14px 12px" }}>
-                  <button
-                    onClick={() => router.push(`/admin/demandes-sim/${d.id}`)}
-                    style={{ background: "#EEF2FF", border: "none", borderRadius: 8, padding: "8px 10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                  >
-                    <Eye size={16} style={{ color: "#4F46E5" }} />
-                  </button>
-                </td>
+        {loading ? (
+           <div style={{ padding: 40, display: "flex", justifyContent: "center" }}><Loader2 size={32} className="animate-spin" style={{ color: "#1F0270" }} /></div>
+        ) : filtered.length === 0 ? (
+           <div style={{ padding: 40, textAlign: "center", color: "#6B7280" }}>Aucune demande trouvée.</div>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
+                {["Ticket", "Type de service", "Client", "Offre", "Paiement", "Score IA", "Statut demande", "Statut paiement", "Action"].map(h => (
+                  <th key={h} style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((d: any) => (
+                <tr key={d.id} style={{ borderBottom: "1px solid #F9FAFB", transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                >
+                  <td style={{ padding: "14px 12px", fontSize: 13, color: "#4F46E5", fontWeight: 600, whiteSpace: "nowrap" }}>{d.numeroDossier}</td>
+                  <td style={{ padding: "14px 12px" }}><TypeBadge type={d.type} /></td>
+                  <td style={{ padding: "14px 12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: "#4F46E5", flexShrink: 0 }}>
+                        {d.client?.nom?.charAt(0) || "?"}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{d.client?.prenom} {d.client?.nom}</div>
+                        <div style={{ fontSize: 11, color: "#9CA3AF" }}>{d.client?.telephone || "Aucun N°"}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: "14px 12px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{d.offre?.nom || "—"}</div>
+                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+                      {d.paiement?.[0]?.montant ? d.paiement[0].montant.toLocaleString("fr-FR") + " GNF" : "—"}
+                    </div>
+                  </td>
+                  <td style={{ padding: "14px 12px" }}>
+                    <span style={{ background: d.paiement?.[0]?.statut === "CONFIRME" ? "#DCFCE7" : "#FEF3C7", color: d.paiement?.[0]?.statut === "CONFIRME" ? "#166534" : "#92400E", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>
+                      {d.paiement?.[0]?.methodePaiement || "—"}
+                    </span>
+                  </td>
+                  <td style={{ padding: "14px 12px" }}>
+                     <IaBadge ia={d.scoreVerification >= 80 ? "OK" : d.scoreVerification > 0 ? "WARNING" : "EN_ATTENTE"} detail={d.scoreVerification > 0 ? `${d.scoreVerification}% match` : "-"} />
+                  </td>
+                  <td style={{ padding: "14px 12px" }}><StatutBadge statut={d.statut} /></td>
+                  <td style={{ padding: "14px 12px" }}><PaiementBadge statut={d.paiement?.[0]?.statut || "EN_ATTENTE"} /></td>
+                  <td style={{ padding: "14px 12px" }}>
+                    <button
+                      onClick={() => router.push(`/admin/demandes-sim/${d.id}`)}
+                      style={{ background: "#EEF2FF", border: "none", borderRadius: 8, padding: "8px 10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    >
+                      <Eye size={16} style={{ color: "#4F46E5" }} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
-          <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {filtered.length} sur 135 demandes</span>
-          <div style={{ display: "flex", gap: 6 }}>
-            {[1, 2, 3, "...", 14].map((p, i) => (
-              <button key={i} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: p === 1 ? "#1F0270" : "white", color: p === 1 ? "white" : "#374151", fontSize: 13, cursor: "pointer", padding: "0 8px" }}>{p}</button>
-            ))}
-          </div>
+          <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {filtered.length} sur {demandes.length} demandes</span>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DemandesSIM() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <DemandesContent />
+    </Suspense>
   );
 }

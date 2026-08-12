@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+# Modèles téléchargés (volumineux, se re-téléchargent tout seuls)
+*.onnx
+*.pdparams
+/root/.insightface/
+/root/.paddlex/
+.DS_Store
