@@ -18,9 +18,14 @@ import { getAuthUser, apiSuccess, apiError } from '@/lib/auth'
  *         description: Unauthorized
  */
 export async function GET(request: NextRequest) {
+  console.log("--> API STATS CALLED");
   try {
     const authUser = getAuthUser(request)
-    if (!authUser) return apiError('Non authentifié', 401)
+    if (!authUser) {
+      console.log("--> API STATS: UNAUTHORIZED");
+      return apiError('Non authentifié', 401)
+    }
+    console.log("--> API STATS: AUTH OK");
 
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
