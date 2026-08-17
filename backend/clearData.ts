@@ -1,0 +1,1 @@
+import { prisma } from './lib/prisma'; async function main() { await prisma.paiement.deleteMany(); await prisma.log.deleteMany(); await prisma.demandeSIM.deleteMany(); await prisma.client.deleteMany(); console.log('Toutes les données ont été réinitialisées !'); } main().catch(console.error).finally(() => prisma.$disconnect());

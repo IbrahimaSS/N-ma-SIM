@@ -9,6 +9,7 @@ const createPaiementSchema = z.object({
   methodePaiement: z.enum(['ORANGE_MONEY', 'MTN_MOBILE_MONEY', 'WAVE', 'ESPECES']),
   numeroPaieur: z.string().optional(),
   referenceExterne: z.string().optional(),
+  statut: z.enum(['EN_ATTENTE', 'CONFIRME', 'ECHOUE', 'REMBOURSE']).optional(),
 })
 
 /**
@@ -127,7 +128,8 @@ export async function POST(request: NextRequest) {
         methodePaiement,
         numeroPaieur: numeroPaieur || undefined,
         referenceExterne: referenceExterne || undefined,
-        statut: 'EN_ATTENTE',
+        statut: parsed.data.statut || 'EN_ATTENTE',
+        confirmedAt: parsed.data.statut === 'CONFIRME' ? new Date() : undefined,
       }
     })
 

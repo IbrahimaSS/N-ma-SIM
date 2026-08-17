@@ -27,6 +27,7 @@ export default function ConfirmationInfos() {
   const [typePiece, setTypePiece] = useState("cni");
   const [numeroPiece, setNumeroPiece] = useState("");
 
+
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
     setProfile(sessionStorage.getItem("kiosk_profile") || "resident");
@@ -58,17 +59,41 @@ export default function ConfirmationInfos() {
         }
         // Adresse : lieu_naissance ou quartier selon le type de pièce
         setAdresse(c.adresse ?? c.quartier ?? c.lieu_naissance ?? "");
-        // Numéro : numero_identite pour CNI/Passeport, numero_carte pour électeur
-        setNumeroPiece(c.numero_identite ?? c.numero_carte ?? c.nin ?? "");
 
-        if (result.type_piece) {
+        // Type de pièce : la sélection de l'utilisateur (session) est la source de vérité
+        // On ne fait confiance à l'IA que si l'utilisateur n'a pas pré-sélectionné
+        const sessionDocType = sessionStorage.getItem("kiosk_doc_type");
+        if (sessionDocType) {
+          setTypePiece(sessionDocType);
+        } else if (result.type_piece) {
           const tp = result.type_piece.toLowerCase();
           if (tp.includes("passport") || tp.includes("passeport")) setTypePiece("passeport");
-          else if (tp.includes("electeur")) setTypePiece("cni");
+          else if (tp.includes("electeur")) setTypePiece("carte_electeur");
           else setTypePiece("cni");
+        }
+
+        // Numéro : pour carte d'électeur on prend numero_carte, sinon numero_identite / nin
+        if (sessionDocType === "carte_electeur") {
+          setNumeroPiece(c.numero_carte ?? c.numero_identite ?? c.nin ?? "");
+        } else {
+          setNumeroPiece(c.numero_identite ?? c.numero_carte ?? c.nin ?? "");
         }
       }
     }).finally(() => setIsLoading(false));
+
+    // Si on a des infos déjà sauvées dans la session, on les charge en priorité (pour le retour en arrière)
+    const saved = sessionStorage.getItem("kiosk_client_info");
+    if (saved) {
+      const p = JSON.parse(saved);
+      if (p.nom) setNom(p.nom);
+      if (p.prenom) setPrenom(p.prenom);
+      if (p.dateNaissance) setDateNaissance(p.dateNaissance);
+      if (p.dateExpiration) setDateExpiration(p.dateExpiration);
+      if (p.adresse) setAdresse(p.adresse);
+      if (p.telephone) setTelephone(p.telephone);
+      if (p.numeroPiece) setNumeroPiece(p.numeroPiece);
+      if (p.typePiece) setTypePiece(p.typePiece);
+    }
   }, []);
 
   const t = {
@@ -93,8 +118,10 @@ export default function ConfirmationInfos() {
     idType: lang === "en" ? "Document type" : "Type de pièce",
     cni: lang === "en" ? "National ID Card" : "Carte Nationale d'Identité",
     passport: lang === "en" ? "Passport" : "Passeport",
+    carteElecteur: lang === "en" ? "Voter ID" : "Carte d'électeur",
     idNumber: lang === "en" ? "Document number" : "Numéro de pièce",
-    infoNote: lang === "en" ? "You can edit fields in case of extraction error." : "Vous pouvez modifier les champs en cas d'erreur d'extraction.",
+
+    infoNote: lang === "en" ? "Your information has been automatically extracted." : "Vos informations ont été extraites automatiquement.",
     back: lang === "en" ? "Back" : "Retour",
     confirm: lang === "en" ? "Confirm and continue" : "Confirmer et continuer",
     // Décisions IA
@@ -179,6 +206,8 @@ export default function ConfirmationInfos() {
   };
 
   const isRejected = kycResult?.decision.toUpperCase().includes("REJET") ?? false;
+  // Verrouille tout le formulaire dès qu'une extraction KYC existe
+  const isLocked = kycResult !== null;
 
   if (isLoading) {
     return (
@@ -229,21 +258,29 @@ export default function ConfirmationInfos() {
           </div>
         )}
 
-        {/* Formulaire pré-rempli */}
+        {/* Formulaire pré-rempli — verrouillé si extraction KYC disponible */}
+        {isLocked && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <p className="text-sm text-blue-700 font-medium">{t.infoNote}</p>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 mb-5">
           <Input
             label={t.lastName}
             required
             value={nom}
             onChange={(e) => setNom(e.target.value)}
-            disabled={isRejected}
+            disabled={isLocked}
+            readOnly={isLocked}
           />
           <Input
             label={t.firstName}
             required
             value={prenom}
             onChange={(e) => setPrenom(e.target.value)}
-            disabled={isRejected}
+            disabled={isLocked}
+            readOnly={isLocked}
           />
           <Input
             label={t.dob}
@@ -251,28 +288,31 @@ export default function ConfirmationInfos() {
             value={dateNaissance}
             onChange={(e) => setDateNaissance(e.target.value)}
             type="date"
-            disabled={isRejected}
+            disabled={isLocked}
+            readOnly={isLocked}
           />
           <Input
             label={t.dobExpiry}
             value={dateExpiration}
             onChange={(e) => setDateExpiration(e.target.value)}
             type="date"
-            disabled={isRejected}
+            disabled={isLocked}
+            readOnly={isLocked}
           />
           <Input
             label={t.address}
             required
             value={adresse}
             onChange={(e) => setAdresse(e.target.value)}
-            disabled={isRejected}
+            disabled={isLocked}
+            readOnly={isLocked}
           />
           <Select
             label={t.profileType}
             required
             value={profile}
             onChange={(e) => setProfile(e.target.value)}
-            disabled={isRejected}
+            disabled={isLocked}
           >
             <option value="resident">{t.resident}</option>
             <option value="etranger">{t.foreigner}</option>
@@ -282,32 +322,49 @@ export default function ConfirmationInfos() {
             required
             value={typePiece}
             onChange={(e) => setTypePiece(e.target.value)}
-            disabled={isRejected}
+            disabled={isLocked}
           >
             <option value="cni">{t.cni}</option>
             <option value="passeport">{t.passport}</option>
+            <option value="carte_electeur">{t.carteElecteur}</option>
           </Select>
           <Input
             label={t.idNumber}
             required
             value={numeroPiece}
             onChange={(e) => setNumeroPiece(e.target.value)}
-            disabled={isRejected}
+            disabled={isLocked}
+            readOnly={isLocked}
           />
+
         </div>
 
-        <div className="flex items-center gap-3 text-sm text-text-muted mb-4">
-          <Info className="w-5 h-5 text-primary" />
-          {t.infoNote}
-        </div>
+        {!isLocked && (
+          <div className="flex items-center gap-3 text-sm text-text-muted mb-4">
+            <Info className="w-5 h-5 text-primary" />
+            {t.infoNote}
+          </div>
+        )}
 
         <div className="flex justify-between items-center pt-4 border-t border-border-light">
           <Button variant="secondary" onClick={() => router.back()}>
             <ArrowLeft className="w-5 h-5 mr-2" /> {t.back}
           </Button>
           <Button
-            onClick={() => router.push("/borne/nouvelle-sim/selfie")}
-            disabled={isRejected}
+            onClick={() => {
+              // Sauvegarder les informations éditées dans la session
+              sessionStorage.setItem("kiosk_client_info", JSON.stringify({
+                nom,
+                prenom,
+                dateNaissance,
+                dateExpiration,
+                adresse,
+                typePiece,
+                numeroPiece,
+              }));
+              router.push("/borne/nouvelle-sim/selfie");
+            }}
+            disabled={isRejected || !nom || !prenom || !numeroPiece}
           >
             {t.confirm} <ChevronRight className="w-5 h-5 ml-2" />
           </Button>

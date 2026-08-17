@@ -6,10 +6,12 @@ import { randomUUID } from 'crypto'
 
 const createDemandeSchema = z.object({
   clientId: z.string(),
-  type: z.enum(['NOUVELLE_SIM', 'REACTIVATION']),
+  type: z.enum(['NOUVELLE_SIM', 'REACTIVATION', 'RECHARGE']),
   offreId: z.string().optional(),
   numeroAReactiver: z.string().optional(),
   motifReactivation: z.string().optional(),
+  // Permet au proxy de forcer directement VALIDEE pour les recharges automatiques
+  statut: z.enum(['EN_ATTENTE_VALIDATION', 'EN_COURS_DE_TRAITEMENT', 'VALIDEE', 'REJETEE']).optional(),
 })
 
 /**
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
     const where: any = {
       AND: [
         statut ? { statut } : {},
-        type ? { type } : {},
+        type ? { type } : { type: { not: 'RECHARGE' } },
         search ? {
           OR: [
             { numeroDossier: { contains: search, mode: 'insensitive' } },
@@ -112,7 +114,7 @@ export async function GET(request: NextRequest) {
  *                 type: string
  *               type:
  *                 type: string
- *                 enum: [NOUVELLE_SIM, REACTIVATION]
+ *                 enum: [NOUVELLE_SIM, REACTIVATION, RECHARGE]
  *               offreId:
  *                 type: string
  *               numeroAReactiver:
@@ -134,7 +136,7 @@ export async function POST(request: NextRequest) {
       return apiError('Données invalides', 400, parsed.error.flatten())
     }
 
-    const { clientId, type, offreId, numeroAReactiver, motifReactivation } = parsed.data
+    const { clientId, type, offreId, numeroAReactiver, motifReactivation, statut } = parsed.data
 
     // Vérifier que le client existe
     const client = await prisma.client.findUnique({ where: { id: clientId } })
@@ -149,6 +151,9 @@ export async function POST(request: NextRequest) {
     // Générer un numéro de dossier unique
     const numeroDossier = `NMA-${Date.now()}-${randomUUID().slice(0, 6).toUpperCase()}`
 
+    // Les recharges sont automatiquement validées (pas besoin d'un agent)
+    const statutFinal = statut || (type === 'RECHARGE' ? 'VALIDEE' : 'EN_ATTENTE_VALIDATION')
+
     const demande = await prisma.demandeSIM.create({
       data: {
         numeroDossier,
@@ -157,7 +162,7 @@ export async function POST(request: NextRequest) {
         offreId: offreId || undefined,
         numeroAReactiver: numeroAReactiver || undefined,
         motifReactivation: motifReactivation || undefined,
-        statut: 'EN_ATTENTE_VALIDATION',
+        statut: statutFinal,
       },
       include: {
         client: { select: { id: true, nom: true, prenom: true } },

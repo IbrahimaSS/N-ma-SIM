@@ -56,61 +56,39 @@ async function main() {
     console.log('ℹ️ Admin déjà existant')
   }
 
-  // Offres SIM par défaut
+  // Offres par défaut
+  try { await prisma.offre.deleteMany(); } catch (e) { console.log("Could not delete old offers, maybe referenced"); }
   const offresCount = await prisma.offre.count()
   if (offresCount === 0) {
     await prisma.offre.createMany({
       data: [
         {
-          nom: 'SIM Standard',
-          description: 'Carte SIM de base pour les appels et SMS',
-          prix: 5000,
-          type: 'SIM_STANDARD',
-          duree: 'Illimité',
-          appels: '100 min/mois',
-          sms: '50 SMS/mois',
+          nom: 'Recharge',
+          description: 'Rechargez votre crédit de communication rapidement',
+          prix: 0,
+          type: 'RECHARGE',
           couleur: '#4F46E5',
           estActif: true,
         },
         {
-          nom: 'SIM + Internet',
-          description: 'SIM avec forfait data inclus',
-          prix: 15000,
-          type: 'SIM_INTERNET',
-          duree: '30 jours',
-          data: '5 Go',
-          appels: '300 min/mois',
-          sms: '200 SMS/mois',
+          nom: 'Forfait Pass',
+          description: 'Achetez des forfaits appels, internet ou mixtes',
+          prix: 0,
+          type: 'FORFAIT_PASS',
           couleur: '#059669',
           estActif: true,
         },
         {
-          nom: 'SIM Étudiant',
-          description: 'Forfait spécial étudiant avec réduction',
-          prix: 10000,
-          type: 'SIM_ETUDIANT',
-          duree: '30 jours',
-          data: '3 Go',
-          appels: '200 min/mois',
-          sms: '100 SMS/mois',
+          nom: 'Dépôt',
+          description: 'Effectuez un dépôt sécurisé sur votre compte',
+          prix: 0,
+          type: 'DEPOT',
           couleur: '#D97706',
-          estActif: true,
-        },
-        {
-          nom: 'SIM Entreprise',
-          description: 'Solution professionnelle multi-lignes',
-          prix: 50000,
-          type: 'SIM_ENTREPRISE',
-          duree: '30 jours',
-          data: '20 Go',
-          appels: 'Illimité',
-          sms: 'Illimité',
-          couleur: '#7C3AED',
           estActif: true,
         },
       ]
     })
-    console.log('✅ 4 offres SIM créées')
+    console.log('✅ 3 nouvelles offres créées (Recharge, Forfait Pass, Dépôt)')
   } else {
     console.log('ℹ️ Offres déjà existantes')
   }

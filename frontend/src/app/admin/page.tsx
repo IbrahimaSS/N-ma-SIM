@@ -21,10 +21,12 @@ function getToken(): string | null {
 
 async function apiFetch(path: string) {
   const token = getToken();
+  if (!token) throw new Error("AUTH_REQUIRED");
   const res = await fetch(`${BACKEND}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
+  if (res.status === 401) throw new Error("AUTH_REQUIRED");
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
   return res.json();
 }
@@ -93,10 +95,14 @@ function DashboardContent() {
 
   useEffect(() => {
     const session = localStorage.getItem("admin_session");
-    if (session) {
-      setAdmin(JSON.parse(session));
-    } else {
-      router.push("/admin/login");
+    if (!session) { router.push("/admin/login"); return; }
+    const sessionData = JSON.parse(session);
+    setAdmin(sessionData);
+    // Fetch fresh profile data (including photoProfil) from backend
+    if (sessionData.id) {
+      apiFetch(`/api/utilisateurs/${sessionData.id}`)
+        .then(res => { if (res.data) setAdmin((prev: any) => ({ ...prev, ...res.data })); })
+        .catch(() => {}); // fallback to session data silently
     }
   }, [router]);
 
@@ -111,12 +117,18 @@ function DashboardContent() {
       setStats(statsRes.data);
       setRecentDemandes(demandesRes.data?.demandes || demandesRes.data || []);
     } catch (e: any) {
+      if (e.message === "AUTH_REQUIRED") {
+        // Session expirée ou token absent → redirection login
+        localStorage.removeItem("admin_session");
+        router.push("/admin/login");
+        return;
+      }
       setError("Impossible de charger les données. Vérifiez que le serveur backend est démarré.");
       console.error("[STATS]", e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (activeTab === "apercu") fetchStats();
@@ -191,7 +203,7 @@ function DashboardContent() {
             <KpiCard icon={CheckCircle2} label="Validées"              value={stats?.demandes?.validees ?? "—"}  subColor="#059669"                                          iconBg="#DCFCE7"  loading={loading} />
             <KpiCard icon={XCircle}     label="Rejetées"               value={stats?.demandes?.rejetees ?? "—"}  subColor="#DC2626"                                          iconBg="#FEE2E2"  loading={loading} />
             <KpiCard icon={CreditCard}  label="Paiements confirmés"    value={stats?.paiements?.confirmes ?? "—"} sub={`${(stats?.paiements?.montantTotal ?? 0).toLocaleString("fr-FR")} GNF`} iconBg="#EEF2FF" loading={loading} />
-            <KpiCard icon={Users}       label="Clients enregistrés"    value={stats?.clients?.total ?? "—"}       sub={`+${stats?.clients?.cemois ?? 0} ce mois`}  subColor="#059669" iconBg="#EEF2FF" loading={loading} />
+            <KpiCard icon={Users}       label="Clients enregistrés"    value={stats?.clients?.total ?? "—"}       iconBg="#EEF2FF" loading={loading} />
           </div>
 
           {/* Alertes + Activité récente */}
@@ -281,8 +293,11 @@ function DashboardContent() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.8fr", gap: 24, alignItems: "start" }} className="dash-grid">
           {/* Carte identité */}
           <div style={{ background: "white", borderRadius: 20, padding: 32, border: "1px solid #EAECF5", boxShadow: "0 1px 6px rgba(31,2,112,0.06)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-            <div style={{ width: 100, height: 100, borderRadius: "50%", background: "linear-gradient(135deg, #1F0270, #3B0CB8)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 800, marginBottom: 16, border: "4px solid #FFBA08" }}>
-              {admin.name?.split(" ").map((n: string) => n[0]).join("")}
+            <div style={{ width: 100, height: 100, borderRadius: "50%", background: "linear-gradient(135deg, #1F0270, #3B0CB8)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 800, marginBottom: 16, border: "4px solid #FFBA08", overflow: "hidden" }}>
+              {admin.photoProfil
+                ? <img src={admin.photoProfil} alt={admin.name || admin.nom} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : (admin.name || admin.nom)?.split(" ").map((n: string) => n[0]).join("")
+              }
             </div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1F0270", margin: 0 }}>{admin.name}</h2>
             <div style={{ display: "inline-block", background: "#FFEAA7", color: "#B27A00", borderRadius: 20, padding: "4px 14px", fontSize: 12, fontWeight: 700, marginTop: 8 }}>{admin.role}</div>

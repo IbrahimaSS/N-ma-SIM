@@ -78,10 +78,17 @@ function RecuContent() {
 
     getKycResult().then(async (kycResult) => {
       const champs = kycResult?.champs || {};
+      
+      // Récupérer les infos éditées par l'utilisateur (nom, prenom, adresse, tel, etc)
+      let finalClientInfo: any = {};
+      try {
+        const saved = sessionStorage.getItem("kiosk_client_info");
+        if (saved) finalClientInfo = JSON.parse(saved);
+      } catch (e) {}
 
       // Nom du client
-      const nom = champs.nom || "";
-      const prenom = champs.prenom || "";
+      const nom = finalClientInfo.nom || champs.nom || "";
+      const prenom = finalClientInfo.prenom || champs.prenom || "";
       if (nom || prenom) setNomClient(`${prenom} ${nom}`.trim());
 
       setIsSubmitting(true);
@@ -92,16 +99,16 @@ function RecuContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             client_info: {
-              nom: champs.nom || "Inconnu",
-              prenom: champs.prenom || "Inconnu",
-              date_naissance: champs.date_naissance || undefined,
-              lieu_naissance: champs.lieu_naissance || undefined,
+              nom: finalClientInfo.nom || champs.nom || "Inconnu",
+              prenom: finalClientInfo.prenom || champs.prenom || "Inconnu",
+              date_naissance: finalClientInfo.dateNaissance || champs.date_naissance || undefined,
+              lieu_naissance: finalClientInfo.adresse || champs.lieu_naissance || undefined,
               nationalite: champs.nationalite || "Guinéenne",
-              // ✅ Utiliser les bonnes clés du résultat OCR
-              type_piece: kycResult?.type_piece || champs.type_piece || undefined,
-              numero_piece: champs.numero_identite || champs.numero_carte || champs.nin || undefined,
+              type_piece: finalClientInfo.typePiece || kycResult?.type_piece || champs.type_piece || undefined,
+              numero_piece: finalClientInfo.numeroPiece || champs.numero_identite || champs.numero_carte || champs.nin || undefined,
+              telephone: finalClientInfo.telephone || undefined,
             },
-            offre_id: parsedOffer?.id || undefined,
+            offre_id: (parsedOffer?.id && parsedOffer.id !== "aucune") ? parsedOffer.id : undefined,
             paiement: {
               montant: parsedOffer?.prixGNF || 0,
               methode: parsedPayment?.method === "Orange Money" ? "ORANGE_MONEY" : "LENGO_PAY",

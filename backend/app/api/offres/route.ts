@@ -24,10 +24,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') || ''
+    const all = searchParams.get('all') === 'true'
 
     const offres = await prisma.offre.findMany({
       where: {
-        estActif: true,
+        ...(all ? {} : { estActif: true }),
         ...(type ? { type: type as any } : {}),
       },
       orderBy: { prix: 'asc' },

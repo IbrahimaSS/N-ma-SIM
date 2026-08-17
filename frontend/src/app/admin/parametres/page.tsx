@@ -1,12 +1,33 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Settings, Shield, Bell, CreditCard, Box, FileText, Globe, PenTool as Tool, Check, Eye } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 export default function Parametres() {
   const [activeTab, setActiveTab] = useState("Informations générales");
   
-  // State for all toggles
-  const [toggles, setToggles] = useState<Record<string, boolean>>({
+  // Unified state for all settings
+  const [settings, setSettings] = useState<Record<string, any>>({
+    // Text / Select values
+    "Nom de l'organisation": "N'ma SIM",
+    "Email de contact": "contact@nmasim.com",
+    "Téléphone": "+224 620 12 34 56",
+    "Adresse": "Conakry, République de Guinée",
+    "Fuseau horaire": "(GMT) Afrique/Conakry",
+    "Format de date": "DD/MM/YYYY",
+    "Devise par défaut": "GNF - Franc guinéen",
+    "Expiration de session (minutes)": "60",
+    "Tentatives de connexion max.": "5",
+    "Verrouillage de compte (minutes)": "15",
+    "Délai d'attente (minutes)": "10",
+    "Méthode par défaut": "Orange Money",
+    "URL de l'Endpoint (Base URL)": "https://api.orange.simulator.local/v1",
+    "Délai Timeout (secondes)": "30",
+    "Environnement": "Sandbox / Test",
+    "Clé secrète API (Token)": "secret_token_123456789",
+    "Modèle par défaut": "Modèle Standard N'ma",
+    "Langue principale": "Français (FR)",
+    // Toggles
     "2FA": false,
     "Nouvelles demandes SIM": true,
     "Validation de demande": true,
@@ -30,18 +51,63 @@ export default function Parametres() {
   
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await apiFetch('/api/parametres');
+        if (res.data && Object.keys(res.data).length > 0) {
+          setSettings(prev => ({ ...prev, ...res.data }));
+        }
+      } catch (err) {
+        console.error("Erreur chargement paramètres", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const handleToggle = (key: string) => {
-    setToggles(prev => ({ ...prev, [key]: !prev[key] }));
+    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSave = () => {
+  const handleChange = (key: string, val: string) => {
+    setSettings(prev => ({ ...prev, [key]: val }));
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 2 * 1024 * 1024) {
+        alert("L'image dépasse la taille maximale autorisée de 2 Mo.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          handleChange("Logo de l'organisation", event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      await apiFetch('/api/parametres', {
+        method: 'POST',
+        body: JSON.stringify(settings)
+      });
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
-    }, 800);
+    } catch (err) {
+      console.error("Erreur sauvegarde", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const ToggleSwitch = ({ active, onClick, disabled = false }: { active: boolean, onClick: () => void, disabled?: boolean }) => (
@@ -52,7 +118,7 @@ export default function Parametres() {
 
   const SaveButton = ({ text = "Enregistrer les modifications" }: { text?: string }) => (
     <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-      <button onClick={handleSave} disabled={isSaving} style={{ background: "#1F0270", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: isSaving ? "not-allowed" : "pointer", opacity: isSaving ? 0.7 : 1 }}>
+      <button onClick={handleSave} disabled={isSaving || loading} style={{ background: "#1F0270", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: (isSaving || loading) ? "not-allowed" : "pointer", opacity: (isSaving || loading) ? 0.7 : 1 }}>
         {isSaving ? "Enregistrement..." : text}
       </button>
     </div>
@@ -110,17 +176,26 @@ export default function Parametres() {
                 ].map(f => (
                   <div key={f.label} style={{ display: "grid", gridTemplateColumns: "200px 1fr", alignItems: "center" }}>
                     <label style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{f.label}</label>
-                    <input type="text" defaultValue={f.val} style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, color: "#111827" }} />
+                    <input type="text" value={settings[f.label] || ""} onChange={(e) => handleChange(f.label, e.target.value)} style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, color: "#111827" }} />
                   </div>
                 ))}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderTop: "1px solid #EAECF5", marginTop: 8 }}>
                   <div>
                     <label style={{ fontSize: 13, color: "#111827", fontWeight: 600, display: "block" }}>Logo de l'entreprise</label>
-                    <span style={{ fontSize: 12, color: "#6B7280" }}>Mettez à jour le logo affiché sur les bornes</span>
+                    <span style={{ fontSize: 12, color: "#6B7280" }}>Mettez à jour le logo (Max 2 Mo)</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 8, background: "#1F0270", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 12 }}>N'ma</div>
-                    <button style={{ background: "#EEF2FF", color: "#4F46E5", border: "none", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Modifier le logo</button>
+                    {settings["Logo de l'organisation"] ? (
+                      <div style={{ width: 44, height: 44, borderRadius: 8, overflow: "hidden", border: "1px solid #E5E7EB", background: "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <img src={settings["Logo de l'organisation"]} alt="Logo" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                      </div>
+                    ) : (
+                      <div style={{ width: 44, height: 44, borderRadius: 8, background: "#1F0270", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 12 }}>N'ma</div>
+                    )}
+                    <label style={{ background: "#EEF2FF", color: "#4F46E5", border: "none", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-block" }}>
+                      Modifier le logo
+                      <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: "none" }} />
+                    </label>
                   </div>
                 </div>
                 <SaveButton />
@@ -137,8 +212,10 @@ export default function Parametres() {
                 ].map(f => (
                   <div key={f.label} style={{ display: "grid", gridTemplateColumns: "200px 1fr", alignItems: "center" }}>
                     <label style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{f.label}</label>
-                    <select style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, color: "#111827", appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
+                    <select value={settings[f.label] || f.val} onChange={(e) => handleChange(f.label, e.target.value)} style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, color: "#111827", appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
                       <option>{f.val}</option>
+                      {/* Placeholder for real dynamic options if needed, here we just keep the base option + allow manual typing but it's a select. Usually we map options. */}
+                      {settings[f.label] !== f.val && <option>{settings[f.label]}</option>}
                     </select>
                   </div>
                 ))}
@@ -160,7 +237,7 @@ export default function Parametres() {
                 ].map(f => (
                   <div key={f.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <label style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{f.label}</label>
-                    <input type="text" defaultValue={f.val} style={{ width: 100, padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, color: "#111827", textAlign: "center" }} />
+                    <input type="text" value={settings[f.label] || ""} onChange={(e) => handleChange(f.label, e.target.value)} style={{ width: 100, padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, color: "#111827", textAlign: "center" }} />
                   </div>
                 ))}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderTop: "1px solid #F3F4F6", marginTop: 8 }}>
@@ -168,7 +245,7 @@ export default function Parametres() {
                     <label style={{ fontSize: 13, color: "#111827", fontWeight: 600, display: "block" }}>Authentification à deux facteurs (2FA)</label>
                     <span style={{ fontSize: 12, color: "#6B7280" }}>Exiger la 2FA pour tous les administrateurs</span>
                   </div>
-                  <ToggleSwitch active={toggles["2FA"]} onClick={() => handleToggle("2FA")} />
+                  <ToggleSwitch active={settings["2FA"]} onClick={() => handleToggle("2FA")} />
                 </div>
                 <SaveButton />
               </div>
@@ -208,7 +285,7 @@ export default function Parametres() {
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginBottom: 4 }}>{n.title}</div>
                     <div style={{ fontSize: 12, color: "#6B7280" }}>{n.desc}</div>
                   </div>
-                  <ToggleSwitch active={toggles[n.title]} onClick={() => handleToggle(n.title)} />
+                  <ToggleSwitch active={settings[n.title]} onClick={() => handleToggle(n.title)} />
                 </div>
               ))}
               <SaveButton text="Enregistrer les préférences" />
@@ -225,19 +302,20 @@ export default function Parametres() {
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginBottom: 4 }}>Validation automatique</div>
                   <div style={{ fontSize: 12, color: "#6B7280" }}>Valider les demandes automatiquement après paiement confirmé</div>
                 </div>
-                <ToggleSwitch active={toggles["Validation automatique"]} onClick={() => handleToggle("Validation automatique")} />
+                <ToggleSwitch active={settings["Validation automatique"]} onClick={() => handleToggle("Validation automatique")} />
               </div>
               
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Délai d'attente (minutes)</label>
-                  <input type="text" defaultValue="10" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13 }} />
+                  <input type="text" value={settings["Délai d'attente (minutes)"] || ""} onChange={(e) => handleChange("Délai d'attente (minutes)", e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13 }} />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Méthode par défaut</label>
-                  <select style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
-                    <option>Orange Money</option>
-                    <option>Carte Bancaire</option>
+                  <select value={settings["Méthode par défaut"]} onChange={(e) => handleChange("Méthode par défaut", e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
+                    <option value="Orange Money">Orange Money</option>
+                    <option value="Carte Bancaire">Carte Bancaire</option>
+                    <option value="MTN Mobile Money">MTN Mobile Money</option>
                   </select>
                 </div>
               </div>
@@ -247,7 +325,7 @@ export default function Parametres() {
                   {["Orange Money", "MTN Mobile Money", "PayCard", "Cartes Bancaires (Visa, Mastercard)"].map(pm => (
                     <div key={pm} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <label style={{ fontSize: 13, color: "#374151" }}>{pm}</label>
-                      <ToggleSwitch active={toggles[pm]} onClick={() => handleToggle(pm)} />
+                      <ToggleSwitch active={settings[pm]} onClick={() => handleToggle(pm)} />
                     </div>
                   ))}
                 </div>
@@ -269,19 +347,19 @@ export default function Parametres() {
               
               <div>
                 <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>URL de l'Endpoint (Base URL)</label>
-                <input type="text" defaultValue="https://api.orange.simulator.local/v1" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, color: "#374151", background: "#F9FAFB", outline: "none" }} />
+                <input type="text" value={settings["URL de l'Endpoint (Base URL)"] || ""} onChange={(e) => handleChange("URL de l'Endpoint (Base URL)", e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, color: "#374151", background: "#F9FAFB", outline: "none" }} />
               </div>
               
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Délai Timeout (secondes)</label>
-                  <input type="text" defaultValue="30" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, color: "#374151", outline: "none" }} />
+                  <input type="text" value={settings["Délai Timeout (secondes)"] || ""} onChange={(e) => handleChange("Délai Timeout (secondes)", e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, color: "#374151", outline: "none" }} />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Environnement</label>
-                  <select style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
-                    <option>Sandbox / Test</option>
-                    <option>Production</option>
+                  <select value={settings["Environnement"]} onChange={(e) => handleChange("Environnement", e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
+                    <option value="Sandbox / Test">Sandbox / Test</option>
+                    <option value="Production">Production</option>
                   </select>
                 </div>
               </div>
@@ -289,7 +367,7 @@ export default function Parametres() {
               <div>
                 <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Clé secrète API (Token)</label>
                 <div style={{ position: "relative" }}>
-                  <input type="password" defaultValue="secret_token_123456789" style={{ width: "100%", padding: "10px 12px", paddingRight: 40, borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, color: "#374151", letterSpacing: 3, outline: "none" }} />
+                  <input type="password" value={settings["Clé secrète API (Token)"] || ""} onChange={(e) => handleChange("Clé secrète API (Token)", e.target.value)} style={{ width: "100%", padding: "10px 12px", paddingRight: 40, borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, color: "#374151", letterSpacing: 3, outline: "none" }} />
                   <Eye size={16} color="#9CA3AF" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", cursor: "pointer" }} />
                 </div>
               </div>
@@ -310,14 +388,14 @@ export default function Parametres() {
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Modèle par défaut</label>
-                  <select style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
-                    <option>Modèle Standard N'ma</option>
+                  <select value={settings["Modèle par défaut"]} onChange={(e) => handleChange("Modèle par défaut", e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
+                    <option value="Modèle Standard N'ma">Modèle Standard N'ma</option>
                   </select>
                 </div>
                 {["Inclure QR Code", "Inclure le logo N'ma"].map(l => (
                   <div key={l} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <label style={{ fontSize: 13, color: "#374151" }}>{l}</label>
-                    <ToggleSwitch active={toggles[l]} onClick={() => handleToggle(l)} />
+                    <ToggleSwitch active={settings[l]} onClick={() => handleToggle(l)} />
                   </div>
                 ))}
               </div>
@@ -328,8 +406,8 @@ export default function Parametres() {
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Langue principale</label>
-                  <select style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
-                    <option>Français (FR)</option>
+                  <select value={settings["Langue principale"]} onChange={(e) => handleChange("Langue principale", e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, appearance: "none", background: "white url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right 12px center" }}>
+                    <option value="Français (FR)">Français (FR)</option>
                   </select>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
@@ -337,7 +415,7 @@ export default function Parametres() {
                     <div style={{ fontSize: 13, color: "#111827", fontWeight: 600 }}>Multi-langues</div>
                     <div style={{ fontSize: 12, color: "#6B7280" }}>Permettre à l'utilisateur de choisir</div>
                   </div>
-                  <ToggleSwitch active={toggles["Multi-langues"]} onClick={() => handleToggle("Multi-langues")} />
+                  <ToggleSwitch active={settings["Multi-langues"]} onClick={() => handleToggle("Multi-langues")} />
                 </div>
 
                 <div style={{ marginTop: 8, paddingTop: 16, borderTop: "1px solid #EAECF5" }}>
@@ -353,7 +431,7 @@ export default function Parametres() {
                       <div key={lang.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", opacity: lang.locked ? 0.7 : 1 }}>
                         <label style={{ fontSize: 13, color: "#374151" }}>{lang.name}</label>
                         <ToggleSwitch 
-                          active={lang.locked ? true : toggles[lang.key]} 
+                          active={lang.locked ? true : settings[lang.key]} 
                           disabled={lang.locked}
                           onClick={() => handleToggle(lang.key)} 
                         />
@@ -414,7 +492,7 @@ export default function Parametres() {
                   <h4 style={{ margin: "0 0 4px", fontSize: 14, color: "#111827" }}>Mode Maintenance</h4>
                   <p style={{ margin: 0, fontSize: 12, color: "#6B7280" }}>Désactive l'accès aux bornes pour effectuer des opérations de maintenance. Les administrateurs gardent l'accès.</p>
                 </div>
-                <ToggleSwitch active={toggles["Maintenance"]} onClick={() => handleToggle("Maintenance")} />
+                <ToggleSwitch active={settings["Maintenance"]} onClick={() => handleToggle("Maintenance")} />
               </div>
             </div>
 
@@ -423,7 +501,7 @@ export default function Parametres() {
                 <h4 style={{ margin: 0, fontSize: 15, color: "#1F0270", fontWeight: 700 }}>Sauvegardes du Système (Backups)</h4>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>Sauvegarde auto. (Quotidienne)</span>
-                  <ToggleSwitch active={toggles["Auto Backup"]} onClick={() => handleToggle("Auto Backup")} />
+                  <ToggleSwitch active={settings["Auto Backup"]} onClick={() => handleToggle("Auto Backup")} />
                 </div>
               </div>
               <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 16, border: "1px solid #EAECF5", display: "flex", alignItems: "center", justifyContent: "space-between" }}>

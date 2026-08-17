@@ -119,6 +119,9 @@ enum TypeOffre {
   SIM_INTERNET
   SIM_ETUDIANT
   SIM_ENTREPRISE
+  RECHARGE
+  FORFAIT_PASS
+  DEPOT
 }
 
 // =============================================
@@ -161,6 +164,7 @@ model DemandeSIM {
 enum TypeDemande {
   NOUVELLE_SIM
   REACTIVATION
+  RECHARGE
 }
 
 enum StatutDemande {
@@ -221,4 +225,15 @@ model Log {
   utilisateur   Utilisateur? @relation(fields: [utilisateurId], references: [id])
 
   createdAt DateTime @default(now())
+}
+
+// =============================================
+// PARAMETRES SYSTEME
+// =============================================
+model ParametreSysteme {
+  cle       String   @id
+  valeur    String
+  type      String   @default("STRING") // "BOOLEAN", "STRING", "NUMBER"
+
+  updatedAt DateTime @updatedAt
 }

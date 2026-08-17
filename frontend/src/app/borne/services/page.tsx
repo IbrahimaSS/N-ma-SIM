@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, RefreshCcw, Microchip, LayoutGrid, Lock, Globe, User as UserIcon, FileSignature, Briefcase } from "lucide-react";
+import { ArrowRight, RefreshCcw, Microchip, Lock, Globe, User as UserIcon, Briefcase, BatteryCharging, ShieldCheck } from "lucide-react";
 
 export default function Services() {
   const router = useRouter();
@@ -17,34 +17,34 @@ export default function Services() {
     {
       id: "nouvelle-sim",
       title: lang === "en" ? "New SIM" : "Nouvelle SIM",
-      description: lang === "en" ? "Get a new SIM card in minutes" : "Obtenez une nouvelle carte SIM en quelques minutes",
+      description: lang === "en" ? "Get a new SIM card in minutes." : "Obtenez une nouvelle carte SIM en quelques minutes.",
       icon: <Microchip size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
       action: () => router.push("/borne/nouvelle-sim/scan-piece"),
       disabled: false,
     },
     {
       id: "reactivation",
-      title: lang === "en" ? "Reactivate SIM" : "Réactivation des puces",
-      description: lang === "en" ? "Securely reactivate a disabled chip" : "Réactivez une puce désactivée en toute sécurité",
+      title: lang === "en" ? "Reactivation" : "Réactivation",
+      description: lang === "en" ? "Reactivate a disabled chip safely." : "Réactivez une puce désactivée en toute sécurité.",
       icon: <RefreshCcw size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
       action: () => router.push("/borne/reactivation/identification"),
       disabled: false,
     },
     {
-      id: "remplacement",
-      title: lang === "en" ? "SIM Replacement" : "Remplacement SIM",
-      description: lang === "en" ? "Coming soon" : "Bientôt disponible",
-      icon: <FileSignature size={52} strokeWidth={1.5} style={{ color: "#C0C0D8", marginBottom: 20 }} />,
-      action: () => {},
-      disabled: true,
+      id: "recharge",
+      title: lang === "en" ? "Recharge" : "Recharge",
+      description: lang === "en" ? "Top up your number quickly." : "Rechargez votre numéro rapidement.",
+      icon: <BatteryCharging size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
+      action: () => router.push("/borne/recharge/numero"),
+      disabled: false,
     },
     {
-      id: "autres",
-      title: lang === "en" ? "Other services" : "Autres services",
-      description: lang === "en" ? "Coming soon" : "Bientôt disponible",
-      icon: <LayoutGrid size={52} strokeWidth={1.5} style={{ color: "#C0C0D8", marginBottom: 20 }} />,
-      action: () => {},
-      disabled: true,
+      id: "verification",
+      title: lang === "en" ? "Verification" : "Vérification",
+      description: lang === "en" ? "Check the information linked to your ID." : "Vérifiez les informations associées à votre pièce d'identité.",
+      icon: <ShieldCheck size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
+      action: () => router.push("/borne/verification/scan-piece"),
+      disabled: false,
     },
   ];
 

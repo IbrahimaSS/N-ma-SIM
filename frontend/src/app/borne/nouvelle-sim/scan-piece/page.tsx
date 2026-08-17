@@ -187,6 +187,9 @@ export default function ScanPiece() {
       await saveKycImage("kyc_recto", rectoFile);
       if (versoFile) await saveKycImage("kyc_verso", versoFile);
 
+      // Sauvegarder le type de document sélectionné par l'utilisateur (source de vérité)
+      if (docType) sessionStorage.setItem("kiosk_doc_type", docType);
+
       // Appel de l'API pour extraire les informations (sans selfie)
       const result = await verifierKYC(rectoFile, null, versoFile ?? undefined);
       await saveKycResult(result);

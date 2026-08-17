@@ -10,6 +10,7 @@ const createUserSchema = z.object({
   motDePasse: z.string().min(6),
   role: z.enum(['ADMIN', 'AGENT', 'TECHNICIEN', 'LECTURE_SEULE']),
   permissions: z.array(z.string()).optional(),
+  photoProfil: z.string().optional(),
 })
 
 /**
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest) {
       return apiError('Données invalides', 400, parsed.error.flatten())
     }
 
-    const { nom, email, telephone, motDePasse, role, permissions } = parsed.data
+    const { nom, email, telephone, motDePasse, role, permissions, photoProfil } = parsed.data
 
     // Vérifier si l'email existe déjà
     const exists = await prisma.utilisateur.findUnique({ where: { email } })
@@ -169,10 +170,11 @@ export async function POST(request: NextRequest) {
         motDePasse: hashedPassword,
         role,
         permissions: permissions || [],
+        photoProfil,
       },
       select: {
         id: true, nom: true, email: true, telephone: true,
-        role: true, statut: true, createdAt: true,
+        role: true, statut: true, createdAt: true, photoProfil: true,
       }
     })
 

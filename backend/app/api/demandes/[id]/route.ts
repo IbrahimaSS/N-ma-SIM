@@ -134,6 +134,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       })
     }
 
+    // Mettre à jour le statut du client en fonction de la demande
+    if (parsed.data.statut === 'VALIDEE') {
+      await prisma.client.update({
+        where: { id: demande.clientId },
+        data: { statut: 'VALIDE' }
+      });
+    } else if (parsed.data.statut === 'REJETEE') {
+      await prisma.client.update({
+        where: { id: demande.clientId },
+        data: { statut: 'REJETE' }
+      });
+    }
+
     return apiSuccess(demande, 'Demande mise à jour')
 
   } catch (error) {

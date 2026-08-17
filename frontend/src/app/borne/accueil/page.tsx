@@ -11,6 +11,7 @@ export default function Accueil() {
   const [accepted, setAccepted] = useState(false);
   const [lang, setLang] = useState<"fr" | "en" | null>("fr");
   const [profile, setProfile] = useState<"resident" | "etranger" | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Sauvegarde globale de la session pour l'Agent IA et les autres pages
   useEffect(() => {
@@ -179,11 +180,29 @@ export default function Accueil() {
           }}>
             {accepted && <Check size={14} color="white" strokeWidth={3} />}
           </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowModal(true);
+            }}
+            style={{
+              padding: "4px 8px",
+              background: "#1F0270",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            {lang === "en" ? "Read" : "Lire"}
+          </button>
           <p style={{ fontSize: 13, color: "#1F0270", textAlign: "left", margin: 0, lineHeight: 1.5, userSelect: "none" }}>
             {lang === "en" ? (
-              <>I accept the <strong>Terms of Use</strong> and <strong>Privacy Policy</strong></>
+              <>— I accept the <strong>Terms of Use</strong> and <strong>Privacy Policy</strong></>
             ) : (
-              <>J'accepte les <strong>conditions d'utilisation</strong> et la <strong>politique de confidentialité</strong></>
+              <>— J'accepte les <strong>conditions d'utilisation</strong> et la <strong>politique de confidentialité</strong></>
             )}
           </p>
         </div>
@@ -215,6 +234,116 @@ export default function Accueil() {
           </div>
         </button>
       </div>
+
+      {/* Modal Conditions d'utilisation */}
+      {showModal && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          zIndex: 9999,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 20
+        }}>
+          <div style={{
+            background: "white",
+            borderRadius: 24,
+            padding: "32px",
+            maxWidth: 600,
+            width: "100%",
+            maxHeight: "80vh",
+            overflowY: "auto",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+            textAlign: "left"
+          }}>
+            <h2 style={{ fontSize: 24, fontWeight: 900, color: "#1F0270", marginBottom: 20 }}>
+              {lang === "en" ? "Terms of Use and Privacy Policy" : "Conditions d’utilisation et politique de confidentialité"}
+            </h2>
+            
+            <div style={{ fontSize: 14, color: "#4B5563", lineHeight: 1.6, display: "flex", flexDirection: "column", gap: 16 }}>
+              {lang === "en" ? (
+                <>
+                  <p>By using N’ma SIM, you agree that certain information will be collected and used only for processing your request.</p>
+                  
+                  <div>
+                    <p style={{ fontWeight: 700, color: "#1F0270", marginBottom: 8 }}>The data that may be collected includes:</p>
+                    <ul style={{ paddingLeft: 20, margin: 0 }}>
+                      <li>your photo or selfie;</li>
+                      <li>your ID document;</li>
+                      <li>information extracted from your ID document;</li>
+                      <li>your user profile;</li>
+                      <li>information related to the requested service.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p style={{ fontWeight: 700, color: "#1F0270", marginBottom: 8 }}>This information is used to:</p>
+                    <ul style={{ paddingLeft: 20, margin: 0 }}>
+                      <li>verify your identity;</li>
+                      <li>secure your request;</li>
+                      <li>enable the processing of the chosen service;</li>
+                      <li>transmit necessary information to the operator;</li>
+                      <li>track your operation.</li>
+                    </ul>
+                  </div>
+
+                  <p>N’ma SIM must not use this data for other purposes without authorization. The information must be protected and processed securely.</p>
+                  
+                  <p style={{ fontWeight: 700, color: "#1F0270" }}>By checking the box, you confirm that you have read and accepted these terms.</p>
+                </>
+              ) : (
+                <>
+                  <p>En utilisant N’ma SIM, vous acceptez que certaines informations soient collectées et utilisées uniquement pour le traitement de votre demande.</p>
+                  
+                  <div>
+                    <p style={{ fontWeight: 700, color: "#1F0270", marginBottom: 8 }}>Les données pouvant être collectées sont :</p>
+                    <ul style={{ paddingLeft: 20, margin: 0 }}>
+                      <li>votre photo ou selfie ;</li>
+                      <li>votre pièce d’identité ;</li>
+                      <li>les informations extraites de votre pièce d’identité ;</li>
+                      <li>votre profil utilisateur ;</li>
+                      <li>les informations liées au service demandé.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p style={{ fontWeight: 700, color: "#1F0270", marginBottom: 8 }}>Ces informations sont utilisées pour :</p>
+                    <ul style={{ paddingLeft: 20, margin: 0 }}>
+                      <li>vérifier votre identité ;</li>
+                      <li>sécuriser votre demande ;</li>
+                      <li>permettre le traitement du service choisi ;</li>
+                      <li>transmettre les informations nécessaires à l’opérateur ;</li>
+                      <li>assurer le suivi de votre opération.</li>
+                    </ul>
+                  </div>
+
+                  <p>N’ma SIM ne doit pas utiliser ces données à d’autres fins sans autorisation. Les informations doivent être protégées et traitées de manière sécurisée.</p>
+                  
+                  <p style={{ fontWeight: 700, color: "#1F0270" }}>En cochant la case, vous confirmez avoir lu et accepté ces conditions.</p>
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowModal(false)}
+              style={{
+                marginTop: 24,
+                width: "100%",
+                height: 50,
+                background: "#FFBA08",
+                color: "#1F0270",
+                fontWeight: 800,
+                fontSize: 16,
+                borderRadius: 12,
+                border: "none",
+                cursor: "pointer"
+              }}
+            >
+              {lang === "en" ? "Close" : "Fermer"}
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
