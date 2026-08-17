@@ -149,7 +149,7 @@ export default function VerificationScanPiece() {
             {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
               <button key={type} onClick={() => handleDocTypeChange(type)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${docType === type ? "bg-primary text-white border-primary" : "bg-white text-text-main border-border-light hover:border-primary hover:text-primary"}`}>
-                {type === "cni" ? "CNI" : type === "passeport" ? "Passeport" : "Carte d'électeur"}
+                {type === "cni" ? "CNI" : type === "passeport" ? (lang === "en" ? "Passport" : "Passeport") : (lang === "en" ? "Voter ID" : "Carte d'électeur")}
               </button>
             ))}
           </div>
@@ -180,7 +180,7 @@ export default function VerificationScanPiece() {
               {canContinue ? (
                 <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center gap-3">
                   <CheckCircle2 className="w-6 h-6 text-primary" />
-                  <span className="font-bold text-primary">Prêt pour l&apos;analyse</span>
+                  <span className="font-bold text-primary">{lang === "en" ? "Ready for analysis" : "Prêt pour l'analyse"}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-3 text-sm text-text-muted">

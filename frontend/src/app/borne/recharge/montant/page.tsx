@@ -81,7 +81,7 @@ export default function RechargeMontant() {
           </div>
           {finalAmount && finalAmount >= 1000 && (
             <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "12px 24px", textAlign: "center" }}>
-              <p style={{ color: "#6B7280", fontSize: 13, marginBottom: 2 }}>Montant sélectionné</p>
+              <p style={{ color: "#6B7280", fontSize: 13, marginBottom: 2 }}>{lang === "en" ? "Selected amount" : "Montant sélectionné"}</p>
               <p style={{ color: "#1F0270", fontWeight: 800, fontSize: 24 }}>{finalAmount.toLocaleString("fr-FR")} GNF</p>
             </div>
           )}

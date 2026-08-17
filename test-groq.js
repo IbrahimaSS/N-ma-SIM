@@ -1,4 +1,13 @@
-
+const fs = require('fs');
+if (fs.existsSync('.env')) {
+  require('dotenv') ? require('dotenv').config() : null;
+  // Fallback simple si dotenv n'est pas installé à la racine
+  const envFile = fs.readFileSync('.env', 'utf8');
+  envFile.split('\n').forEach(line => {
+    const match = line.match(/^([^=]+)=(.*)$/);
+    if (match) process.env[match[1]] = match[2];
+  });
+}
 
 async function test() {
   const apiKey = process.env.GROQ_API_KEY || "VOTRE_CLE_API_GROQ";

@@ -126,9 +126,9 @@ export default function VerificationSelfie() {
               <div className="flex flex-col gap-3 flex-grow">
                 <div className="bg-success/15 border border-success/30 rounded-xl p-4 flex items-center gap-3">
                   <ShieldCheck className="w-6 h-6 text-success" />
-                  <span className="font-bold text-success">Prêt pour la vérification</span>
+                  <span className="font-bold text-success">{lang === "en" ? "Ready for verification" : "Prêt pour la vérification"}</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-success" /> Selfie capturé</div>
+                <div className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-success" /> {lang === "en" ? "Selfie captured" : "Selfie capturé"}</div>
               </div>
             ) : (
               <div className="flex items-center gap-3 text-sm text-text-muted flex-grow">

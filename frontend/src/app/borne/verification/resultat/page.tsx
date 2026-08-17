@@ -131,8 +131,8 @@ export default function VerificationResultat() {
           {/* Message spécifique si visage non concordant */}
           {isFaceMismatch && (
             <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 max-w-md w-full text-center">
-              <p className="text-red-700 font-bold text-sm mb-1">⚠️ Visage non concordant</p>
-              <p className="text-red-600 text-xs">Le selfie capturé ne correspond pas à la photo présente sur la pièce d&apos;identité. Veuillez contacter un agent ou recommencer.</p>
+              <p className="text-red-700 font-bold text-sm mb-1">{lang === "en" ? "⚠️ Face mismatch" : "⚠️ Visage non concordant"}</p>
+              <p className="text-red-600 text-xs">{lang === "en" ? "The captured selfie does not match the photo on the ID. Please contact an agent or try again." : "Le selfie capturé ne correspond pas à la photo présente sur la pièce d'identité. Veuillez contacter un agent ou recommencer."}</p>
             </div>
           )}
 
@@ -204,26 +204,26 @@ export default function VerificationResultat() {
         {isCheckingClient ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 text-primary animate-spin mr-3" />
-            <span className="text-text-muted">Recherche des numéros associés...</span>
+            <span className="text-text-muted">{lang === "en" ? "Searching for associated numbers..." : "Recherche des numéros associés..."}</span>
           </div>
         ) : clientInfo ? (
           <div className="mb-8 bg-primary/5 rounded-2xl p-6 border border-primary/10">
             <h4 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-              <Phone className="w-5 h-5" /> Profil Client & Numéros Associés
+              <Phone className="w-5 h-5" /> {lang === "en" ? "Client Profile & Associated Numbers" : "Profil Client & Numéros Associés"}
             </h4>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
               <div className="bg-white p-3 rounded-lg border border-border-light shadow-sm flex items-center gap-3">
                 <Hash className="w-5 h-5 text-accent" />
                 <div>
-                  <p className="text-xs text-text-muted">Numéro de Contact</p>
-                  <p className="font-bold text-primary">{clientInfo.client.telephoneContact || "Aucun"}</p>
+                  <p className="text-xs text-text-muted">{lang === "en" ? "Contact Number" : "Numéro de Contact"}</p>
+                  <p className="font-bold text-primary">{clientInfo.client.telephoneContact || (lang === "en" ? "None" : "Aucun")}</p>
                 </div>
               </div>
               <div className="bg-white p-3 rounded-lg border border-border-light shadow-sm flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-success" />
                 <div>
-                  <p className="text-xs text-text-muted">Statut du Compte</p>
+                  <p className="text-xs text-text-muted">{lang === "en" ? "Account Status" : "Statut du Compte"}</p>
                   <p className="font-bold text-success">{clientInfo.client.statut}</p>
                 </div>
               </div>
@@ -231,7 +231,7 @@ export default function VerificationResultat() {
 
             {clientInfo.numerosActifs && clientInfo.numerosActifs.length > 0 ? (
               <div>
-                <p className="text-sm font-semibold text-text-main mb-3">Numéros actifs liés à cette pièce :</p>
+                <p className="text-sm font-semibold text-text-main mb-3">{lang === "en" ? "Active numbers linked to this ID:" : "Numéros actifs liés à cette pièce :"}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {clientInfo.numerosActifs.map((num: any, idx: number) => (
                     <div key={idx} className="bg-white p-4 rounded-xl border-l-4 border-l-accent shadow-sm flex flex-col">
@@ -246,7 +246,7 @@ export default function VerificationResultat() {
               </div>
             ) : (
               <div className="bg-white p-4 rounded-xl border border-border-light text-center text-sm text-text-muted">
-                Aucun numéro actif trouvé pour cette pièce d'identité.
+                {lang === "en" ? "No active number found for this ID." : "Aucun numéro actif trouvé pour cette pièce d'identité."}
               </div>
             )}
           </div>
@@ -254,8 +254,8 @@ export default function VerificationResultat() {
           <div className="mb-8 bg-amber-50 rounded-2xl p-6 border border-amber-200 flex items-start gap-4">
             <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-amber-700 mb-1">Aucun profil trouvé</p>
-              <p className="text-sm text-amber-600">Cette pièce d&apos;identité n&apos;est pas encore associée à un compte N&apos;ma SIM. Aucun numéro SIM actif n&apos;a été trouvé.</p>
+              <p className="font-bold text-amber-700 mb-1">{lang === "en" ? "No profile found" : "Aucun profil trouvé"}</p>
+              <p className="text-sm text-amber-600">{lang === "en" ? "This ID is not yet associated with an N'ma SIM account. No active SIM number was found." : "Cette pièce d'identité n'est pas encore associée à un compte N'ma SIM. Aucun numéro SIM actif n'a été trouvé."}</p>
             </div>
           </div>
         )}

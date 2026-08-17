@@ -125,7 +125,7 @@ export default function RechargePaiement() {
 
           {/* Numéro de dossier */}
           <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 16, padding: "16px 32px", textAlign: "center", width: "100%", maxWidth: 360 }}>
-            <p style={{ color: "#6B7280", fontSize: 13, marginBottom: 4 }}>Référence de la transaction</p>
+            <p style={{ color: "#6B7280", fontSize: 13, marginBottom: 4 }}>{lang === "en" ? "Transaction reference" : "Référence de la transaction"}</p>
             <p style={{ color: "#1F0270", fontWeight: 800, fontSize: 20, letterSpacing: 1 }}>{numeroDossier}</p>
           </div>
 
@@ -148,7 +148,7 @@ export default function RechargePaiement() {
           <div className="flex flex-col items-center justify-center py-16 gap-6">
             <Loader2 className="w-16 h-16 text-primary animate-spin" />
             <h2 className="text-xl font-bold text-primary">{t.processing}</h2>
-            <p className="text-text-muted">Veuillez patienter...</p>
+            <p className="text-text-muted">{lang === "en" ? "Please wait..." : "Veuillez patienter..."}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-6 py-4">
@@ -190,7 +190,7 @@ export default function RechargePaiement() {
                       onClick={() => executeRecharge("Lengo Pay (Mode Démo)", "NMA-DEMO-2026")}
                       className="text-xs bg-white text-gray-500 hover:text-primary shadow-sm"
                     >
-                      Bypass (Démo)
+                      {lang === "en" ? "Bypass (Demo)" : "Bypass (Démo)"}
                     </Button>
                   </div>
                 </>
@@ -199,9 +199,9 @@ export default function RechargePaiement() {
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                     <CreditCard className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold text-primary mb-2">Paiement Sécurisé</h3>
+                  <h3 className="text-xl font-bold text-primary mb-2">{lang === "en" ? "Secure Payment" : "Paiement Sécurisé"}</h3>
                   <p className="text-text-muted mb-6 max-w-sm text-sm">
-                    Vous allez être redirigé vers Lengo Pay pour finaliser votre recharge avec Orange Money, Mobile Money ou Carte.
+                    {lang === "en" ? "You will be redirected to Lengo Pay to complete your top-up using Orange Money, Mobile Money, or Card." : "Vous allez être redirigé vers Lengo Pay pour finaliser votre recharge avec Orange Money, Mobile Money ou Carte."}
                   </p>
                   <Button 
                     size="lg" 
@@ -210,7 +210,7 @@ export default function RechargePaiement() {
                     disabled={isLoading || montant <= 0}
                   >
                     {isLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <ShieldCheck className="w-5 h-5 mr-2" />}
-                    {isLoading ? "Initialisation..." : "Payer maintenant"}
+                    {isLoading ? (lang === "en" ? "Initializing..." : "Initialisation...") : (lang === "en" ? "Pay now" : "Payer maintenant")}
                   </Button>
                 </div>
               )}
