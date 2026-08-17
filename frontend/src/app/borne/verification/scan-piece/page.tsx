@@ -14,6 +14,7 @@ type CameraTarget = "recto" | "verso";
 export default function VerificationScanPiece() {
   const router = useRouter();
   const [lang, setLang] = useState("fr");
+  const [profile, setProfile] = useState("resident");
   const [docType, setDocType] = useState<DocType>(null);
   const [rectoFile, setRectoFile] = useState<File | null>(null);
   const [rectoPreviewUrl, setRectoPreviewUrl] = useState<string | null>(null);
@@ -28,7 +29,13 @@ export default function VerificationScanPiece() {
   const versoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+    const savedLang = sessionStorage.getItem("kiosk_lang") || "fr";
+    const savedProfile = sessionStorage.getItem("kiosk_profile") || "resident";
+    setLang(savedLang);
+    setProfile(savedProfile);
+    if (savedProfile === "etranger") {
+      setDocType("passeport");
+    }
     return () => stopCamera();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -142,18 +149,39 @@ export default function VerificationScanPiece() {
     <Card className="w-full max-w-4xl mx-auto p-4">
       <CardHeader><CardTitle className="text-2xl">{t.title}</CardTitle><p className="text-text-muted mt-2">{t.subtitle}</p></CardHeader>
       <CardContent>
-        <div className="mb-5">
-          <p className="font-bold text-text-main mb-1">{t.docTypeLabel}</p>
-          <p className="text-xs text-text-muted mb-3">{t.docTypeSub}</p>
-          <div className="flex gap-3 flex-wrap">
-            {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
-              <button key={type} onClick={() => handleDocTypeChange(type)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${docType === type ? "bg-primary text-white border-primary" : "bg-white text-text-main border-border-light hover:border-primary hover:text-primary"}`}>
-                {type === "cni" ? "CNI" : type === "passeport" ? (lang === "en" ? "Passport" : "Passeport") : (lang === "en" ? "Voter ID" : "Carte d'électeur")}
-              </button>
-            ))}
+        {/* Type de document */}
+        {profile === "etranger" ? (
+          <div className="mb-5 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <span style={{ fontSize: 22 }}>🌍</span>
+            <div>
+              <p className="font-bold text-blue-800 text-sm mb-0.5">
+                {lang === "en" ? "Foreign national profile" : "Profil Étranger"}
+              </p>
+              <p className="text-xs text-blue-700">
+                {lang === "en"
+                  ? "For foreigners, only a Passport is accepted as valid identification."
+                  : "Pour les étrangers, seul le Passeport est accepté comme pièce d'identité valide."}
+              </p>
+              <div className="mt-2 inline-flex items-center gap-2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+                <span>🛂</span>
+                {lang === "en" ? "Passport" : "Passeport"}
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="mb-5">
+            <p className="font-bold text-text-main mb-1">{t.docTypeLabel}</p>
+            <p className="text-xs text-text-muted mb-3">{t.docTypeSub}</p>
+            <div className="flex gap-3 flex-wrap">
+              {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
+                <button key={type} onClick={() => handleDocTypeChange(type)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${docType === type ? "bg-primary text-white border-primary" : "bg-white text-text-main border-border-light hover:border-primary hover:text-primary"}`}>
+                  {type === "cni" ? "CNI" : type === "passeport" ? (lang === "en" ? "Passport" : "Passeport") : (lang === "en" ? "Voter ID" : "Carte d'électeur")}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {docType && (
           <>

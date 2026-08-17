@@ -237,3 +237,27 @@ model ParametreSysteme {
 
   updatedAt DateTime @updatedAt
 }
+
+// =============================================
+// BORNES KIOSK
+// =============================================
+model Borne {
+  id              String      @id @default(cuid())
+  numeroReference String      @unique // ex: BRN-001
+  nom             String
+  emplacement     String
+  statut          StatutBorne @default(HORS_LIGNE)
+  ip              String?
+  technicien      String?     @default("Non assigné")
+  derniereSynchro DateTime?
+  cleActivation   String?     @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum StatutBorne {
+  EN_LIGNE
+  HORS_LIGNE
+  EN_MAINTENANCE
+}

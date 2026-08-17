@@ -1,18 +1,47 @@
 "use client";
-import { useState } from "react";
-import { Search, Plus, MonitorSmartphone, Settings, Power, Lock, UserCog, Signal, SignalHigh, WifiOff, Wrench, X, CheckCircle2, MapPin, Key, Copy } from "lucide-react";
-import { MOCK_BORNES } from "@/data/admin-mock-data";
+import { useState, useEffect } from "react";
+import { Loader2, RefreshCcw, AlertTriangle, Search, Plus, MonitorSmartphone, Settings, Power, Lock, UserCog, Signal, SignalHigh, WifiOff, Wrench, X, CheckCircle2, MapPin, Key, Copy } from "lucide-react";
+
+const BACKEND = "http://localhost:3001";
+
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const s = localStorage.getItem("admin_session");
+  if (!s) return null;
+  return JSON.parse(s).token ?? null;
+}
+
+async function apiFetch(path: string, options: RequestInit = {}) {
+  const token = getToken();
+  const res = await fetch(`${BACKEND}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || `Erreur ${res.status}`);
+  return data;
+}
+
+const STATUT_LABELS: Record<string, string> = {
+  EN_LIGNE: "En ligne",
+  HORS_LIGNE: "Hors ligne",
+  EN_MAINTENANCE: "En maintenance"
+};
 
 function StatutBadge({ statut }: { statut: string }) {
   const map: Record<string, { bg: string; color: string; icon: any }> = {
-    "En ligne": { bg: "#DCFCE7", color: "#166534", icon: SignalHigh },
-    "Hors ligne": { bg: "#FEE2E2", color: "#991B1B", icon: WifiOff },
-    "En maintenance": { bg: "#FEF3C7", color: "#92400E", icon: Wrench },
+    "EN_LIGNE": { bg: "#DCFCE7", color: "#166534", icon: SignalHigh },
+    "HORS_LIGNE": { bg: "#FEE2E2", color: "#991B1B", icon: WifiOff },
+    "EN_MAINTENANCE": { bg: "#FEF3C7", color: "#92400E", icon: Wrench },
   };
   const s = map[statut] || { bg: "#F3F4F6", color: "#374151", icon: Signal };
   return (
     <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
-      <s.icon size={12} /> {statut}
+      <s.icon size={12} /> {STATUT_LABELS[statut] || statut}
     </span>
   );
 }
@@ -39,7 +68,10 @@ function Modal({ isOpen, onClose, title, children }: any) {
 
 export default function BornesKiosk() {
   const [search, setSearch] = useState("");
-  const [bornes, setBornes] = useState(MOCK_BORNES);
+  const [bornes, setBornes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // States pour les Modals
   const [isAddBorneOpen, setIsAddBorneOpen] = useState(false);
@@ -49,28 +81,123 @@ export default function BornesKiosk() {
   const [borneLock, setBorneLock] = useState<any>(null);
   const [bornePower, setBornePower] = useState<any>(null);
 
+  const [newBorneNom, setNewBorneNom] = useState("");
+  const [newBorneEmplacement, setNewBorneEmplacement] = useState("");
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
+
+  const [selectedTechnicien, setSelectedTechnicien] = useState("");
+
+  const fetchBornes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiFetch("/api/bornes");
+      setBornes(data.data || []);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBornes();
+  }, []);
+
   const filtered = bornes.filter(b =>
-    b.nom.toLowerCase().includes(search.toLowerCase()) ||
-    b.emplacement.toLowerCase().includes(search.toLowerCase())
+    (b.nom || "").toLowerCase().includes(search.toLowerCase()) ||
+    (b.emplacement || "").toLowerCase().includes(search.toLowerCase()) ||
+    (b.numeroReference || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const handleAction = (e: React.MouseEvent, type: string, borne: any) => {
     e.stopPropagation();
     if (type === "config") setBorneConfig(borne);
-    if (type === "assign") setBorneAssign(borne);
+    if (type === "assign") {
+      setBorneAssign(borne);
+      setSelectedTechnicien(borne.technicien !== "Non assigné" ? borne.technicien : "");
+    }
     if (type === "lock") setBorneLock(borne);
     if (type === "power") setBornePower(borne);
   };
 
-  const notifySuccess = () => {
-    // Dans la réalité, on utiliserait un toast. Ici on ferme juste la modale.
+  const handleAddBorne = async () => {
+    if (!newBorneNom || !newBorneEmplacement) {
+      setError("Le nom et l'emplacement sont requis.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await apiFetch("/api/bornes", {
+        method: "POST",
+        body: JSON.stringify({ nom: newBorneNom, emplacement: newBorneEmplacement })
+      });
+      setCreatedKey(res.data.cleActivation);
+      await fetchBornes();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateBorne = async (id: string, data: any) => {
+    setSaving(true);
+    try {
+      await apiFetch(`/api/bornes/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data)
+      });
+      await fetchBornes();
+      return true;
+    } catch (e: any) {
+      setError(e.message);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAssignTechnicien = async () => {
+    if (!borneAssign) return;
+    const success = await updateBorne(borneAssign.id, { technicien: selectedTechnicien || "Non assigné" });
+    if (success) setBorneAssign(null);
+  };
+
+  const handleLockBorne = async () => {
+    if (!borneLock) return;
+    const success = await updateBorne(borneLock.id, { statut: "HORS_LIGNE" });
+    if (success) setBorneLock(null);
+  };
+
+  const handlePowerAction = async (action: "shutdown" | "reboot" | "start") => {
+    if (!bornePower) return;
+    const newStatut = action === "start" ? "EN_LIGNE" : "HORS_LIGNE";
+    const success = await updateBorne(bornePower.id, { statut: newStatut });
+    if (success) setBornePower(null);
+  };
+
+  const closeAll = () => {
     setIsAddBorneOpen(false);
     setBorneConfig(null);
     setShowMap(false);
     setBorneAssign(null);
     setBorneLock(null);
     setBornePower(null);
+    setCreatedKey(null);
+    setNewBorneNom("");
+    setNewBorneEmplacement("");
   };
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "50vh", flexDirection: "column", gap: 16 }}>
+        <Loader2 size={32} style={{ color: "#1F0270", animation: "spin 1s linear infinite" }} />
+        <span style={{ color: "#6B7280", fontWeight: 600 }}>Chargement des bornes...</span>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -84,19 +211,28 @@ export default function BornesKiosk() {
             <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une borne, lieu..." style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, outline: "none", width: 280, background: "white" }} />
           </div>
+          <button onClick={fetchBornes} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
+            <RefreshCcw size={16} /> Actualiser
+          </button>
           <button onClick={() => setIsAddBorneOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
             <Plus size={16} /> Ajouter une borne
           </button>
         </div>
       </div>
 
+      {error && (
+        <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 12, padding: "14px 18px", color: "#991B1B", fontSize: 13, marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
+          <AlertTriangle size={16} /> {error}
+        </div>
+      )}
+
       {/* KPIs */}
       <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { icon: MonitorSmartphone, label: "Total Bornes", value: bornes.length, sub: "Parc actif", bg: "#EEF2FF", color: "#4F46E5" },
-          { icon: SignalHigh, label: "En ligne", value: bornes.filter(b=>b.statut==="En ligne").length, sub: "Actives", bg: "#DCFCE7", color: "#059669" },
-          { icon: WifiOff, label: "Hors ligne", value: bornes.filter(b=>b.statut==="Hors ligne").length, sub: "Nécessite attention", bg: "#FEE2E2", color: "#DC2626" },
-          { icon: Wrench, label: "En maintenance", value: bornes.filter(b=>b.statut==="En maintenance").length, sub: "Intervention en cours", bg: "#FEF3C7", color: "#D97706" },
+          { icon: SignalHigh, label: "En ligne", value: bornes.filter(b=>b.statut==="EN_LIGNE").length, sub: "Actives", bg: "#DCFCE7", color: "#059669" },
+          { icon: WifiOff, label: "Hors ligne", value: bornes.filter(b=>b.statut==="HORS_LIGNE").length, sub: "Nécessite attention", bg: "#FEE2E2", color: "#DC2626" },
+          { icon: Wrench, label: "En maintenance", value: bornes.filter(b=>b.statut==="EN_MAINTENANCE").length, sub: "Intervention en cours", bg: "#FEF3C7", color: "#D97706" },
         ].map((k, i) => (
           <div key={i} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 160, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -123,7 +259,7 @@ export default function BornesKiosk() {
           </thead>
           <tbody>
             {filtered.map((b) => (
-              <tr key={b.id} style={{ borderBottom: "1px solid #F9FAFB", opacity: b.statut === "Hors ligne" ? 0.7 : 1 }}>
+              <tr key={b.id} style={{ borderBottom: "1px solid #F9FAFB", opacity: b.statut === "HORS_LIGNE" ? 0.7 : 1 }}>
                 <td style={{ padding: "14px 20px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#4F46E5", flexShrink: 0 }}>
@@ -131,18 +267,18 @@ export default function BornesKiosk() {
                     </div>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{b.nom}</div>
-                      <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{b.id}</div>
+                      <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{b.numeroReference || b.id.substring(0,8)}</div>
                     </div>
                   </div>
                 </td>
                 <td style={{ padding: "14px 20px", fontSize: 13, color: "#374151" }}>{b.emplacement}</td>
                 <td style={{ padding: "14px 20px" }}><StatutBadge statut={b.statut} /></td>
                 <td style={{ padding: "14px 20px" }}>
-                  <div style={{ fontSize: 12, color: "#374151", fontFamily: "monospace" }}>{b.ip}</div>
+                  <div style={{ fontSize: 12, color: "#374151", fontFamily: "monospace" }}>{b.ip || "—"}</div>
                 </td>
-                <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280" }}>{b.derniereSynchro}</td>
+                <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280" }}>{b.derniereSynchro ? new Date(b.derniereSynchro).toLocaleDateString('fr-FR') : "Jamais"}</td>
                 <td style={{ padding: "14px 20px" }}>
-                  {b.technicien === "Non assigné" ? (
+                  {!b.technicien || b.technicien === "Non assigné" ? (
                     <span style={{ color: "#9CA3AF", fontSize: 12, fontStyle: "italic", display: "inline-block", background: "#F3F4F6", padding: "2px 8px", borderRadius: 12 }}>Non assigné</span>
                   ) : (
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -181,7 +317,7 @@ export default function BornesKiosk() {
       {/* --- MODALS --- */}
       
       {/* Ajouter Borne */}
-      <Modal isOpen={isAddBorneOpen} onClose={() => setIsAddBorneOpen(false)} title="Ajouter une nouvelle borne">
+      <Modal isOpen={isAddBorneOpen} onClose={closeAll} title="Ajouter une nouvelle borne">
         <div style={{ marginBottom: 4, fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
           Renseignez les informations de la nouvelle borne pour générer sa clé d'activation sécurisée.
         </div>
@@ -191,7 +327,7 @@ export default function BornesKiosk() {
             <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Nom de la borne</label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <MonitorSmartphone size={18} color="#9CA3AF" style={{ position: "absolute", left: 12 }} />
-              <input type="text" placeholder="Ex: Borne Agence Madina" style={{ width: "100%", padding: "12px 12px 12px 38px", borderRadius: 10, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", transition: "all 0.2s" }} onFocus={(e) => { e.target.style.background = "white"; e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)"; }} onBlur={(e) => { e.target.style.background = "#F9FAFB"; e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }} />
+              <input type="text" value={newBorneNom} onChange={e=>setNewBorneNom(e.target.value)} placeholder="Ex: Borne Agence Madina" style={{ width: "100%", padding: "12px 12px 12px 38px", borderRadius: 10, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", transition: "all 0.2s" }} onFocus={(e) => { e.target.style.background = "white"; e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)"; }} onBlur={(e) => { e.target.style.background = "#F9FAFB"; e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }} />
             </div>
           </div>
           
@@ -199,36 +335,40 @@ export default function BornesKiosk() {
             <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Emplacement (Adresse / Lieu)</label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <MapPin size={18} color="#9CA3AF" style={{ position: "absolute", left: 12 }} />
-              <input type="text" placeholder="Ex: Marché Madina, Conakry" style={{ width: "100%", padding: "12px 12px 12px 38px", borderRadius: 10, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", transition: "all 0.2s" }} onFocus={(e) => { e.target.style.background = "white"; e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)"; }} onBlur={(e) => { e.target.style.background = "#F9FAFB"; e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }} />
+              <input type="text" value={newBorneEmplacement} onChange={e=>setNewBorneEmplacement(e.target.value)} placeholder="Ex: Marché Madina, Conakry" style={{ width: "100%", padding: "12px 12px 12px 38px", borderRadius: 10, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", transition: "all 0.2s" }} onFocus={(e) => { e.target.style.background = "white"; e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)"; }} onBlur={(e) => { e.target.style.background = "#F9FAFB"; e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }} />
             </div>
           </div>
         </div>
         
-        <div style={{ background: "#EEF2FF", borderRadius: 12, padding: 16, border: "1px dashed #C7D2FE", marginTop: 4 }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#4338CA", marginBottom: 8 }}>
-            <Key size={16} /> Clé d'activation (Token)
-          </label>
-          <div style={{ display: "flex", gap: 8 }}>
-            <input type="text" readOnly value="TKN-8F49-B2C1-90X7" style={{ flex: 1, padding: "12px", borderRadius: 8, border: "1px solid #C7D2FE", outline: "none", fontSize: 15, background: "white", fontFamily: "monospace", color: "#312E81", fontWeight: 700, letterSpacing: 1 }} />
-            <button title="Copier la clé" style={{ width: 44, height: 44, background: "#4F46E5", border: "none", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", flexShrink: 0, boxShadow: "0 2px 4px rgba(79,70,229,0.3)" }}>
-              <Copy size={18} />
-            </button>
+        {createdKey && (
+          <div style={{ background: "#EEF2FF", borderRadius: 12, padding: 16, border: "1px dashed #C7D2FE", marginTop: 4 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#4338CA", marginBottom: 8 }}>
+              <Key size={16} /> Clé d'activation (Token)
+            </label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input type="text" readOnly value={createdKey} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "1px solid #C7D2FE", outline: "none", fontSize: 15, background: "white", fontFamily: "monospace", color: "#312E81", fontWeight: 700, letterSpacing: 1 }} />
+              <button onClick={() => navigator.clipboard.writeText(createdKey)} title="Copier la clé" style={{ width: 44, height: 44, background: "#4F46E5", border: "none", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", flexShrink: 0, boxShadow: "0 2px 4px rgba(79,70,229,0.3)" }}>
+                <Copy size={18} />
+              </button>
+            </div>
+            <p style={{ fontSize: 11, color: "#6366F1", marginTop: 8, margin: "8px 0 0 0", lineHeight: 1.4 }}>
+              Veuillez copier cette clé. Elle sera requise pour associer physiquement la borne au système lors de son premier démarrage.
+            </p>
           </div>
-          <p style={{ fontSize: 11, color: "#6366F1", marginTop: 8, margin: "8px 0 0 0", lineHeight: 1.4 }}>
-            Veuillez copier cette clé. Elle sera requise pour associer physiquement la borne au système lors de son premier démarrage.
-          </p>
-        </div>
+        )}
         
         <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-          <button onClick={() => setIsAddBorneOpen(false)} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer", fontSize: 14, transition: "all 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#F9FAFB"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>Annuler</button>
-          <button onClick={notifySuccess} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 14, boxShadow: "0 4px 12px rgba(31,2,112,0.2)", transition: "all 0.2s" }} onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(31,2,112,0.3)"; }} onMouseOut={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(31,2,112,0.2)"; }}>
-            <Plus size={18} /> Créer la borne
-          </button>
+          <button onClick={closeAll} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer", fontSize: 14, transition: "all 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#F9FAFB"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>{createdKey ? "Fermer" : "Annuler"}</button>
+          {!createdKey && (
+            <button onClick={handleAddBorne} disabled={saving} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 14, opacity: saving ? 0.7 : 1 }}>
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />} Créer la borne
+            </button>
+          )}
         </div>
       </Modal>
 
       {/* Configurer Borne / Vue Carte */}
-      <Modal isOpen={!!borneConfig} onClose={() => { setBorneConfig(null); setShowMap(false); }} title={showMap ? `Localisation - ${borneConfig?.nom}` : `Paramètres - ${borneConfig?.nom}`}>
+      <Modal isOpen={!!borneConfig} onClose={closeAll} title={showMap ? `Localisation - ${borneConfig?.nom}` : `Paramètres - ${borneConfig?.nom}`}>
         {showMap ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
              <div style={{ width: "100%", height: 350, borderRadius: 12, overflow: "hidden", position: "relative", background: "#E5E7EB" }}>
@@ -295,30 +435,32 @@ export default function BornesKiosk() {
                 <MapPin size={14} /> Voir sur la carte
               </button>
             </div>
-            <button onClick={notifySuccess} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>Enregistrer</button>
+            <button onClick={closeAll} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>Fermer</button>
           </>
         )}
       </Modal>
 
       {/* Affecter Technicien */}
-      <Modal isOpen={!!borneAssign} onClose={() => setBorneAssign(null)} title={`Affectation - ${borneAssign?.nom}`}>
+      <Modal isOpen={!!borneAssign} onClose={closeAll} title={`Affectation - ${borneAssign?.nom}`}>
         <p style={{ fontSize: 13, color: "#4B5563", marginBottom: 10, lineHeight: 1.5 }}>
           Sélectionnez un technicien responsable de la maintenance et du suivi de cette borne.
         </p>
         <div>
           <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Technicien assigné</label>
-          <select defaultValue={borneAssign?.technicien !== "Non assigné" ? borneAssign?.technicien : ""} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "white" }}>
+          <select value={selectedTechnicien} onChange={e => setSelectedTechnicien(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "white" }}>
             <option value="">Sélectionner un technicien...</option>
             <option value="Ahmed Diallo">Ahmed Diallo</option>
             <option value="Sekou Touré">Sekou Touré</option>
             <option value="Mamadou Sylla">Mamadou Sylla</option>
           </select>
         </div>
-        <button onClick={notifySuccess} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer" }}>Affecter</button>
+        <button onClick={handleAssignTechnicien} disabled={saving} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer" }}>
+          {saving ? <Loader2 size={16} className="animate-spin" /> : "Affecter"}
+        </button>
       </Modal>
 
       {/* Verrouiller Borne */}
-      <Modal isOpen={!!borneLock} onClose={() => setBorneLock(null)} title="Verrouillage à distance">
+      <Modal isOpen={!!borneLock} onClose={closeAll} title="Verrouillage à distance">
         <div style={{ background: "#FEF3C7", borderRadius: 8, padding: 16, display: "flex", gap: 12 }}>
           <Lock size={24} color="#D97706" style={{ flexShrink: 0 }} />
           <div>
@@ -327,25 +469,53 @@ export default function BornesKiosk() {
           </div>
         </div>
         <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-          <button onClick={() => setBorneLock(null)} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
-          <button onClick={notifySuccess} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#D97706", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Lock size={16} /> Verrouiller la borne</button>
+          <button onClick={closeAll} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
+          <button onClick={handleLockBorne} disabled={saving} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#D97706", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />} Verrouiller la borne
+          </button>
         </div>
       </Modal>
 
-      {/* Éteindre Borne */}
-      <Modal isOpen={!!bornePower} onClose={() => setBornePower(null)} title="Gestion de l'alimentation">
-        <div style={{ background: "#FEE2E2", borderRadius: 8, padding: 16, display: "flex", gap: 12 }}>
-          <Power size={24} color="#DC2626" style={{ flexShrink: 0 }} />
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#991B1B" }}>Action critique sur "{bornePower?.nom}"</div>
-            <div style={{ fontSize: 12, color: "#B91C1C", marginTop: 4 }}>Vous êtes sur le point d'éteindre ou redémarrer cette borne à distance. Si une transaction est en cours, elle sera annulée.</div>
-          </div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
-          <button onClick={notifySuccess} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "white", border: "1px solid #FCA5A5", color: "#DC2626", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Power size={16} /> Éteindre (Shutdown)</button>
-          <button onClick={notifySuccess} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "white", border: "1px solid #C7D2FE", color: "#4F46E5", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>🔄 Redémarrer (Reboot)</button>
-          <button onClick={() => setBornePower(null)} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "transparent", border: "none", color: "#6B7280", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
-        </div>
+      {/* Éteindre / Allumer Borne */}
+      <Modal isOpen={!!bornePower} onClose={closeAll} title="Gestion de l'alimentation">
+        {bornePower?.statut === "HORS_LIGNE" ? (
+          // Borne éteinte → proposer d'allumer
+          <>
+            <div style={{ background: "#DCFCE7", borderRadius: 8, padding: 16, display: "flex", gap: 12 }}>
+              <Power size={24} color="#166534" style={{ flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#166534" }}>Allumer "{bornePower?.nom}" ?</div>
+                <div style={{ fontSize: 12, color: "#15803D", marginTop: 4 }}>La borne sera remise en ligne et disponible pour les clients.</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+              <button onClick={() => handlePowerAction("start")} disabled={saving} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "#166534", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Power size={16} />} ⚡ Allumer la borne
+              </button>
+              <button onClick={closeAll} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "transparent", border: "none", color: "#6B7280", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
+            </div>
+          </>
+        ) : (
+          // Borne allumée → proposer d'éteindre ou redémarrer
+          <>
+            <div style={{ background: "#FEE2E2", borderRadius: 8, padding: 16, display: "flex", gap: 12 }}>
+              <Power size={24} color="#DC2626" style={{ flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#991B1B" }}>Action critique sur "{bornePower?.nom}"</div>
+                <div style={{ fontSize: 12, color: "#B91C1C", marginTop: 4 }}>Vous êtes sur le point d'éteindre ou redémarrer cette borne à distance. Si une transaction est en cours, elle sera annulée.</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+              <button onClick={() => handlePowerAction("shutdown")} disabled={saving} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "white", border: "1px solid #FCA5A5", color: "#DC2626", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Power size={16} />} Éteindre (Shutdown)
+              </button>
+              <button onClick={() => handlePowerAction("reboot")} disabled={saving} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "white", border: "1px solid #C7D2FE", color: "#4F46E5", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <>🔄 Redémarrer (Reboot)</>}
+              </button>
+              <button onClick={closeAll} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "transparent", border: "none", color: "#6B7280", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
+            </div>
+          </>
+        )}
       </Modal>
     </div>
   );
