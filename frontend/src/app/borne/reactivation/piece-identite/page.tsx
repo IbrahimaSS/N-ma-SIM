@@ -13,7 +13,7 @@ export default function ReactivationScan() {
     <div onClick={(e) => {
       // Interception des clics pour forcer le bon routing
       const target = e.target as HTMLElement;
-      if (target.innerText && target.innerText.includes("Extraire")) {
+      if (target.innerText && (target.innerText.includes("Extraire") || target.innerText.includes("Extract"))) {
         e.stopPropagation();
         router.push("/borne/reactivation/selfie");
       }

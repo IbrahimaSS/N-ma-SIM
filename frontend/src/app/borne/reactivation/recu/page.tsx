@@ -9,7 +9,7 @@ import { SuccessScreen } from "@/components/borne/SuccessScreen";
 
 export default function RecuReactivation() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>{typeof window !== 'undefined' ? (sessionStorage.getItem('kiosk_lang') === 'en' ? 'Loading...' : 'Chargement...') : 'Chargement...'}</div>}>
       <RecuContent />
     </Suspense>
   );
@@ -23,10 +23,12 @@ function RecuContent() {
   const [ticketRef, setTicketRef] = useState("NMA-RE-0000");
   const [demandeId, setDemandeId] = useState("");
   const [isFinishing, setIsFinishing] = useState(false);
+  const [lang, setLang] = useState("fr");
 
   useEffect(() => {
     setTicketRef(sessionStorage.getItem("ticket_ref") || "NMA-RE-0000");
     setDemandeId(sessionStorage.getItem("demande_id") || "");
+    setLang(sessionStorage.getItem("kiosk_lang") || "fr");
   }, []);
 
   const handleFinish = async () => {
@@ -68,23 +70,23 @@ function RecuContent() {
              <CheckCircle className="w-12 h-12 text-white" />
           </div>
           
-          <h2 className="text-2xl font-bold text-primary mb-2">Demande enregistrée avec succès !</h2>
-          <p className="text-text-muted mb-8">Votre réactivation de puce est en cours de traitement final.</p>
+          <h2 className="text-2xl font-bold text-primary mb-2">{lang === "en" ? "Request successfully registered!" : "Demande enregistrée avec succès !"}</h2>
+          <p className="text-text-muted mb-8">{lang === "en" ? "Your SIM reactivation is being processed." : "Votre réactivation de puce est en cours de traitement final."}</p>
           
           <div className="w-full border-t border-b border-dashed border-border-light py-6 mb-6">
             <p className="text-4xl font-extrabold text-accent tracking-wider">{ticketRef}</p>
           </div>
 
           <div className="flex items-center gap-4 mb-8">
-            <span className="font-semibold text-text-muted">Statut :</span>
+            <span className="font-semibold text-text-muted">{lang === "en" ? "Status:" : "Statut :"}</span>
             <StatusBadge status="VALIDEE" />
           </div>
 
           <div className="w-full bg-primary/5 rounded-xl p-4 flex items-start gap-3 text-left">
             <Info className="w-6 h-6 text-primary flex-shrink-0 mt-0.5" />
             <div>
-               <p className="font-bold text-primary mb-1">Puce en cours d&apos;activation.</p>
-               <p className="text-sm text-text-muted">Votre réseau sera disponible dans les 5 prochaines minutes.</p>
+               <p className="font-bold text-primary mb-1">{lang === "en" ? "SIM card being activated." : "Puce en cours d'activation."}</p>
+               <p className="text-sm text-text-muted">{lang === "en" ? "Your network will be available within the next 5 minutes." : "Votre réseau sera disponible dans les 5 prochaines minutes."}</p>
             </div>
           </div>
         </Card>
@@ -92,8 +94,8 @@ function RecuContent() {
         {/* Reçu détaillé (Aperçu) */}
         <Card className="p-8" id="receipt-content">
           <div className="text-center mb-8">
-            <h3 className="font-bold text-primary text-xl tracking-widest uppercase">Reçu de demande</h3>
-            <p className="text-primary font-medium">Réactivation SIM</p>
+            <h3 className="font-bold text-primary text-xl tracking-widest uppercase">{lang === "en" ? "Request Receipt" : "Reçu de demande"}</h3>
+            <p className="text-primary font-medium">{lang === "en" ? "SIM Reactivation" : "Réactivation SIM"}</p>
           </div>
           
           <div className="flex flex-col md:flex-row gap-8">
@@ -101,23 +103,23 @@ function RecuContent() {
               <table className="w-full text-sm">
                 <tbody>
                   <tr className="border-b border-gray-100">
-                    <td className="py-3 font-semibold text-primary">Service</td>
-                    <td className="py-3 text-text-muted text-right font-bold text-primary">Réactivation</td>
+                    <td className="py-3 font-semibold text-primary">{lang === "en" ? "Service" : "Service"}</td>
+                    <td className="py-3 text-text-muted text-right font-bold text-primary">{lang === "en" ? "Reactivation" : "Réactivation"}</td>
                   </tr>
                   <tr className="border-b border-gray-100">
-                    <td className="py-3 font-semibold text-primary">Montant payé</td>
+                    <td className="py-3 font-semibold text-primary">{lang === "en" ? "Amount paid" : "Montant payé"}</td>
                     <td className="py-3 text-text-muted text-right font-medium">10 000 GNF</td>
                   </tr>
                   <tr className="border-b border-gray-100">
-                    <td className="py-3 font-semibold text-primary">Numéro de ticket</td>
+                    <td className="py-3 font-semibold text-primary">{lang === "en" ? "Ticket number" : "Numéro de ticket"}</td>
                     <td className="py-3 text-text-muted text-right font-bold">{ticketRef}</td>
                   </tr>
                   <tr className="border-b border-gray-100">
-                    <td className="py-3 font-semibold text-primary">Date</td>
-                    <td className="py-3 text-text-muted text-right">{new Date().toLocaleString('fr-FR')}</td>
+                    <td className="py-3 font-semibold text-primary">{lang === "en" ? "Date" : "Date"}</td>
+                    <td className="py-3 text-text-muted text-right">{new Date().toLocaleString(lang === "en" ? 'en-US' : 'fr-FR')}</td>
                   </tr>
                   <tr>
-                    <td className="py-3 font-semibold text-primary">Statut</td>
+                    <td className="py-3 font-semibold text-primary">{lang === "en" ? "Status" : "Statut"}</td>
                     <td className="py-3 text-right"><StatusBadge status="VALIDEE" /></td>
                   </tr>
                 </tbody>
@@ -143,18 +145,18 @@ function RecuContent() {
               const el = document.getElementById("receipt-content");
               if (el) el.scrollIntoView({ behavior: 'smooth' });
            }}>
-             <Eye className="w-5 h-5 mr-2" /> Voir le reçu
+             <Eye className="w-5 h-5 mr-2" /> {lang === "en" ? "View receipt" : "Voir le reçu"}
            </Button>
            <Button variant="primary" className="flex-1 h-14" onClick={() => router.push("/borne/accueil")}>
-             <Home className="w-5 h-5 mr-2" /> Retour à l&apos;accueil
+             <Home className="w-5 h-5 mr-2" /> {lang === "en" ? "Back to home" : "Retour à l'accueil"}
            </Button>
         </div>
         <div className="flex gap-4">
            <Button variant="outline" className="flex-1 bg-white h-14" onClick={handlePrintPDF}>
-             <Printer className="w-5 h-5 mr-2" /> Imprimer
+             <Printer className="w-5 h-5 mr-2" /> {lang === "en" ? "Print" : "Imprimer"}
            </Button>
            <Button variant="primary" className="flex-1 h-14" onClick={handleFinish} disabled={isFinishing}>
-             {isFinishing ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Finalisation...</> : <><CheckCircle2 className="w-5 h-5 mr-2" /> Terminer</>}
+             {isFinishing ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> {lang === "en" ? "Finalizing..." : "Finalisation..."}</> : <><CheckCircle2 className="w-5 h-5 mr-2" /> {lang === "en" ? "Finish" : "Terminer"}</>}
            </Button>
         </div>
       </div>

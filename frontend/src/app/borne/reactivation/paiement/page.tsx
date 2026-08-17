@@ -103,7 +103,7 @@ export default function PaiementReactivation() {
 
     } catch (err: any) {
       console.error("[REACTIVATION]", err);
-      setError("Une erreur est survenue lors de la validation. Veuillez réessayer.");
+      setError(lang === "en" ? "An error occurred during validation. Please try again." : "Une erreur est survenue lors de la validation. Veuillez réessayer.");
     } finally {
       setIsProcessing(false);
     }
