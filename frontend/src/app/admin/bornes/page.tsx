@@ -77,6 +77,7 @@ export default function BornesKiosk() {
   const [isAddBorneOpen, setIsAddBorneOpen] = useState(false);
   const [borneConfig, setBorneConfig] = useState<any>(null);
   const [showMap, setShowMap] = useState(false);
+  const [configIp, setConfigIp] = useState("");
   const [borneAssign, setBorneAssign] = useState<any>(null);
   const [borneLock, setBorneLock] = useState<any>(null);
   const [bornePower, setBornePower] = useState<any>(null);
@@ -112,7 +113,10 @@ export default function BornesKiosk() {
 
   const handleAction = (e: React.MouseEvent, type: string, borne: any) => {
     e.stopPropagation();
-    if (type === "config") setBorneConfig(borne);
+    if (type === "config") {
+      setBorneConfig(borne);
+      setConfigIp(borne.ip || "");
+    }
     if (type === "assign") {
       setBorneAssign(borne);
       setSelectedTechnicien(borne.technicien !== "Non assigné" ? borne.technicien : "");
@@ -165,10 +169,19 @@ export default function BornesKiosk() {
     if (success) setBorneAssign(null);
   };
 
-  const handleLockBorne = async () => {
+  const handleLockBorne = async (nouveauStatut: "HORS_LIGNE" | "EN_MAINTENANCE" = "HORS_LIGNE") => {
     if (!borneLock) return;
-    const success = await updateBorne(borneLock.id, { statut: "HORS_LIGNE" });
+    const success = await updateBorne(borneLock.id, { statut: nouveauStatut });
     if (success) setBorneLock(null);
+  };
+
+  const handleSaveConfig = async () => {
+    if (!borneConfig) return;
+    const success = await updateBorne(borneConfig.id, { ip: configIp });
+    if (success) {
+      setBorneConfig(null);
+      setConfigIp("");
+    }
   };
 
   const handlePowerAction = async (action: "shutdown" | "reboot" | "start") => {
@@ -406,7 +419,7 @@ export default function BornesKiosk() {
           <>
             <div>
               <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>Adresse IP</label>
-              <input type="text" defaultValue={borneConfig?.ip} style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, fontFamily: "monospace" }} />
+              <input type="text" value={configIp} onChange={(e) => setConfigIp(e.target.value)} placeholder="Ex: 192.168.1.10" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, fontFamily: "monospace" }} />
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #F3F4F6" }}>
               <div>
@@ -435,7 +448,12 @@ export default function BornesKiosk() {
                 <MapPin size={14} /> Voir sur la carte
               </button>
             </div>
-            <button onClick={closeAll} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>Fermer</button>
+            <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+              <button onClick={closeAll} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>Annuler</button>
+              <button onClick={handleSaveConfig} disabled={saving} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {saving ? <Loader2 size={16} className="animate-spin" /> : "Enregistrer"}
+              </button>
+            </div>
           </>
         )}
       </Modal>
@@ -460,19 +478,22 @@ export default function BornesKiosk() {
       </Modal>
 
       {/* Verrouiller Borne */}
-      <Modal isOpen={!!borneLock} onClose={closeAll} title="Verrouillage à distance">
+      <Modal isOpen={!!borneLock} onClose={closeAll} title="Verrouillage / Maintenance">
         <div style={{ background: "#FEF3C7", borderRadius: 8, padding: 16, display: "flex", gap: 12 }}>
           <Lock size={24} color="#D97706" style={{ flexShrink: 0 }} />
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#92400E" }}>Voulez-vous vraiment verrouiller "{borneLock?.nom}" ?</div>
-            <div style={{ fontSize: 12, color: "#B45309", marginTop: 4 }}>L'écran de la borne affichera "Hors service". Les clients ne pourront plus l'utiliser jusqu'à son déverrouillage manuel.</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#92400E" }}>Changer le statut de "{borneLock?.nom}" ?</div>
+            <div style={{ fontSize: 12, color: "#B45309", marginTop: 4 }}>L'écran de la borne affichera "Hors service" ou "En maintenance". Les clients ne pourront plus l'utiliser.</div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-          <button onClick={closeAll} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
-          <button onClick={handleLockBorne} disabled={saving} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#D97706", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            {saving ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />} Verrouiller la borne
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+          <button onClick={() => handleLockBorne("HORS_LIGNE")} disabled={saving} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "white", border: "1px solid #FCA5A5", color: "#DC2626", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />} Mettre Hors Ligne
           </button>
+          <button onClick={() => handleLockBorne("EN_MAINTENANCE")} disabled={saving} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "white", border: "1px solid #FDE68A", color: "#D97706", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Wrench size={16} />} Mettre en Maintenance
+          </button>
+          <button onClick={closeAll} style={{ width: "100%", padding: "12px", borderRadius: 8, background: "transparent", border: "none", color: "#6B7280", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
         </div>
       </Modal>
 
