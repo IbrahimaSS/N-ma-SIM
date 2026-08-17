@@ -3,9 +3,9 @@ import { useState, useEffect } from "react";
 import {
   Search, Plus, Edit2, MoreHorizontal, Shield, User, Wrench, Eye,
   Menu, Bell, ChevronDown, Check, Info, Lock, Unlock, Phone, Mail, EyeOff,
-  Briefcase, X, UserPlus, CloudUpload, Camera, ShieldCheck, MessageSquare, Filter
+  Briefcase, X, UserPlus, CloudUpload, Camera, ShieldCheck, MessageSquare, Filter, Settings
 } from "lucide-react";
-import { MOCK_UTILISATEURS } from "@/data/admin-mock-data";
+import { apiFetch } from "@/lib/api";
 import "../admin-responsive.css";
 
 // Type definitions
@@ -13,10 +13,12 @@ interface Utilisateur {
   id: string;
   nom: string;
   email: string;
-  tel: string;
+  telephone?: string;
+  tel?: string;
   role: string;
   statut: string;
-  derniereConnexion: string;
+  derniereConnexion?: string;
+  derniereConnexionAt?: string;
   permissions: string[];
 }
 
@@ -33,6 +35,8 @@ function RoleBadge({ role }: { role: string }) {
 
 export default function Utilisateurs() {
   const [users, setUsers] = useState<Utilisateur[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [search, setSearch] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -58,28 +62,41 @@ export default function Utilisateurs() {
 
   // Edit user state
   const [editingUser, setEditingUser] = useState<Utilisateur | null>(null);
+  const [saving, setSaving] = useState(false);
 
   // Actions states
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [detailsUser, setDetailsUser] = useState<Utilisateur | null>(null);
   const [detailsTab, setDetailsTab] = useState<"infos" | "historique">("infos");
+  const [userLogs, setUserLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
-  // Init local storage
-  useEffect(() => {
-    const stored = localStorage.getItem("nma_sim_users");
-    if (stored) {
-      setUsers(JSON.parse(stored));
-    } else {
-      localStorage.setItem("nma_sim_users", JSON.stringify(MOCK_UTILISATEURS));
-      setUsers(MOCK_UTILISATEURS);
+  // Tabbed roles UI state
+  const [activeRoleTab, setActiveRoleTab] = useState(0);
+
+  // Fetch utilisateurs from backend
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    setApiError(null);
+    try {
+      const data = await apiFetch("/api/utilisateurs");
+      const raw = data.data?.utilisateurs || data.data || [];
+      setUsers(raw.map((u: any) => ({
+        ...u,
+        tel: u.telephone || u.tel || "",
+        role: u.role === "ADMIN" ? "Admin" : u.role === "AGENT" ? "Agent" : u.role === "TECHNICIEN" ? "Technicien" : "Lecture seule",
+        statut: u.statut === "ACTIF" ? "Actif" : u.statut === "BLOQUE" ? "Bloqué" : "Inactif",
+        derniereConnexion: u.derniereConnexion || (u.derniereConnexionAt ? new Date(u.derniereConnexionAt).toLocaleDateString("fr-FR") : "Jamais connecté"),
+        permissions: u.permissions || [],
+      })));
+    } catch (e: any) {
+      setApiError(e.message);
+    } finally {
+      setLoadingUsers(false);
     }
-  }, []);
-
-  // Sync back to local storage helper
-  const saveUsers = (newUsers: Utilisateur[]) => {
-    localStorage.setItem("nma_sim_users", JSON.stringify(newUsers));
-    setUsers(newUsers);
   };
+
+  useEffect(() => { fetchUsers(); }, []);
 
   const filtered = users.filter(u => {
     const matchSearch = u.nom.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
@@ -115,8 +132,11 @@ export default function Utilisateurs() {
         return;
       }
 
-      // Utilisation de URL.createObjectURL pour la prévisualisation immédiate
-      setPhotoProfil(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPhotoProfil(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -128,6 +148,7 @@ export default function Utilisateurs() {
     setEmail(userToEdit.email);
     setService("");
     setRole(userToEdit.role);
+    setPhotoProfil((userToEdit as any).photoProfil || null);
     setUsername(userToEdit.email.split("@")[0] || userToEdit.nom.toLowerCase().replace(/\s+/g, "."));
     setPassword("password123");
     setConfirmPassword("password123");
@@ -135,7 +156,7 @@ export default function Utilisateurs() {
   };
 
   // Submit Handler (Create or Update)
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!nomComplet || !telephone || !email || !role || !username || !password) {
@@ -148,66 +169,48 @@ export default function Utilisateurs() {
       return;
     }
 
-    if (editingUser) {
-      // Update existing user
-      const updated = users.map(u => {
-        if (u.id === editingUser.id) {
-          return {
-            ...u,
-            nom: nomComplet,
-            email: email,
-            tel: telephone,
-            role: role,
-            permissions: getPermissionsForRole(role).map(p => p.split(" ")[0])
-          };
-        }
-        return u;
-      });
-      saveUsers(updated);
-    } else {
-      // Create new user
-      const newUser: Utilisateur = {
-        id: `USR-${String(users.length + 1).padStart(3, "0")}`,
-        nom: nomComplet,
-        email: email,
-        tel: telephone,
-        role: role,
-        statut: "Actif",
-        derniereConnexion: "Jamais connecté",
-        permissions: getPermissionsForRole(role).map(p => p.split(" ")[0])
-      };
-      saveUsers([newUser, ...users]);
-    }
+    const roleMap: Record<string, string> = { "Admin": "ADMIN", "Agent": "AGENT", "Technicien": "TECHNICIEN", "Lecture seule": "LECTURE_SEULE" };
 
-    // Reset fields
-    setNomComplet("");
-    setTelephone("");
-    setEmail("");
-    setService("");
-    setPhotoProfil(null);
-    setRole("");
-    setUsername("");
-    setPassword("");
-    setConfirmPassword("");
-    setSendEmail(true);
-    setSendSms(false);
-    setEditingUser(null);
-    setIsAddingUser(false);
+    setSaving(true);
+    try {
+      if (editingUser) {
+        await apiFetch(`/api/utilisateurs/${editingUser.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ nom: nomComplet, email, telephone, role: roleMap[role] || role, photoProfil }),
+        });
+      } else {
+        await apiFetch("/api/utilisateurs", {
+          method: "POST",
+          body: JSON.stringify({ nom: nomComplet, email, telephone, motDePasse: password, role: roleMap[role] || role, photoProfil }),
+        });
+      }
+      // Reset fields
+      setNomComplet(""); setTelephone(""); setEmail(""); setService("");
+      setPhotoProfil(null); setRole(""); setUsername(""); setPassword("");
+      setConfirmPassword(""); setSendEmail(true); setSendSms(false);
+      setEditingUser(null); setIsAddingUser(false);
+      fetchUsers();
+    } catch (e: any) {
+      alert(`Erreur : ${e.message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Block/Unblock user
-  const handleToggleBlock = (userId: string) => {
-    const updated = users.map(u => {
-      if (u.id === userId) {
-        return { ...u, statut: u.statut === "Actif" ? "Bloqué" : "Actif" };
-      }
-      return u;
-    });
-    saveUsers(updated);
-
-    // Mettre à jour la modale si elle est ouverte pour cet utilisateur
-    if (detailsUser && detailsUser.id === userId) {
-      setDetailsUser({ ...detailsUser, statut: detailsUser.statut === "Actif" ? "Bloqué" : "Actif" });
+  const handleToggleBlock = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    const newStatut = user.statut === "Actif" ? "BLOQUE" : "ACTIF";
+    try {
+      await apiFetch(`/api/utilisateurs/${userId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ statut: newStatut }),
+      });
+      fetchUsers();
+      if (detailsUser && detailsUser.id === userId) setDetailsUser(null);
+    } catch (e: any) {
+      alert(`Erreur : ${e.message}`);
     }
   };
 
@@ -373,7 +376,10 @@ export default function Utilisateurs() {
                     <td style={{ padding: "14px 20px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "#4F46E5", flexShrink: 0, overflow: 'hidden' }}>
-                          {u.nom.charAt(0)}
+                          {(u as any).photoProfil
+                            ? <img src={(u as any).photoProfil} alt={u.nom} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : u.nom.charAt(0)
+                          }
                         </div>
                         <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{u.nom}</div>
                       </div>
@@ -406,7 +412,17 @@ export default function Utilisateurs() {
                           {openDropdownId === u.id && (
                             <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 4, background: "white", border: "1px solid #E5E7EB", borderRadius: 8, boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", zIndex: 10, minWidth: 180, overflow: "hidden" }}>
                               <button
-                                onClick={() => { setDetailsUser(u); setDetailsTab("infos"); setOpenDropdownId(null); }}
+                                onClick={async () => {
+                                  setDetailsUser(u);
+                                  setDetailsTab("infos");
+                                  setOpenDropdownId(null);
+                                  setLoadingLogs(true);
+                                  try {
+                                    const data = await apiFetch(`/api/logs?limit=50`);
+                                    const allLogs = data.data || [];
+                                    setUserLogs(allLogs.filter((l: any) => l.utilisateurId === u.id));
+                                  } catch { setUserLogs([]); } finally { setLoadingLogs(false); }
+                                }}
                                 style={{ width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, fontWeight: 500, background: "white", border: "none", borderBottom: "1px solid #F3F4F6", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: "#374151" }}
                               >
                                 <Eye size={14} className="text-gray-400" /> Voir les détails
@@ -437,42 +453,80 @@ export default function Utilisateurs() {
             </div>
           </div>
 
-          {/* Rôles & permissions explainer */}
-          <div style={{ display: "grid", gridTemplateColumns: "250px 1fr 1fr 1fr 1fr", gap: 16 }}>
-            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 8px", fontSize: 15 }}>Rôles & permissions</h3>
-              <p style={{ fontSize: 12, color: "#6B7280", margin: "0 0 16px", lineHeight: 1.4 }}>Aperçu des rôles définis et des permissions associées dans le système.</p>
-              <button style={{ padding: "10px", borderRadius: 10, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>⚙️ Gérer les rôles</button>
+          {/* Rôles & permissions explainer - Tabbed Layout */}
+          <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div>
+                <h3 style={{ fontWeight: 800, color: "#1F0270", margin: "0 0 4px", fontSize: 18 }}>Rôles & Permissions</h3>
+                <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Sélectionnez un rôle pour voir ses privilèges associés.</p>
+              </div>
+              <button style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #E5E7EB", background: "#F9FAFB", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                <Settings size={14} /> Gérer
+              </button>
             </div>
 
-            {[
-              { icon: Shield, bg: "#EEF2FF", color: "#4338CA", title: "Administrateur", users: `${users.filter(u => u.role === "Admin").length} utilisateurs`, perms: ["Accès complet à toutes les fonctionnalités", "Gestion des utilisateurs et rôles", "Paramètres système"], badge: "Toutes les permissions" },
-              { icon: User, bg: "#E0F2FE", color: "#0369A1", title: "Agent", users: `${users.filter(u => u.role === "Agent").length} utilisateurs`, perms: ["Gestion des demandes SIM", "Gestion des clients", "Gestion des paiements"], badge: "7 permissions" },
-              { icon: Wrench, bg: "#DCFCE7", color: "#166534", title: "Technicien", users: `${users.filter(u => u.role === "Technicien").length} utilisateurs`, perms: ["Gestion des demandes SIM", "Gestion des offres", "Consultation des clients"], badge: "5 permissions" },
-              { icon: Eye, bg: "#F3F4F6", color: "#4B5563", title: "Lecture seule", users: `${users.filter(u => u.role === "Lecture seule").length} utilisateurs`, perms: ["Consultation des demandes", "Consultation des clients", "Consultation des paiements"], badge: "3 permissions" },
-            ].map((r, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ background: r.bg, borderRadius: 8, padding: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <r.icon size={16} style={{ color: r.color }} />
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{r.title}</div>
+            <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
+              {[
+                { title: "Administrateur", icon: Shield, bg: "#EEF2FF", color: "#4338CA" },
+                { title: "Agent", icon: User, bg: "#E0F2FE", color: "#0369A1" },
+                { title: "Technicien", icon: Wrench, bg: "#DCFCE7", color: "#166534" },
+                { title: "Lecture seule", icon: Eye, bg: "#F3F4F6", color: "#4B5563" },
+              ].map((role, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveRoleTab(idx)}
+                  style={{
+                    flex: 1, minWidth: 160, padding: "16px", borderRadius: 12, border: activeRoleTab === idx ? `2px solid ${role.color}` : "1px solid #E5E7EB",
+                    background: activeRoleTab === idx ? role.bg : "white", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, transition: "all 0.2s"
+                  }}
+                >
+                  <div style={{ background: activeRoleTab === idx ? "white" : role.bg, borderRadius: 8, padding: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <role.icon size={18} style={{ color: role.color }} />
                   </div>
-                  <span style={{ fontSize: 10, color: "#6B7280", background: "#F3F4F6", padding: "2px 6px", borderRadius: 4 }}>{r.users}</span>
-                </div>
-                <ul style={{ padding: 0, margin: "0 0 16px", listStyle: "none", display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-                  {r.perms.map((p, j) => (
-                    <li key={j} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 11, color: "#4B5563" }}>
-                      <span style={{ color: "#10B981", fontSize: 14, lineHeight: 1 }}>✓</span> {p}
-                    </li>
-                  ))}
-                </ul>
-                <div style={{ display: "inline-block", alignSelf: "flex-start", background: r.bg, color: r.color, fontSize: 10, fontWeight: 600, padding: "4px 8px", borderRadius: 20 }}>
-                  {r.badge}
-                </div>
-              </div>
-            ))}
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: activeRoleTab === idx ? role.color : "#111827" }}>{role.title}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Active Role Content */}
+            <div style={{ background: "#F9FAFB", borderRadius: 16, padding: 24, border: "1px solid #F3F4F6", minHeight: 180 }}>
+              {(() => {
+                const rolesData = [
+                  { title: "Administrateur", users: users.filter(u => u.role === "Admin").length, perms: ["Accès complet à toutes les fonctionnalités", "Gestion des utilisateurs et rôles", "Paramètres système", "Supervision globale"], badge: "Toutes les permissions" },
+                  { title: "Agent", users: users.filter(u => u.role === "Agent").length, perms: ["Gestion des demandes SIM", "Gestion des clients", "Gestion des paiements", "Accès à l'historique"], badge: "7 permissions" },
+                  { title: "Technicien", users: users.filter(u => u.role === "Technicien").length, perms: ["Gestion des demandes SIM", "Gestion des offres", "Consultation des clients", "Suivi technique"], badge: "5 permissions" },
+                  { title: "Lecture seule", users: users.filter(u => u.role === "Lecture seule").length, perms: ["Consultation des demandes", "Consultation des clients", "Consultation des paiements"], badge: "3 permissions" },
+                ];
+                const r = rolesData[activeRoleTab];
+                return (
+                  <div style={{ display: "flex", gap: 40 }}>
+                    <div style={{ flex: 2 }}>
+                      <h4 style={{ fontSize: 16, fontWeight: 700, color: "#111827", margin: "0 0 16px" }}>Permissions accordées :</h4>
+                      <ul style={{ padding: 0, margin: 0, listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        {r.perms.map((p, j) => (
+                          <li key={j} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#374151", fontWeight: 500, background: "white", padding: "10px 14px", borderRadius: 8, border: "1px solid #E5E7EB" }}>
+                            <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <span style={{ color: "#059669", fontSize: 12, fontWeight: 900 }}>✓</span>
+                            </div>
+                            {p}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div style={{ flex: 1, borderLeft: "1px solid #E5E7EB", paddingLeft: 40, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                      <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8 }}>Statistiques du rôle</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: "#1F0270", marginBottom: 4 }}>{r.users}</div>
+                      <div style={{ fontSize: 13, color: "#4B5563", fontWeight: 500, marginBottom: 16 }}>Utilisateurs actifs</div>
+                      <div style={{ display: "inline-block", alignSelf: "flex-start", background: "#EEF2FF", color: "#4338CA", fontSize: 12, fontWeight: 700, padding: "6px 12px", borderRadius: 20 }}>
+                        {r.badge}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         </div>
       ) : (
@@ -733,9 +787,17 @@ export default function Utilisateurs() {
               </button>
               <button
                 type="submit"
-                style={{ height: 44, padding: "0 28px", borderRadius: 10, border: "none", background: "#FFB800", color: "#1F0270", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                disabled={saving}
+                style={{ height: 44, padding: "0 28px", borderRadius: 10, border: "none", background: "#FFB800", color: "#1F0270", fontSize: 14, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, opacity: saving ? 0.7 : 1 }}
               >
-                <UserPlus className="w-4 h-4 text-indigo-950" /> {editingUser ? "Enregistrer les modifications" : "Créer l'utilisateur"}
+                {saving ? (
+                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                  </svg>
+                ) : (
+                  <UserPlus className="w-4 h-4 text-indigo-950" />
+                )}
+                {editingUser ? "Enregistrer les modifications" : "Créer l'utilisateur"}
               </button>
             </div>
 
@@ -859,8 +921,11 @@ export default function Utilisateurs() {
 
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 {/* Avatar */}
-                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700, color: "white" }}>
-                  {detailsUser.nom.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
+                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700, color: "white", overflow: "hidden" }}>
+                  {(detailsUser as any).photoProfil
+                    ? <img src={(detailsUser as any).photoProfil} alt={detailsUser.nom} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : detailsUser.nom.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase()
+                  }
                 </div>
 
                 {/* Infos */}
@@ -946,32 +1011,37 @@ export default function Utilisateurs() {
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 0, paddingLeft: 8 }}>
-                    {/* Mock Timeline */}
-                    {[
-                      { action: "S'est connecté(e) au système", date: "Aujourd'hui, 08h30", icon: Unlock, bg: "#DCFCE7", color: "#166534" },
-                      { action: "A consulté la liste des utilisateurs", date: "Aujourd'hui, 08h35", icon: Eye, bg: "#E0F2FE", color: "#0369A1" },
-                      { action: "A modifié ses informations personnelles", date: "Hier, 15h20", icon: Edit2, bg: "#FEF3C7", color: "#B45309" },
-                      { action: "A exporté le rapport d'activité mensuel", date: "Il y a 3 jours", icon: CloudUpload, bg: "#EEF2FF", color: "#4338CA" },
-                      { action: "Compte créé par l'administrateur", date: "Il y a 1 mois", icon: UserPlus, bg: "#F3F4F6", color: "#4B5563" }
-                    ].map((act, index, arr) => (
-                      <div key={index} style={{ display: "flex", gap: 16, position: "relative", paddingBottom: index === arr.length - 1 ? 0 : 24 }}>
-                        {/* Timeline line */}
-                        {index !== arr.length - 1 && (
-                          <div style={{ position: "absolute", left: 15, top: 32, bottom: 0, width: 2, background: "#E5E7EB" }} />
-                        )}
-
-                        {/* Timeline icon */}
-                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: act.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 2 }}>
-                          <act.icon size={14} style={{ color: act.color }} />
-                        </div>
-
-                        {/* Timeline content */}
-                        <div style={{ paddingTop: 4 }}>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{act.action}</div>
-                          <div style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{act.date}</div>
-                        </div>
-                      </div>
-                    ))}
+                    {loadingLogs ? (
+                      <div style={{ padding: 20, color: "#6B7280", fontSize: 13 }}>Chargement de l'historique...</div>
+                    ) : userLogs.length === 0 ? (
+                      <div style={{ padding: 20, color: "#9CA3AF", fontSize: 13, textAlign: "center", marginTop: 16 }}>Aucune activité enregistrée pour cet utilisateur.</div>
+                    ) : (
+                      userLogs.map((act, index, arr) => {
+                        const t = act.type?.toLowerCase() || "";
+                        let Icon = Info;
+                        let bg = "#EEF2FF";
+                        let color = "#4338CA";
+                        if (t.includes("connexion")) { Icon = Unlock; bg = "#DCFCE7"; color = "#166534"; }
+                        else if (t.includes("modif")) { Icon = Edit2; bg = "#FEF3C7"; color = "#B45309"; }
+                        else if (t.includes("création") || t.includes("crée")) { Icon = UserPlus; bg = "#F3F4F6"; color = "#4B5563"; }
+                        else if (t.includes("échec") || t.includes("erreur")) { Icon = XCircle; bg = "#FEE2E2"; color = "#991B1B"; }
+                        return (
+                          <div key={index} style={{ display: "flex", gap: 16, position: "relative", paddingBottom: index === arr.length - 1 ? 0 : 24 }}>
+                            {index !== arr.length - 1 && (
+                              <div style={{ position: "absolute", left: 15, top: 32, bottom: 0, width: 2, background: "#E5E7EB" }} />
+                            )}
+                            <div style={{ width: 32, height: 32, borderRadius: "50%", background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 2 }}>
+                              <Icon size={14} style={{ color }} />
+                            </div>
+                            <div style={{ paddingTop: 4 }}>
+                              <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{act.type}</div>
+                              <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>{act.description}</div>
+                              <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{new Date(act.createdAt).toLocaleString('fr-FR')}</div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 )}
               </div>

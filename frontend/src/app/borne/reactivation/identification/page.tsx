@@ -21,7 +21,7 @@ export default function Identification() {
     personalInfo: lang === "en" ? "Personal information" : "Informations personnelles",
     personalSub: lang === "en" ? "Please fill in your information to start the reactivation." : "Veuillez renseigner vos informations pour commencer la réactivation.",
     numberLabel: lang === "en" ? "Number to reactivate" : "Numéro à réactiver",
-    numberPlaceholder: "Ex. : 06 12 34 56 78",
+    numberPlaceholder: "Ex. : 621 00 22 90",
     reasonLabel: lang === "en" ? "Reason for reactivation" : "Motif de réactivation",
     selectReason: lang === "en" ? "Select reason" : "Sélectionnez le motif",
     lost: lang === "en" ? "Lost SIM card" : "Perte de la carte SIM",
@@ -31,12 +31,7 @@ export default function Identification() {
     frequentSub: lang === "en" ? "For security reasons, provide two numbers you call often." : "Pour des raisons de sécurité, indiquez deux numéros que vous appelez souvent.",
     freq1: lang === "en" ? "Frequently called number 1" : "Numéro appelé fréquemment 1",
     freq2: lang === "en" ? "Frequently called number 2" : "Numéro appelé fréquemment 2",
-    idType: lang === "en" ? "Document type" : "Type de pièce",
-    selectId: lang === "en" ? "Select document type" : "Sélectionnez le type de pièce",
-    cni: lang === "en" ? "National ID Card" : "Carte d'identité",
-    passport: lang === "en" ? "Passport" : "Passeport",
-    idNumber: lang === "en" ? "Document number" : "Numéro de pièce",
-    idPlaceholder: lang === "en" ? "Enter your document number" : "Entrez le numéro de votre pièce",
+
     back: lang === "en" ? "Back" : "Retour",
     continue: lang === "en" ? "Continue" : "Continuer",
     agentTitle: lang === "en" ? "Possible validation by an agent" : "Validation possible par un agent",
@@ -76,19 +71,12 @@ export default function Identification() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label={t.freq1} required placeholder="Ex. : 06 98 76 54 32" className="bg-white" />
-              <Input label={t.freq2} required placeholder="Ex. : 07 62 11 22 33" className="bg-white" />
+              <Input label={t.freq1} required placeholder="Ex. : 623 76 54 32" className="bg-white" />
+              <Input label={t.freq2} required placeholder="Ex. : 620 11 22 33" className="bg-white" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <Select label={t.idType} required defaultValue="">
-              <option value="" disabled>{t.selectId}</option>
-              <option value="cni">{t.cni}</option>
-              <option value="passeport">{t.passport}</option>
-            </Select>
-            <Input label={t.idNumber} required placeholder={t.idPlaceholder} />
-          </div>
+
 
           <div className="flex justify-between items-center pt-4 border-t border-border-light">
             <Button variant="secondary" onClick={() => router.back()}>

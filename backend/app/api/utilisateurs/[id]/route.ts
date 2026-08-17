@@ -11,6 +11,7 @@ const updateSchema = z.object({
   role: z.enum(['ADMIN', 'AGENT', 'TECHNICIEN', 'LECTURE_SEULE']).optional(),
   statut: z.enum(['ACTIF', 'BLOQUE', 'INACTIF']).optional(),
   permissions: z.array(z.string()).optional(),
+  photoProfil: z.string().optional(),
 })
 
 /**

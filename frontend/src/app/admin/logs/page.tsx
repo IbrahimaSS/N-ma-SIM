@@ -1,8 +1,31 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, Calendar, FileText, User, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
-import { MOCK_LOGS } from "@/data/admin-mock-data";
 import "../admin-responsive.css";
+
+const BACKEND = "http://localhost:3001";
+
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const s = localStorage.getItem("admin_session");
+  if (!s) return null;
+  return JSON.parse(s).token ?? null;
+}
+
+async function apiFetch(path: string, options: RequestInit = {}) {
+  const token = getToken();
+  const res = await fetch(`${BACKEND}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || `Erreur ${res.status}`);
+  return data;
+}
 
 function NiveauBadge({ niveau }: { niveau: string }) {
   const map: Record<string, { bg: string; color: string }> = {
@@ -16,6 +39,8 @@ function NiveauBadge({ niveau }: { niveau: string }) {
 }
 
 export default function LogsHistorique() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterNiveau, setFilterNiveau] = useState("Tous");
@@ -26,56 +51,93 @@ export default function LogsHistorique() {
 
   const [viewMode, setViewMode] = useState<"logs" | "tentatives">("logs");
   const [hoveredSegment, setHoveredSegment] = useState<{ label: string; val: string } | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
-  const segments = [
-    { label: "Connexions", val: "28", color: "#4F46E5", array: "96 220", offset: "0" },
-    { label: "Échecs", val: "16", color: "#DC2626", array: "55 220", offset: "-96" },
-    { label: "Alertes", val: "8", color: "#F59E0B", array: "27 220", offset: "-151" },
-    { label: "Accès inhab.", val: "7", color: "#8B5CF6", array: "24 220", offset: "-178" },
-    { label: "Autres", val: "5", color: "#E5E7EB", array: "18 220", offset: "-202" },
-  ];
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const data = await apiFetch("/api/logs?limit=500");
+        setLogs(data.data || []);
+      } catch (e) {
+        console.error("Erreur chargement logs:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, []);
 
-  const MOCK_TENTATIVES = [
-    { date: "08/06/2026 14:32:10", utilisateur: { nom: "Camara Yamoussa", email: "admin@yamoussa.sn" }, ip: "192.168.1.102", statut: "Mot de passe incorrect", appareil: "Chrome / Windows", local: "Conakry, Guinée" },
-    { date: "08/06/2026 14:31:55", utilisateur: { nom: "Camara Yamoussa", email: "admin@yamoussa.sn" }, ip: "192.168.1.102", statut: "Mot de passe incorrect", appareil: "Chrome / Windows", local: "Conakry, Guinée" },
-    { date: "08/06/2026 14:31:40", utilisateur: { nom: "Camara Yamoussa", email: "admin@yamoussa.sn" }, ip: "192.168.1.102", statut: "Mot de passe incorrect", appareil: "Chrome / Windows", local: "Conakry, Guinée" },
-    { date: "08/06/2026 14:30:12", utilisateur: { nom: "Utilisateur Inconnu", email: "hack@secure.com" }, ip: "185.220.101.5", statut: "Utilisateur inexistant", appareil: "Firefox / Linux", local: "Moscou, Russie" },
-    { date: "08/06/2026 14:28:05", utilisateur: { nom: "Camara Yamoussa", email: "admin@yamoussa.sn" }, ip: "192.168.1.102", statut: "Mot de passe incorrect", appareil: "Chrome / Windows", local: "Conakry, Guinée" },
-    { date: "08/06/2026 11:15:30", utilisateur: { nom: "Mariama Diallo", email: "m.diallo@nmasim.sn" }, ip: "197.149.200.12", statut: "Session expirée", appareil: "Safari / iPhone", local: "Kankan, Guinée" },
-  ];
-
-  const parseDate = (dateStr: string) => {
-    const [datePart] = dateStr.split(" ");
-    const [day, month, year] = datePart.split("/");
-    return new Date(`${year}-${month}-${day}`);
+  const determineNiveau = (type: string) => {
+    const t = type.toLowerCase();
+    if (t.includes("échec") || t.includes("rejet")) return "Alerte";
+    if (t.includes("suppression") || t.includes("erreur")) return "Critique";
+    if (t.includes("création") || t.includes("validation")) return "Succès";
+    return "Info";
   };
 
-  const filtered = MOCK_LOGS.filter(l => {
-    const matchSearch = l.utilisateur.nom.toLowerCase().includes(search.toLowerCase()) ||
-      l.action.toLowerCase().includes(search.toLowerCase()) ||
-      l.detail.toLowerCase().includes(search.toLowerCase());
-    const matchNiveau = filterNiveau === "Tous" || l.niveau === filterNiveau;
-
+  const filtered = logs.filter(l => {
+    const niveau = determineNiveau(l.type);
+    const nom = l.utilisateur?.nom || "Système";
+    const matchSearch = nom.toLowerCase().includes(search.toLowerCase()) ||
+      (l.type && l.type.toLowerCase().includes(search.toLowerCase())) ||
+      (l.description && l.description.toLowerCase().includes(search.toLowerCase()));
+    const matchNiveau = filterNiveau === "Tous" || niveau === filterNiveau;
     let matchDate = true;
     if (startDate && endDate) {
-      // Intervalle
-      const logDate = parseDate(l.date);
-      const start = new Date(startDate);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
+      const logDate = new Date(l.createdAt);
+      const start = new Date(startDate); start.setHours(0,0,0,0);
+      const end = new Date(endDate); end.setHours(23,59,59,999);
       matchDate = logDate >= start && logDate <= end;
     } else if (startDate || endDate) {
-      // Une seule date exacte
       const dateCible = startDate || endDate;
-      const [logDateStr] = l.date.split(" ");
-      const [d, m, y] = logDateStr.split("/");
-      const formattedLogDate = `${y}-${m}-${d}`;
-      matchDate = formattedLogDate === dateCible;
+      const logDateStr = new Date(l.createdAt).toISOString().split('T')[0];
+      matchDate = logDateStr === dateCible;
     }
-
     return matchSearch && matchNiveau && matchDate;
   });
+
+  // Pagination dynamique
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Graphique dynamique basé sur les vrais logs
+  const nbConnexions = logs.filter(l => l.type?.toLowerCase().includes('connexion')).length;
+  const nbEchecs = logs.filter(l => l.type?.toLowerCase().includes('échec') || l.type?.toLowerCase().includes('rejet')).length;
+  const nbValidations = logs.filter(l => l.type?.toLowerCase().includes('validation')).length;
+  const nbModifs = logs.filter(l => l.type?.toLowerCase().includes('modification')).length;
+  const nbAutres = Math.max(0, logs.length - nbConnexions - nbEchecs - nbValidations - nbModifs);
+  const totalSec = nbConnexions + nbEchecs + nbValidations + nbModifs + nbAutres || 1;
+  const circ = 220;
+  const toArr = (n: number) => `${Math.round((n / totalSec) * circ)} ${circ}`;
+  const segments = [
+    { label: "Connexions", val: nbConnexions.toString(), color: "#4F46E5", arr: toArr(nbConnexions) },
+    { label: "Rejets/Échecs", val: nbEchecs.toString(), color: "#DC2626", arr: toArr(nbEchecs) },
+    { label: "Validations", val: nbValidations.toString(), color: "#22C55E", arr: toArr(nbValidations) },
+    { label: "Modifications", val: nbModifs.toString(), color: "#F59E0B", arr: toArr(nbModifs) },
+    { label: "Autres", val: nbAutres.toString(), color: "#E5E7EB", arr: toArr(nbAutres) },
+  ].reduce((acc: any[], seg) => {
+    const prevOffset = acc.length > 0 ? (acc[acc.length-1]._nextOffset) : 0;
+    return [...acc, { ...seg, offset: (-prevOffset).toString(), _nextOffset: prevOffset + Math.round((parseInt(seg.arr)/1)*1) }];
+  }, []);
+
+  // Alertes dérivées des vrais logs
+  const dernieresAlertes = logs
+    .filter(l => determineNiveau(l.type) === 'Alerte' || determineNiveau(l.type) === 'Critique')
+    .slice(0, 5)
+    .map(l => ({
+      type: determineNiveau(l.type),
+      title: l.type,
+      desc: l.description,
+      time: new Date(l.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    }));
+
+  // Tentatives filtrées depuis les vrais logs
+  const tentatives = logs.filter(l =>
+    l.type?.toLowerCase().includes('connexion') ||
+    l.type?.toLowerCase().includes('échec') ||
+    l.type?.toLowerCase().includes('session')
+  );
 
   return (
     <div>
@@ -143,11 +205,11 @@ export default function LogsHistorique() {
       {/* KPIs */}
       <div className="logs-kpi-row" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
         {[
-          { icon: FileText, label: "Actions totales", value: "1 248", sub: "100% du total", subSub: "↑ 18% vs période précédente", color: "#059669", bg: "#EEF2FF", iconColor: "#4F46E5" },
-          { icon: User, label: "Connexions", value: "328", sub: "26,3% du total", subSub: "↑ 12% vs période précédente", color: "#059669", bg: "#E0F2FE", iconColor: "#0284C7" },
-          { icon: CheckCircle2, label: "Validations", value: "562", sub: "45,0% du total", subSub: "↑ 22% vs période précédente", color: "#059669", bg: "#DCFCE7", iconColor: "#166534" },
-          { icon: XCircle, label: "Rejets", value: "176", sub: "14,1% du total", subSub: "↓ 5% vs période précédente", color: "#DC2626", bg: "#FEE2E2", iconColor: "#991B1B" },
-          { icon: AlertTriangle, label: "Alertes sécurité", value: "32", sub: "2,6% du total", subSub: "↑ 33% vs période précédente", color: "#059669", bg: "#FEF3C7", iconColor: "#D97706" },
+          { icon: FileText, label: "Actions totales", value: logs.length, color: "#059669", bg: "#EEF2FF", iconColor: "#4F46E5" },
+          { icon: User, label: "Connexions", value: logs.filter(l => l.type.toLowerCase().includes('connexion')).length, color: "#059669", bg: "#E0F2FE", iconColor: "#0284C7" },
+          { icon: CheckCircle2, label: "Validations", value: logs.filter(l => l.type.toLowerCase().includes('validation')).length, color: "#059669", bg: "#DCFCE7", iconColor: "#166534" },
+          { icon: XCircle, label: "Rejets / Échecs", value: logs.filter(l => l.type.toLowerCase().includes('rejet') || l.type.toLowerCase().includes('échec')).length, color: "#DC2626", bg: "#FEE2E2", iconColor: "#991B1B" },
+          { icon: AlertTriangle, label: "Alertes sécurité", value: logs.filter(l => l.type.toLowerCase().includes('erreur') || l.type.toLowerCase().includes('suppression')).length, color: "#059669", bg: "#FEF3C7", iconColor: "#D97706" },
         ].map((k, i) => (
           <div className="logs-kpi-card" key={i} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -157,8 +219,6 @@ export default function LogsHistorique() {
               <div style={{ fontSize: 12, color: "#1F0270", fontWeight: 700 }}>{k.label}</div>
             </div>
             <div className="logs-kpi-value" style={{ fontSize: 26, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
-            <div style={{ fontSize: 11, color: "#6B7280" }}>{k.sub}</div>
-            <div style={{ fontSize: 10, color: k.color, fontWeight: 500, marginTop: 4 }}>{k.subSub}</div>
           </div>
         ))}
       </div>
@@ -178,35 +238,45 @@ export default function LogsHistorique() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((l, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid #F9FAFB" }}>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280", whiteSpace: "nowrap" }}>{l.date}</td>
-                    <td style={{ padding: "14px 20px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, color: "#4F46E5", flexShrink: 0 }}>
-                          {l.utilisateur.nom.charAt(0)}
+                {paginated.map((l, i) => {
+                  const nom = l.utilisateur?.nom || "Système";
+                  const email = l.utilisateur?.email || "-";
+                  const niveau = determineNiveau(l.type);
+                  return (
+                    <tr key={l.id || i} style={{ borderBottom: "1px solid #F9FAFB" }}>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280", whiteSpace: "nowrap" }}>
+                        {new Date(l.createdAt).toLocaleString('fr-FR')}
+                      </td>
+                      <td style={{ padding: "14px 20px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, color: "#4F46E5", flexShrink: 0 }}>
+                            {nom.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>{nom}</div>
+                            <div style={{ fontSize: 11, color: "#9CA3AF" }}>{email}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>{l.utilisateur.nom}</div>
-                          <div style={{ fontSize: 11, color: "#9CA3AF" }}>{l.utilisateur.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#374151" }}>{l.module}</td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#374151" }}>{l.action}</td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#4F46E5", fontWeight: 500 }}>{l.reference}</td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280", maxWidth: 200 }}>{l.detail}</td>
-                    <td style={{ padding: "14px 20px" }}><NiveauBadge niveau={l.niveau} /></td>
-                  </tr>
-                ))}
+                      </td>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#374151" }}>{l.entiteType || "-"}</td>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#374151" }}>{l.type}</td>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#4F46E5", fontWeight: 500 }}>{l.entiteId || "-"}</td>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280", maxWidth: 200 }}>{l.description}</td>
+                      <td style={{ padding: "14px 20px" }}><NiveauBadge niveau={niveau} /></td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
-              <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {filtered.length} sur 1 248 logs</span>
+              <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage {Math.min((page-1)*PAGE_SIZE+1, filtered.length)} à {Math.min(page*PAGE_SIZE, filtered.length)} sur {filtered.length} logs</span>
               <div style={{ display: "flex", gap: 6 }}>
-                {[1, 2, 3, "...", 125, ">"].map((p, i) => (
-                  <button key={i} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: p === 1 ? "#1F0270" : "white", color: p === 1 ? "white" : "#374151", fontSize: 13, cursor: "pointer", padding: "0 8px" }}>{p}</button>
-                ))}
+                <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 13, cursor: page===1?"default":"pointer", padding: "0 8px", opacity: page===1?0.4:1 }}>‹</button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const p = totalPages <= 5 ? i+1 : page <= 3 ? i+1 : page >= totalPages-2 ? totalPages-4+i : page-2+i;
+                  return <button key={p} onClick={() => setPage(p)} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: p===page?"#1F0270":"white", color: p===page?"white":"#374151", fontSize: 13, cursor: "pointer", padding: "0 8px" }}>{p}</button>;
+                })}
+                <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page===totalPages} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 13, cursor: page===totalPages?"default":"pointer", padding: "0 8px", opacity: page===totalPages?0.4:1 }}>›</button>
               </div>
             </div>
           </div>
@@ -227,21 +297,26 @@ export default function LogsHistorique() {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_TENTATIVES.map((t, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid #F9FAFB" }}>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280", whiteSpace: "nowrap" }}>{t.date}</td>
-                    <td style={{ padding: "14px 20px" }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>{t.utilisateur.nom}</div>
-                      <div style={{ fontSize: 11, color: "#9CA3AF" }}>{t.utilisateur.email}</div>
-                    </td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#4F46E5", fontWeight: 500 }}>{t.ip}</td>
-                    <td style={{ padding: "14px 20px" }}>
-                      <span style={{ background: "#FEE2E2", color: "#991B1B", borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 600 }}>{t.statut}</span>
-                    </td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#374151" }}>{t.appareil}</td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280" }}>{t.local}</td>
-                  </tr>
-                ))}
+                {tentatives.length === 0 ? (
+                  <tr><td colSpan={6} style={{ padding: 32, textAlign: "center", color: "#9CA3AF", fontSize: 13 }}>Aucune tentative enregistrée</td></tr>
+                ) : tentatives.map((l, i) => {
+                  const nom = l.utilisateur?.nom || "Système";
+                  const email = l.utilisateur?.email || "-";
+                  const niveau = determineNiveau(l.type);
+                  return (
+                    <tr key={l.id || i} style={{ borderBottom: "1px solid #F9FAFB" }}>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280", whiteSpace: "nowrap" }}>{new Date(l.createdAt).toLocaleString('fr-FR')}</td>
+                      <td style={{ padding: "14px 20px" }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>{nom}</div>
+                        <div style={{ fontSize: 11, color: "#9CA3AF" }}>{email}</div>
+                      </td>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#4F46E5", fontWeight: 500 }}>—</td>
+                      <td style={{ padding: "14px 20px" }}><NiveauBadge niveau={niveau} /></td>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#374151" }}>{l.type}</td>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280" }}>{l.description}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -251,30 +326,28 @@ export default function LogsHistorique() {
         <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", alignItems: "center" }}>
           <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 15, width: "100%", textAlign: "left", marginBottom: 16 }}>Activité de sécurité</h3>
           
-          {/* Centered Donut Chart */}
+          {/* Donut Chart dynamique */}
           <div style={{ position: "relative", width: 200, height: 200, margin: "20px 0" }}>
             <svg width={200} height={200} viewBox="0 0 90 90" style={{ width: "100%", height: "100%" }}>
-              {segments.map((seg, i) => (
+              {segments.map((seg: any, i: number) => (
                 <circle
                   key={i}
-                  cx="45"
-                  cy="45"
-                  r="35"
+                  cx="45" cy="45" r="35"
                   fill="none"
                   stroke={seg.color}
                   strokeWidth={hoveredSegment?.label === seg.label ? "17" : "14"}
-                  strokeDasharray={seg.array}
+                  strokeDasharray={seg.arr}
                   strokeDashoffset={seg.offset}
                   transform="rotate(-90 45 45)"
                   onMouseEnter={() => setHoveredSegment({ label: seg.label, val: seg.val })}
                   onMouseLeave={() => setHoveredSegment(null)}
-                  style={{ cursor: "pointer", transition: "stroke-width 0.2s ease, stroke 0.2s ease" }}
+                  style={{ cursor: "pointer", transition: "stroke-width 0.2s ease" }}
                 />
               ))}
             </svg>
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
               <div style={{ fontSize: 32, fontWeight: 800, color: "#1F0270", lineHeight: 1.2 }}>
-                {hoveredSegment ? hoveredSegment.val : "64"}
+                {hoveredSegment ? hoveredSegment.val : logs.length.toString()}
               </div>
               <div style={{ fontSize: 14, color: "#6B7280", fontWeight: 500 }}>
                 {hoveredSegment ? hoveredSegment.label : "événements"}
@@ -291,14 +364,10 @@ export default function LogsHistorique() {
               <button onClick={() => setViewMode("tentatives")} style={{ fontSize: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>Voir tout</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                { type: "Critique", title: "Tentatives de connexion échouées", desc: "5 échecs consécutifs détectés", time: "14:32" },
-                { type: "Alerte", title: "Paiement échoué", desc: "PAY-2026-004511 - Solde insuffisant", time: "12:18" },
-                { type: "Critique", title: "Document suspect détecté", desc: "Demande NMA-2026-000119", time: "11:07" },
-                { type: "Alerte", title: "Accès depuis nouvel appareil", desc: "Connexion inhabituelle détectée", time: "09:45" },
-                { type: "Info", title: "Session expirée", desc: "Déconnexion automatique effectuée", time: "08:22" },
-              ].map((a, i) => (
-                <div key={i} onClick={() => a.title.includes("Tentatives") && setViewMode("tentatives")} style={{ display: "flex", gap: 12, paddingBottom: 12, borderBottom: i < 4 ? "1px solid #F3F4F6" : "none", cursor: a.title.includes("Tentatives") ? "pointer" : "default" }}>
+              {dernieresAlertes.length === 0 ? (
+                <div style={{ textAlign: "center", color: "#9CA3AF", fontSize: 13, padding: "16px 0" }}>Aucune alerte récente</div>
+              ) : dernieresAlertes.map((a, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, paddingBottom: 12, borderBottom: i < dernieresAlertes.length - 1 ? "1px solid #F3F4F6" : "none" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: "50%", background: a.type === "Critique" ? "#FEE2E2" : (a.type === "Alerte" ? "#FEF3C7" : "#EEF2FF"), flexShrink: 0 }}>
                     {a.type === "Critique" ? <XCircle size={16} color="#DC2626" /> : (a.type === "Alerte" ? <AlertTriangle size={16} color="#D97706" /> : <span style={{ color: "#4F46E5", fontWeight: 700, fontSize: 12 }}>i</span>)}
                   </div>

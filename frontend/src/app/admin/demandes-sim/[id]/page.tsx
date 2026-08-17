@@ -1,207 +1,401 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Printer, CheckCircle2, XCircle, Clock, FileText, Maximize2, Zap, AlertTriangle, X } from "lucide-react";
-import { MOCK_DEMANDES } from "@/data/admin-mock-data";
+import {
+  ArrowLeft, Printer, CheckCircle2, XCircle, Clock,
+  FileText, Zap, X, Loader2, RefreshCcw, User, CreditCard
+} from "lucide-react";
+
+const BACKEND = "http://localhost:3001";
+
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const s = localStorage.getItem("admin_session");
+  if (!s) return null;
+  return JSON.parse(s).token ?? null;
+}
+
+async function apiFetch(path: string, opts?: RequestInit) {
+  const token = getToken();
+  const res = await fetch(`${BACKEND}${path}`, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(opts?.headers || {}),
+    },
+    cache: "no-store",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || `Erreur ${res.status}`);
+  return data;
+}
+
+// ─── Badges ─────────────────────────────────────────────────────────────────
+function StatutBadge({ statut }: { statut: string }) {
+  const map: Record<string, { bg: string; color: string; label: string }> = {
+    VALIDEE:                { bg: "#DCFCE7", color: "#166534", label: "Validée" },
+    EN_ATTENTE_VALIDATION:  { bg: "#FEF3C7", color: "#92400E", label: "En attente" },
+    EN_COURS_DE_TRAITEMENT: { bg: "#EEF2FF", color: "#4338CA", label: "En cours" },
+    REJETEE:                { bg: "#FEE2E2", color: "#991B1B", label: "Rejetée" },
+  };
+  const s = map[statut] || { bg: "#F3F4F6", color: "#374151", label: statut };
+  return (
+    <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600 }}>
+      {s.label}
+    </span>
+  );
+}
+
+function PaiementBadge({ statut }: { statut?: string }) {
+  const map: Record<string, { bg: string; color: string; label: string }> = {
+    CONFIRME:  { bg: "#DCFCE7", color: "#166534", label: "Confirmé" },
+    EN_ATTENTE: { bg: "#FEF3C7", color: "#92400E", label: "En attente" },
+    ECHOUE:    { bg: "#FEE2E2", color: "#991B1B", label: "Échoué" },
+  };
+  const s = map[statut || ""] || { bg: "#F3F4F6", color: "#374151", label: statut || "—" };
+  return (
+    <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600 }}>
+      {s.label}
+    </span>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div>
+      <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{value || "—"}</div>
+    </div>
+  );
+}
 
 export default function DetailDemande() {
   const router = useRouter();
   const { id } = useParams();
-  const demande = MOCK_DEMANDES.find(d => d.id === id) || MOCK_DEMANDES[0];
-  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const [demande, setDemande] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<"VALIDEE" | "REJETEE" | null>(null);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+
+  const fetchDemande = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/demandes/${id}`);
+      setDemande(res.data);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => { fetchDemande(); }, [fetchDemande]);
+
+  const handleAction = async (statut: "VALIDEE" | "REJETEE") => {
+    if (!demande) return;
+    setActionLoading(statut);
+    try {
+      await apiFetch(`/api/demandes/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ statut }),
+      });
+      setToast({ msg: statut === "VALIDEE" ? "Demande validée ✅" : "Demande rejetée ❌", ok: statut === "VALIDEE" });
+      await fetchDemande();
+    } catch (e: any) {
+      setToast({ msg: e.message, ok: false });
+    } finally {
+      setActionLoading(null);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const formatDate = (iso?: string) => {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleDateString("fr-FR", {
+      day: "2-digit", month: "long", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+  };
+
+  const isTerminal = demande?.statut === "VALIDEE" || demande?.statut === "REJETEE";
+  const isRecharge = demande?.type === "RECHARGE";
+
+  // ── Loading ──────────────────────────────────────────────────────────────
+  if (loading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 80, gap: 12 }}>
+      <Loader2 size={28} style={{ color: "#1F0270", animation: "spin 1s linear infinite" }} />
+      <span style={{ color: "#1F0270", fontWeight: 600 }}>Chargement...</span>
+    </div>
+  );
+
+  if (error || !demande) return (
+    <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 12, padding: 24, color: "#991B1B" }}>
+      ⚠️ {error || "Demande introuvable."}
+      <button onClick={fetchDemande} style={{ marginLeft: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>Réessayer</button>
+    </div>
+  );
+
+  const client = demande.client || {};
+  const offre = demande.offre || {};
+  const paiement = Array.isArray(demande.paiement) ? demande.paiement[0] : (demande.paiement || {});
 
   return (
     <div>
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: "fixed", top: 24, right: 24, zIndex: 9999, background: toast.ok ? "#059669" : "#DC2626", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, fontSize: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+          {toast.msg}
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <button onClick={() => router.back()} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, color: "#6B7280", background: "none", border: "none", cursor: "pointer", marginBottom: 12 }}>
           <ArrowLeft size={16} /> Retour
         </button>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: "0 0 6px" }}>Détail de la demande</h1>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: "0 0 8px" }}>Détail de la demande</h1>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 14, color: "#6B7280" }}>{demande.id} • Créée le 12 mai 2026 à 10:24</span>
-              <span style={{ background: "#F0FDF4", color: "#166534", border: "1px solid #BBF7D0", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>Nouvelle SIM</span>
-              <span style={{ background: "#DCFCE7", color: "#166534", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>Paiement confirmé</span>
-              <span style={{ background: "#FEF3C7", color: "#92400E", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>En attente de validation</span>
+              <span style={{ fontSize: 14, color: "#6B7280" }}>
+                {demande.numeroDossier} • Créée le {formatDate(demande.createdAt)}
+              </span>
+              <span style={{ background: demande.type === "NOUVELLE_SIM" ? "#F0FDF4" : demande.type === "RECHARGE" ? "#FFFBEB" : "#EEF2FF", color: demande.type === "NOUVELLE_SIM" ? "#166534" : demande.type === "RECHARGE" ? "#B45309" : "#4338CA", border: `1px solid ${demande.type === "NOUVELLE_SIM" ? "#BBF7D0" : demande.type === "RECHARGE" ? "#FDE68A" : "#C7D2FE"}`, borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>
+                {demande.type === "NOUVELLE_SIM" ? "Nouvelle SIM" : demande.type === "RECHARGE" ? "Recharge" : "Réactivation"}
+              </span>
+              <StatutBadge statut={demande.statut} />
             </div>
           </div>
-          <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
-            <Printer size={16} /> Imprimer
-          </button>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={fetchDemande} style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 14px", height: 38, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 13 }}>
+              <RefreshCcw size={14} /> Actualiser
+            </button>
+            <button onClick={() => window.print()} style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 14px", height: 38, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 13, color: "#374151" }}>
+              <Printer size={14} /> Imprimer
+            </button>
+          </div>
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
-        {/* Colonne gauche */}
+        {/* ── Colonne gauche ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Informations client */}
-          <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                <FileText size={18} style={{ color: "#4F46E5" }} /> Informations client
-              </h3>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700, color: "#4F46E5" }}>
-                {demande.client.nom.charAt(0)}
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              {[
-                { label: "Nom", val: demande.client.nom.split(" ")[0] || "Camara" },
-                { label: "Type de pièce", val: "Carte Nationale d'Identité" },
-                { label: "Prénom", val: demande.client.nom.split(" ")[1] || "Yamoussa" },
-                { label: "Numéro de pièce", val: "CNI-0123456789" },
-                { label: "Profil", val: "Particulier" },
-              ].map(item => (
-                <div key={item.label}>
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 4 }}>{item.label}</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{item.val}</div>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Pièce d'identité + Selfie */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h4 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 12px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
-                📄 Pièce d'identité
-              </h4>
-              <div style={{ background: "#1a4068", borderRadius: 12, padding: 16, minHeight: 160, display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ color: "#FFB800", fontSize: 11, fontWeight: 600 }}>RÉPUBLIQUE DE GUINÉE</div>
-                <div style={{ color: "white", fontSize: 10, fontWeight: 600 }}>Carte Nationale d'Identité</div>
-                <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-                  <div style={{ width: 50, height: 60, background: "#2d5f8a", borderRadius: 6, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>👤</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <div style={{ fontSize: 10, color: "#aaa" }}>Nom: <span style={{ color: "white", fontWeight: 600 }}>CAMARA</span></div>
-                    <div style={{ fontSize: 10, color: "#aaa" }}>Prénom: <span style={{ color: "white", fontWeight: 600 }}>YAMOUSSA</span></div>
-                    <div style={{ fontSize: 10, color: "#aaa" }}>Né(e) le: <span style={{ color: "white" }}>15/04/1992</span></div>
-                    <div style={{ fontSize: 10, color: "#aaa" }}>N° CNI: <span style={{ color: "white" }}>CAU-01234567</span></div>
+          {/* Section Client — différente selon le type */}
+          {isRecharge ? (
+            /* Pour une recharge : afficher juste les infos essentielles */
+            <div style={{ background: "linear-gradient(135deg, #FFFBEB, #FEF3C7)", borderRadius: 16, padding: 24, border: "1px solid #FDE68A" }}>
+              <h3 style={{ fontWeight: 700, color: "#92400E", margin: "0 0 20px", display: "flex", alignItems: "center", gap: 8, fontSize: 16 }}>
+                <span style={{ fontSize: 20 }}>⚡</span> Transaction de Recharge
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+                <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Numéro rechargé</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#1F0270" }}>+224 {demande.numeroAReactiver || "—"}</div>
+                </div>
+                <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Montant</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#059669" }}>
+                    {paiement.montant
+                      ? `${Number(paiement.montant).toLocaleString("fr-FR")} GNF`
+                      : demande.motifReactivation?.replace("Recharge ", "") || "—"}
+                  </div>
+                </div>
+                <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Statut</div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#DCFCE7", color: "#166534", borderRadius: 20, padding: "4px 14px", fontSize: 13, fontWeight: 700 }}>
+                    ✓ Validée
                   </div>
                 </div>
               </div>
-              <button onClick={() => setFullscreenImage("cni")} style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, fontSize: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>
-                <Maximize2 size={12} /> Voir en plein écran
-              </button>
-            </div>
-
-            <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h4 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 12px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
-                📷 Selfie
-              </h4>
-              <div style={{ background: "#1a2a1a", borderRadius: 12, minHeight: 160, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 50 }}>
-                😊
+              <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <InfoRow label="Méthode de paiement" value={paiement.methodePaiement || "Lengo Pay"} />
+                <InfoRow label="Référence" value={paiement.referenceExterne || demande.numeroDossier} />
               </div>
-              <button onClick={() => setFullscreenImage("selfie")} style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, fontSize: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>
-                <Maximize2 size={12} /> Voir en plein écran
-              </button>
             </div>
-          </div>
-
-          {/* Offre & Paiement */}
-          <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
-              💳 Offre & Paiement
-            </h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
-              {[
-                { label: "Offre", val: demande.offre },
-                { label: "Montant", val: `${demande.montant.toLocaleString("fr-FR")} GNF` },
-                { label: "Méthode de paiement", val: "Mobile Money (Orange Money)" },
-                { label: "Type de service", val: "Prépayé" },
-                { label: "Statut paiement", val: "Payé", isStatut: true },
-                { label: "Référence transaction", val: "OM-20260512-9F7K3L" },
-              ].map(item => (
-                <div key={item.label}>
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 4 }}>{item.label}</div>
-                  {item.isStatut ? (
-                    <span style={{ background: "#DCFCE7", color: "#166534", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>{item.val}</span>
-                  ) : (
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{item.val}</div>
-                  )}
+          ) : (
+            /* Pour Nouvelle SIM / Réactivation : infos client filtrées */
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                  <User size={18} style={{ color: "#4F46E5" }} /> Informations client
+                </h3>
+                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: "#4F46E5" }}>
+                  {client.nom?.charAt(0) || "?"}
                 </div>
-              ))}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <InfoRow label="Nom" value={client.nom} />
+                <InfoRow label="Prénom" value={client.prenom} />
+                {client.telephone && <InfoRow label="Téléphone" value={client.telephone} />}
+                <InfoRow label="Date de naissance" value={client.dateNaissance ? new Date(client.dateNaissance).toLocaleDateString("fr-FR") : "—"} />
+                <InfoRow label="Type de pièce" value={
+                  client.typePiece === "cni" ? "Carte Nationale d'Identité" :
+                  client.typePiece === "carte_electeur" ? "Carte d'électeur" :
+                  client.typePiece === "passeport" ? "Passeport" :
+                  client.typePiece || "—"
+                } />
+                <InfoRow label="Numéro de pièce" value={client.numeroPiece} />
+                {client.nationalite && <InfoRow label="Nationalité" value={client.nationalite} />}
+                {client.lieuNaissance && <InfoRow label="Lieu de naissance" value={client.lieuNaissance} />}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Offre & Paiement — seulement pour non-recharge */}
+          {!isRecharge && (
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                <CreditCard size={18} style={{ color: "#4F46E5" }} /> Offre & Paiement
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                {demande.type === "NOUVELLE_SIM" && (
+                  <InfoRow label="Achat de base" value="Nouvelle Carte SIM" />
+                )}
+                {offre.nom && (
+                  <InfoRow 
+                    label={demande.type === "NOUVELLE_SIM" && !offre.type?.includes("SIM_") ? "Option ajoutée" : "Offre choisie"} 
+                    value={offre.nom} 
+                  />
+                )}
+                {offre.prix && (
+                  <InfoRow 
+                    label={demande.type === "NOUVELLE_SIM" && !offre.type?.includes("SIM_") ? "Prix de l'option" : "Prix de l'offre"} 
+                    value={`${Number(offre.prix).toLocaleString("fr-FR")} GNF`} 
+                  />
+                )}
+                {paiement.montant && (
+                  <InfoRow 
+                    label={demande.type === "NOUVELLE_SIM" ? "Montant TOTAL payé" : "Montant payé"} 
+                    value={`${Number(paiement.montant).toLocaleString("fr-FR")} GNF`} 
+                  />
+                )}
+                {paiement.methodePaiement && <InfoRow label="Méthode de paiement" value={paiement.methodePaiement} />}
+                {paiement.statut && (
+                  <div>
+                    <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 4 }}>Statut paiement</div>
+                    <PaiementBadge statut={paiement.statut} />
+                  </div>
+                )}
+                {(paiement.referenceExterne || paiement.id) && (
+                  <InfoRow label="Référence transaction" value={paiement.referenceExterne || paiement.id?.slice(0, 16)} />
+                )}
+                {!offre.nom && !paiement.montant && (
+                  <div style={{ gridColumn: "1/-1", color: "#9CA3AF", fontSize: 13, fontStyle: "italic", padding: "8px 0" }}>
+                    Aucun paiement enregistré pour cette demande.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Colonne droite */}
+        {/* ── Colonne droite ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Résultat IA */}
+
+          {/* Résultat IA — masqué pour les recharges */}
+          {!isRecharge && (
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
               <Zap size={18} style={{ color: "#FFB800" }} /> Résultat IA
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { label: "Document lisible", val: "Oui", ok: true },
-                { label: "Visage détecté", val: "Oui", ok: true },
-                { label: "Comparaison visage / document", val: "Correspondance", ok: true },
-              ].map(item => (
-                <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F3F4F6" }}>
+                { label: "Document lisible (OCR)", val: demande.verificationOCR, isBoolean: true },
+                { label: "Selfie vérifié", val: demande.verificationSelfie, isBoolean: true },
+              ].map((item, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F3F4F6" }}>
                   <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: item.ok ? "#059669" : "#DC2626" }}>{item.val}</span>
+                  {item.isBoolean ? (
+                    <span style={{ fontSize: 12, fontWeight: 600, color: item.val ? "#059669" : item.val === false ? "#DC2626" : "#9CA3AF" }}>
+                      {item.val === true ? "✓ Oui" : item.val === false ? "✗ Non" : "—"}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{item.val || "—"}</span>
+                  )}
                 </div>
               ))}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}>
-                <span style={{ fontSize: 13, color: "#374151" }}>Niveau de confiance</span>
-                <span style={{ background: "#DBEAFE", color: "#1D4ED8", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 700 }}>87%</span>
+                <span style={{ fontSize: 13, color: "#374151" }}>Score de vérification</span>
+                <span style={{
+                  background: demande.scoreVerification >= 80 ? "#DBEAFE" : "#FEF3C7",
+                  color: demande.scoreVerification >= 80 ? "#1D4ED8" : "#92400E",
+                  borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 700
+                }}>
+                  {demande.scoreVerification != null ? `${demande.scoreVerification}%` : "—"}
+                </span>
               </div>
+              {demande.commentaireAdmin && (
+                <div style={{ background: "#F9FAFB", borderRadius: 10, padding: "10px 12px", marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 4 }}>Commentaire admin</div>
+                  <div style={{ fontSize: 13, color: "#374151" }}>{demande.commentaireAdmin}</div>
+                </div>
+              )}
+              {demande.traitePar && (
+                <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>Traité par : {demande.traitePar}</div>
+              )}
             </div>
-            {/* <div style={{ background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 10, padding: 12, marginTop: 10 }}>
-              <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                <AlertTriangle size={16} style={{ color: "#D97706", marginTop: 1, flexShrink: 0 }} />
+          </div>
+          )}
+
+          {/* Actions */}
+          {isRecharge ? (
+            <div style={{ background: "#F0FDF4", borderRadius: 16, padding: 20, border: "1px solid #BBF7D0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <CheckCircle2 size={20} style={{ color: "#059669" }} />
+                </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#92400E" }}>Validation humaine requise</div>
-                  <div style={{ fontSize: 12, color: "#92400E", marginTop: 2 }}>La confiance est inférieure au seuil recommandé (90%).</div>
+                  <p style={{ fontWeight: 700, color: "#166534", margin: 0, fontSize: 14 }}>Recharge automatique</p>
+                  <p style={{ color: "#6B7280", margin: "4px 0 0", fontSize: 12 }}>Cette transaction a été validée automatiquement par la borne. Aucune action manuelle requise.</p>
                 </div>
               </div>
-            </div> */}
-          </div>
-
-          {/* Actions - Commentées temporairement car validation automatique */}
-          {/* <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
-              ⚡ Actions
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "13px", borderRadius: 12, background: "#059669", color: "white", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 600 }}>
-                <CheckCircle2 size={18} /> Valider
-              </button>
-              <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "13px", borderRadius: 12, background: "#FEE2E2", color: "#DC2626", border: "1px solid #FCA5A5", cursor: "pointer", fontSize: 15, fontWeight: 600 }}>
-                <XCircle size={18} /> Rejeter
-              </button>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px", borderRadius: 12, background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>
-                  <Clock size={14} /> Mettre en attente
+            </div>
+          ) : !isTerminal && (
+            <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", fontSize: 15 }}>⚡ Actions</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <button
+                  onClick={() => handleAction("VALIDEE")}
+                  disabled={!!actionLoading}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: 13, borderRadius: 12, background: actionLoading === "VALIDEE" ? "#D1FAE5" : "#059669", color: "white", border: "none", cursor: actionLoading ? "not-allowed" : "pointer", fontSize: 15, fontWeight: 600 }}
+                >
+                  {actionLoading === "VALIDEE" ? <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> : <CheckCircle2 size={18} />}
+                  {actionLoading === "VALIDEE" ? "Validation..." : "Valider"}
                 </button>
-                <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px", borderRadius: 12, background: "#EEF2FF", color: "#4338CA", border: "1px solid #C7D2FE", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>
-                  📄 Générer reçu
+                <button
+                  onClick={() => handleAction("REJETEE")}
+                  disabled={!!actionLoading}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: 13, borderRadius: 12, background: "#FEE2E2", color: "#DC2626", border: "1px solid #FCA5A5", cursor: actionLoading ? "not-allowed" : "pointer", fontSize: 15, fontWeight: 600 }}
+                >
+                  {actionLoading === "REJETEE" ? <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> : <XCircle size={18} />}
+                  {actionLoading === "REJETEE" ? "Rejet..." : "Rejeter"}
+                </button>
+                <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: 10, borderRadius: 12, background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>
+                  <Clock size={14} /> Mettre en attente
                 </button>
               </div>
             </div>
-          </div> */}
+          )}
 
           {/* Historique */}
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", fontSize: 15 }}>🕐 Historique de la demande</h3>
+            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", fontSize: 15 }}>🕐 Historique</h3>
             <div style={{ position: "relative" }}>
               <div style={{ position: "absolute", left: 7, top: 0, bottom: 0, width: 2, background: "#E5E7EB" }} />
               {[
-                { date: "12 mai 2026 à 10:24", label: "Demande créée", who: "Système", color: "#059669" },
-                { date: "12 mai 2026 à 10:25", label: "Paiement confirmé", who: "Système", color: "#059669" },
-                { date: "12 mai 2026 à 10:26", label: "Analyse IA terminée", who: "Système", color: "#059669" },
-                { date: "12 mai 2026 à 10:26", label: "En attente de validation", who: "En cours", color: "#D97706" },
-              ].map((h, i) => (
+                { date: formatDate(demande.createdAt), label: "Demande créée", color: "#059669" },
+                paiement.statut === "CONFIRME" && { date: formatDate(paiement.updatedAt || demande.createdAt), label: "Paiement confirmé", color: "#059669" },
+                { date: formatDate(demande.updatedAt), label: demande.statut === "VALIDEE" ? "Demande validée" : demande.statut === "REJETEE" ? "Demande rejetée" : "En attente de validation", color: demande.statut === "VALIDEE" ? "#059669" : demande.statut === "REJETEE" ? "#DC2626" : "#D97706" },
+              ].filter(Boolean).map((h: any, i: number) => (
                 <div key={i} style={{ display: "flex", gap: 14, marginBottom: 14, position: "relative" }}>
-                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: h.color, flexShrink: 0, zIndex: 1, marginTop: 2, border: "2px solid white", boxShadow: "0 0 0 2px " + h.color }} />
-                  <div style={{ flex: 1 }}>
+                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: h.color, flexShrink: 0, zIndex: 1, marginTop: 2, border: "2px solid white", boxShadow: `0 0 0 2px ${h.color}` }} />
+                  <div>
                     <div style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>{h.label}</div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-                      <span style={{ fontSize: 11, color: "#9CA3AF" }}>{h.date}</span>
-                      <span style={{ fontSize: 11, color: h.who === "En cours" ? "#D97706" : "#9CA3AF" }}>{h.who}</span>
-                    </div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{h.date}</div>
                   </div>
                 </div>
               ))}
@@ -209,37 +403,6 @@ export default function DetailDemande() {
           </div>
         </div>
       </div>
-
-      {/* Modal Plein Écran */}
-      {fullscreenImage && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }} onClick={() => setFullscreenImage(null)}>
-          <button onClick={() => setFullscreenImage(null)} style={{ position: "absolute", top: 24, right: 24, background: "white", borderRadius: "50%", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
-            <X size={24} color="#111827" />
-          </button>
-          
-          {fullscreenImage === "cni" && (
-            <div style={{ background: "#1a4068", borderRadius: 16, padding: 32, width: "100%", maxWidth: 800, minHeight: 400, display: "flex", flexDirection: "column", gap: 16, cursor: "default" }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ color: "#FFB800", fontSize: 18, fontWeight: 600 }}>RÉPUBLIQUE DE GUINÉE</div>
-              <div style={{ color: "white", fontSize: 16, fontWeight: 600 }}>Carte Nationale d'Identité</div>
-              <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
-                <div style={{ width: 120, height: 160, background: "#2d5f8a", borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>👤</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-                  <div style={{ fontSize: 14, color: "#aaa" }}>Nom: <span style={{ color: "white", fontWeight: 600, fontSize: 18 }}>CAMARA</span></div>
-                  <div style={{ fontSize: 14, color: "#aaa" }}>Prénom: <span style={{ color: "white", fontWeight: 600, fontSize: 18 }}>YAMOUSSA</span></div>
-                  <div style={{ fontSize: 14, color: "#aaa" }}>Né(e) le: <span style={{ color: "white", fontSize: 16 }}>15/04/1992</span></div>
-                  <div style={{ fontSize: 14, color: "#aaa" }}>N° CNI: <span style={{ color: "white", fontSize: 16 }}>CAU-01234567</span></div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {fullscreenImage === "selfie" && (
-            <div style={{ background: "#1a2a1a", borderRadius: 16, width: "100%", maxWidth: 600, minHeight: 600, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 120, cursor: "default" }} onClick={(e) => e.stopPropagation()}>
-              😊
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

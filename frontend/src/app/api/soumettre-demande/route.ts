@@ -93,16 +93,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "ID demande non reçu du backend" }, { status: 500 });
     }
 
+    // Normaliser la méthode de paiement vers l'enum Prisma
+    const methodMap: Record<string, string> = {
+      "orange-money":     "ORANGE_MONEY",
+      "orange money":     "ORANGE_MONEY",
+      "ORANGE_MONEY":     "ORANGE_MONEY",
+      "lengo pay":        "ORANGE_MONEY",  // Lengo Pay = passerelle Orange Money
+      "lengo pay (mode démo)": "ORANGE_MONEY",
+      "mtn":              "MTN_MOBILE_MONEY",
+      "mtn mobile money": "MTN_MOBILE_MONEY",
+      "MTN_MOBILE_MONEY": "MTN_MOBILE_MONEY",
+      "wave":             "WAVE",
+      "WAVE":             "WAVE",
+      "espèces":          "ESPECES",
+      "ESPECES":          "ESPECES",
+    };
+    const rawMethode = (paiement.methode || "ORANGE_MONEY").toString();
+    const methodePaiement = methodMap[rawMethode] || methodMap[rawMethode.toLowerCase()] || "ORANGE_MONEY";
+
     // ─── 3. Enregistrer le paiement ──────────────────────────────────────
     const paiementRes = await fetch(`${BACKEND_URL}/api/paiements`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         demandeId,
-        montant: paiement.montant,
+        montant: Number(paiement.montant) || Number(paiement.prix) || 0,
         devise: "GNF",
-        methodePaiement: paiement.methode,
-        referenceExterne: paiement.reference || undefined,
+        methodePaiement,
+        referenceExterne: paiement.reference || paiement.pay_id || undefined,
         statut: "CONFIRME",
       }),
     });

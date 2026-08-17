@@ -25,13 +25,13 @@ async function apiFetch(path: string) {
 
 // ─── Badges ─────────────────────────────────────────────────────────────────
 function TypeBadge({ type }: { type: string }) {
-  const isReact = type === "NOUVELLE_SIM"; // Adapt to DB values
-  const label = type === "NOUVELLE_SIM" ? "Nouvelle SIM" : type;
+  const bg = type === "NOUVELLE_SIM" ? "#F0FDF4" : type === "RECHARGE" ? "#FFFBEB" : "#EEF2FF";
+  const color = type === "NOUVELLE_SIM" ? "#166534" : type === "RECHARGE" ? "#B45309" : "#4338CA";
+  const border = type === "NOUVELLE_SIM" ? "#BBF7D0" : type === "RECHARGE" ? "#FDE68A" : "#C7D2FE";
+  const label = type === "NOUVELLE_SIM" ? "Nouvelle SIM" : type === "REACTIVATION" ? "Réactivation" : "Recharge";
   return (
     <span style={{
-      background: isReact ? "#F0FDF4" : "#EEF2FF",
-      color: isReact ? "#166534" : "#4338CA",
-      border: `1px solid ${isReact ? "#BBF7D0" : "#C7D2FE"}`,
+      background: bg, color, border: `1px solid ${border}`,
       borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600
     }}>{label}</span>
   );
@@ -197,21 +197,23 @@ function DemandesContent() {
                     </div>
                   </td>
                   <td style={{ padding: "14px 12px" }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{d.offre?.nom || "—"}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>
+                      {d.type === "RECHARGE" ? "Crédit/Pass" : d.offre?.nom || "—"}
+                    </div>
                     <div style={{ fontSize: 12, color: "#9CA3AF" }}>
-                      {d.paiement?.[0]?.montant ? d.paiement[0].montant.toLocaleString("fr-FR") + " GNF" : "—"}
+                      {(d.paiement?.montant || d.paiement?.[0]?.montant) ? (d.paiement?.montant || d.paiement?.[0]?.montant).toLocaleString("fr-FR") + " GNF" : "—"}
                     </div>
                   </td>
                   <td style={{ padding: "14px 12px" }}>
-                    <span style={{ background: d.paiement?.[0]?.statut === "CONFIRME" ? "#DCFCE7" : "#FEF3C7", color: d.paiement?.[0]?.statut === "CONFIRME" ? "#166534" : "#92400E", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>
-                      {d.paiement?.[0]?.methodePaiement || "—"}
+                    <span style={{ background: (d.paiement?.statut || d.paiement?.[0]?.statut) === "CONFIRME" ? "#DCFCE7" : "#FEF3C7", color: (d.paiement?.statut || d.paiement?.[0]?.statut) === "CONFIRME" ? "#166534" : "#92400E", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>
+                      {(d.paiement?.methodePaiement || d.paiement?.[0]?.methodePaiement) || "—"}
                     </span>
                   </td>
                   <td style={{ padding: "14px 12px" }}>
                      <IaBadge ia={d.scoreVerification >= 80 ? "OK" : d.scoreVerification > 0 ? "WARNING" : "EN_ATTENTE"} detail={d.scoreVerification > 0 ? `${d.scoreVerification}% match` : "-"} />
                   </td>
                   <td style={{ padding: "14px 12px" }}><StatutBadge statut={d.statut} /></td>
-                  <td style={{ padding: "14px 12px" }}><PaiementBadge statut={d.paiement?.[0]?.statut || "EN_ATTENTE"} /></td>
+                  <td style={{ padding: "14px 12px" }}><PaiementBadge statut={(d.paiement?.statut || d.paiement?.[0]?.statut) || "EN_ATTENTE"} /></td>
                   <td style={{ padding: "14px 12px" }}>
                     <button
                       onClick={() => router.push(`/admin/demandes-sim/${d.id}`)}

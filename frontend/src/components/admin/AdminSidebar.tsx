@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -35,6 +36,33 @@ export function AdminSidebar() {
     return pathname.startsWith(href);
   };
 
+  const [orgName, setOrgName] = useState("N'ma SIM");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchParams = async () => {
+      try {
+        const token = localStorage.getItem("admin_session");
+        const headers: any = { "Content-Type": "application/json" };
+        if (token) headers.Authorization = `Bearer ${JSON.parse(token).token}`;
+        
+        const res = await fetch("http://localhost:3001/api/parametres", { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.data && data.data["Nom de l'organisation"]) {
+            setOrgName(data.data["Nom de l'organisation"]);
+          }
+          if (data.data && data.data["Logo de l'organisation"]) {
+            setLogoUrl(data.data["Logo de l'organisation"]);
+          }
+        }
+      } catch (e) {
+        console.error("Sidebar params error", e);
+      }
+    };
+    fetchParams();
+  }, []);
+
   return (
     <aside style={{
       width: 220,
@@ -67,11 +95,19 @@ export function AdminSidebar() {
             justifyContent: "center",
             flexShrink: 0,
           }}>
-            <img src="/logo-transparent.png" alt="N'ma SIM" style={{ width: "160%", transform: "scale(1.3)" }} />
+            {logoUrl ? (
+              <img src={logoUrl} alt={orgName} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            ) : (
+              <img src="/logo-transparent.png" alt={orgName} style={{ width: "160%", transform: "scale(1.3)" }} />
+            )}
           </div>
           <div>
-            <div style={{ color: "white", fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>N'ma</div>
-            <div style={{ color: "#FFB800", fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>SIM</div>
+            <div style={{ color: "white", fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>
+              {orgName.split(' ')[0] || "N'ma"}
+            </div>
+            <div style={{ color: "#FFB800", fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>
+              {orgName.split(' ').slice(1).join(' ') || "SIM"}
+            </div>
           </div>
         </div>
       </div>
