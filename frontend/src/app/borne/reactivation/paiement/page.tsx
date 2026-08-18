@@ -77,6 +77,7 @@ export default function PaiementReactivation() {
       const kycInfo = JSON.parse(sessionStorage.getItem("kiosk_client_info") || "{}");
       const kycChampsRaw = sessionStorage.getItem("kyc_champs");
       const kycChamps = kycChampsRaw ? JSON.parse(kycChampsRaw) : {};
+      const docType = sessionStorage.getItem("kiosk_doc_type") || "";
       const numeroAReactiver = sessionStorage.getItem("reactivation_numero") || "";
       const motifReactivation = sessionStorage.getItem("reactivation_motif") || "";
 
@@ -84,7 +85,12 @@ export default function PaiementReactivation() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          client_info: { ...kycInfo, ...kycChamps },
+          client_info: {
+            ...kycChamps,
+            ...kycInfo,
+            // Type de pièce : priorité au choix manuel de l'utilisateur
+            typePiece: kycInfo.typePiece || kycChamps.type_piece || kycChamps.typePiece || docType || undefined,
+          },
           numero_a_reactiver: numeroAReactiver,
           motif_reactivation: motifReactivation,
           paiement: {

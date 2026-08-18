@@ -204,32 +204,53 @@ export default function DetailDemande() {
               </div>
             </div>
           ) : (
-            /* Pour Nouvelle SIM / Réactivation : infos client filtrées */
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                  <User size={18} style={{ color: "#4F46E5" }} /> Informations client
-                </h3>
-                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: "#4F46E5" }}>
-                  {client.nom?.charAt(0) || "?"}
+            <>
+              {/* Infos Réactivation — affiché uniquement si c'est une réactivation */}
+              {demande.type === "REACTIVATION" && (
+                <div style={{ background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)", borderRadius: 16, padding: 24, border: "1px solid #DDD6FE", marginBottom: 16 }}>
+                  <h3 style={{ fontWeight: 700, color: "#4C1D95", margin: "0 0 20px", display: "flex", alignItems: "center", gap: 8, fontSize: 16 }}>
+                    <span style={{ fontSize: 20 }}>🔄</span> Détails de la Réactivation
+                  </h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                    <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Numéro à réactiver</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: "#1F0270" }}>{demande.numeroAReactiver || "—"}</div>
+                    </div>
+                    <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Motif</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "#4F46E5" }}>{demande.motifReactivation || "—"}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Informations client */}
+              <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                  <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                    <User size={18} style={{ color: "#4F46E5" }} /> Informations client
+                  </h3>
+                  <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: "#4F46E5" }}>
+                    {client.nom?.charAt(0) || "?"}
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <InfoRow label="Nom" value={client.nom} />
+                  <InfoRow label="Prénom" value={client.prenom} />
+                  {client.telephone && <InfoRow label="Téléphone" value={client.telephone} />}
+                  <InfoRow label="Date de naissance" value={client.dateNaissance ? new Date(client.dateNaissance).toLocaleDateString("fr-FR") : "—"} />
+                  <InfoRow label="Type de pièce" value={
+                    client.typePiece === "cni" ? "Carte Nationale d'Identité" :
+                    client.typePiece === "carte_electeur" ? "Carte d'électeur" :
+                    client.typePiece === "passeport" ? "Passeport" :
+                    client.typePiece || "—"
+                  } />
+                  <InfoRow label="Numéro de pièce" value={client.numeroPiece} />
+                  {client.nationalite && <InfoRow label="Nationalité" value={client.nationalite} />}
+                  {client.lieuNaissance && <InfoRow label="Lieu de naissance" value={client.lieuNaissance} />}
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <InfoRow label="Nom" value={client.nom} />
-                <InfoRow label="Prénom" value={client.prenom} />
-                {client.telephone && <InfoRow label="Téléphone" value={client.telephone} />}
-                <InfoRow label="Date de naissance" value={client.dateNaissance ? new Date(client.dateNaissance).toLocaleDateString("fr-FR") : "—"} />
-                <InfoRow label="Type de pièce" value={
-                  client.typePiece === "cni" ? "Carte Nationale d'Identité" :
-                  client.typePiece === "carte_electeur" ? "Carte d'électeur" :
-                  client.typePiece === "passeport" ? "Passeport" :
-                  client.typePiece || "—"
-                } />
-                <InfoRow label="Numéro de pièce" value={client.numeroPiece} />
-                {client.nationalite && <InfoRow label="Nationalité" value={client.nationalite} />}
-                {client.lieuNaissance && <InfoRow label="Lieu de naissance" value={client.lieuNaissance} />}
-              </div>
-            </div>
+            </>
           )}
 
           {/* Offre & Paiement — seulement pour non-recharge */}
