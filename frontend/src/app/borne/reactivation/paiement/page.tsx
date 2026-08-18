@@ -43,15 +43,18 @@ export default function PaiementReactivation() {
     };
     setMotif(motifLabels[motifKey] || motifKey || "—");
 
-    // Charger le tarif de réactivation depuis les paramètres
-    fetch("/api/public/parametres")
+    // Charger le prix depuis l'offre SIM Standard configurée par l'admin
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+    fetch(`${BACKEND_URL}/api/offres?type=SIM_STANDARD`)
       .then((r) => r.json())
       .then((data) => {
-        const tarif =
-          data?.tarif_reactivation ??
-          data?.["Tarif réactivation"] ??
-          PRIX_DEFAUT;
-        setPrix(Number(tarif) || PRIX_DEFAUT);
+        const offres = data?.data ?? data ?? [];
+        const simStandard = Array.isArray(offres) ? offres[0] : null;
+        if (simStandard?.prix) {
+          setPrix(Number(simStandard.prix));
+        } else {
+          setPrix(PRIX_DEFAUT);
+        }
       })
       .catch(() => setPrix(PRIX_DEFAUT))
       .finally(() => setIsLoadingPrice(false));
