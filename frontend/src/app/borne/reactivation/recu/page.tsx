@@ -68,9 +68,9 @@ function RecuContent() {
   return (
     <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 no-print">
-        {/* Message de succès */}
-        <Card className="p-8 flex flex-col items-center text-center justify-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 print:block">
+        {/* Message de succès - caché à l'impression */}
+        <Card className="p-8 flex flex-col items-center text-center justify-center print:hidden">
           <div className="w-24 h-24 bg-success rounded-full flex items-center justify-center mb-6 shadow-lg shadow-success/30 relative">
              <CheckCircle className="w-12 h-12 text-white" />
           </div>
@@ -97,7 +97,7 @@ function RecuContent() {
         </Card>
 
         {/* Reçu détaillé (Aperçu) */}
-        <Card className="p-8" id="receipt-content">
+        <Card className="p-8 print:w-full print:shadow-none print:border-none" id="receipt-content">
           <div className="text-center mb-8">
             <h3 className="font-bold text-primary text-xl tracking-widest uppercase">{lang === "en" ? "Request Receipt" : "Reçu de demande"}</h3>
             <p className="text-primary font-medium">{lang === "en" ? "SIM Reactivation" : "Réactivation SIM"}</p>
@@ -133,18 +133,22 @@ function RecuContent() {
 
             {/* QR Code */}
             <div className="w-40 h-40 bg-white border-2 border-border-light rounded-xl p-2 mx-auto flex-shrink-0 flex items-center justify-center">
-              <div className="w-full h-full bg-[repeating-conic-gradient(#1F0270_0_90deg,#fff_0_180deg)] bg-[length:12px_12px] opacity-80 rounded flex items-center justify-center">
-                 <div className="w-10 h-10 bg-white flex items-center justify-center rounded">
-                    <span className="text-[10px] font-bold text-primary">NMA</span>
-                 </div>
-              </div>
+              {ticketRef !== "NMA-RE-0000" ? (
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`Ticket:${ticketRef}|Service:Reactivation|Montant:${montantPaye}`)}`}
+                  alt="QR Code Ticket"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <Loader2 className="w-8 h-8 animate-spin text-primary/30" />
+              )}
             </div>
           </div>
         </Card>
       </div>
 
       {/* Footer Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 no-print">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
         <div className="flex gap-4">
            <Button variant="outline" className="flex-1 bg-white h-14" onClick={() => {
               const el = document.getElementById("receipt-content");
@@ -184,8 +188,8 @@ function RecuContent() {
             box-shadow: none !important;
             border: none !important;
           }
-          .no-print {
-            display: none !important;
+          @page {
+            margin: 0;
           }
         }
       `}} />

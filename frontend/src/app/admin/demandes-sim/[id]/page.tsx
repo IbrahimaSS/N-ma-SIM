@@ -94,22 +94,9 @@ export default function DetailDemande() {
 
   useEffect(() => { fetchDemande(); }, [fetchDemande]);
 
-  const handleAction = async (statut: "VALIDEE" | "REJETEE") => {
-    if (!demande) return;
-    setActionLoading(statut);
-    try {
-      await apiFetch(`/api/demandes/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ statut }),
-      });
-      setToast({ msg: statut === "VALIDEE" ? "Demande validée ✅" : "Demande rejetée ❌", ok: statut === "VALIDEE" });
-      await fetchDemande();
-    } catch (e: any) {
-      setToast({ msg: e.message, ok: false });
-    } finally {
-      setActionLoading(null);
-      setTimeout(() => setToast(null), 3000);
-    }
+  const handleAction = async (_statut: "VALIDEE" | "REJETEE") => {
+    // Les demandes sont validées automatiquement — cette fonction est conservée pour compatibilité
+    console.info("[ADMIN] Traitement automatique, validation manuelle désactivée.");
   };
 
   const formatDate = (iso?: string) => {
@@ -342,44 +329,20 @@ export default function DetailDemande() {
           )}
 
           {/* Actions */}
-          {isRecharge ? (
-            <div style={{ background: "#F0FDF4", borderRadius: 16, padding: 20, border: "1px solid #BBF7D0" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <CheckCircle2 size={20} style={{ color: "#059669" }} />
-                </div>
-                <div>
-                  <p style={{ fontWeight: 700, color: "#166534", margin: 0, fontSize: 14 }}>Recharge automatique</p>
-                  <p style={{ color: "#6B7280", margin: "4px 0 0", fontSize: 12 }}>Cette transaction a été validée automatiquement par la borne. Aucune action manuelle requise.</p>
-                </div>
+          {/* Traitement automatique */}
+          <div style={{ background: "#F0FDF4", borderRadius: 16, padding: 20, border: "1px solid #BBF7D0" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <CheckCircle2 size={20} style={{ color: "#059669" }} />
+              </div>
+              <div>
+                <p style={{ fontWeight: 700, color: "#166534", margin: 0, fontSize: 14 }}>Traitement automatique</p>
+                <p style={{ color: "#6B7280", margin: "4px 0 0", fontSize: 12 }}>
+                  Les demandes sont validées automatiquement dès que le paiement est confirmé. Aucune action manuelle requise.
+                </p>
               </div>
             </div>
-          ) : !isTerminal && (
-            <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", fontSize: 15 }}>⚡ Actions</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <button
-                  onClick={() => handleAction("VALIDEE")}
-                  disabled={!!actionLoading}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: 13, borderRadius: 12, background: actionLoading === "VALIDEE" ? "#D1FAE5" : "#059669", color: "white", border: "none", cursor: actionLoading ? "not-allowed" : "pointer", fontSize: 15, fontWeight: 600 }}
-                >
-                  {actionLoading === "VALIDEE" ? <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> : <CheckCircle2 size={18} />}
-                  {actionLoading === "VALIDEE" ? "Validation..." : "Valider"}
-                </button>
-                <button
-                  onClick={() => handleAction("REJETEE")}
-                  disabled={!!actionLoading}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: 13, borderRadius: 12, background: "#FEE2E2", color: "#DC2626", border: "1px solid #FCA5A5", cursor: actionLoading ? "not-allowed" : "pointer", fontSize: 15, fontWeight: 600 }}
-                >
-                  {actionLoading === "REJETEE" ? <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> : <XCircle size={18} />}
-                  {actionLoading === "REJETEE" ? "Rejet..." : "Rejeter"}
-                </button>
-                <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: 10, borderRadius: 12, background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>
-                  <Clock size={14} /> Mettre en attente
-                </button>
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* Historique */}
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>

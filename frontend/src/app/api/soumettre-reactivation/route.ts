@@ -35,8 +35,8 @@ export async function POST(request: Request) {
         dateNaissance: parseOcrDate(client_info?.date_naissance),
         lieuNaissance: client_info?.lieu_naissance || undefined,
         nationalite: client_info?.nationalite || "Guinéenne",
-        typePiece: client_info?.type_piece || undefined,
-        numeroPiece: client_info?.numero_piece || undefined,
+        typePiece: client_info?.typePiece || client_info?.type_piece || undefined,
+        numeroPiece: client_info?.numeroPiece || client_info?.numero_piece || client_info?.numero_identite || client_info?.numero_carte || client_info?.nin || undefined,
         telephone: client_info?.telephone || numero_a_reactiver || undefined,
         typeClient: "RESIDENT",
       }),
@@ -130,6 +130,13 @@ export async function POST(request: Request) {
         console.error("[REACTIVATION] Erreur paiement:", err);
       }
     }
+
+    // ─── 5. Auto-validation : paiement confirmé = demande validée ────────
+    await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ statut: "VALIDEE" }),
+    });
 
     return NextResponse.json({
       success: true,
