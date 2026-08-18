@@ -31,14 +31,40 @@ export default function Verification() {
     const motifVal = sessionStorage.getItem("reactivation_motif") || "";
     setMotif(motifVal);
 
-    // Récupérer le résultat KYC depuis IndexedDB
+    // Récupérer le résultat KYC (avec selfie) depuis IndexedDB
     getKycResult().then((result) => {
       if (result) {
         setKycResult(result);
+        // Lire les champs depuis KYC complet
         const c = result.champs ?? {};
         const nom = c.nom ?? "";
         const prenom = c.prenom ?? "";
-        setIdentiteNom([prenom, nom].filter(Boolean).join(" ").toUpperCase() || "—");
+        const fullName = [prenom, nom].filter(Boolean).join(" ").toUpperCase();
+        if (fullName) {
+          setIdentiteNom(fullName);
+        } else {
+          // Fallback : champs extraits depuis la page pièce (sessionStorage)
+          try {
+            const champsJson = sessionStorage.getItem("kyc_champs");
+            if (champsJson) {
+              const champs = JSON.parse(champsJson);
+              const fallbackName = [champs.prenom ?? "", champs.nom ?? ""].filter(Boolean).join(" ").toUpperCase();
+              setIdentiteNom(fallbackName || "—");
+            } else {
+              setIdentiteNom("—");
+            }
+          } catch { setIdentiteNom("—"); }
+        }
+      } else {
+        // Aucun résultat KYC complet — essayer le fallback sessionStorage
+        try {
+          const champsJson = sessionStorage.getItem("kyc_champs");
+          if (champsJson) {
+            const champs = JSON.parse(champsJson);
+            const fallbackName = [champs.prenom ?? "", champs.nom ?? ""].filter(Boolean).join(" ").toUpperCase();
+            setIdentiteNom(fallbackName || "—");
+          }
+        } catch { setIdentiteNom("—"); }
       }
     }).finally(() => setIsLoading(false));
   }, []);
@@ -77,8 +103,21 @@ export default function Verification() {
 
   // Déterminer si la correspondance visage/document est OK
   const decisionUpper = (kycResult?.decision ?? "").toUpperCase();
-  const isFaceOk = decisionUpper.includes("ACCEPT") || (kycResult?.visage?.similarite ?? 0) >= 0.6;
-  const simPct = kycResult?.visage?.similarite != null ? Math.round(kycResult.visage.similarite * 100) : null;
+  const faceData = kycResult?.visage ?? kycResult?.face ?? null;
+  // Logique de match : on accepte si :
+  // 1. La décision contient "ACCEPT" (toutes langues) ou "VALID" ou "OK"
+  // 2. OU face.verifie === true
+  // 3. OU similarite >= 0.5 (50% — seuil raisonnable pour selfie kiosque)
+  const decisionNorm = decisionUpper
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // Enlève les accents (ACCEPTÉ → ACCEPTE)
+  const isFaceOk = 
+    decisionNorm.includes("ACCEPT") ||
+    decisionNorm.includes("VALID") ||
+    decisionNorm.includes(" OK") ||
+    faceData?.verifie === true ||
+    (faceData?.similarite ?? 0) >= 0.5;
+  const simPct = faceData?.similarite != null ? Math.round(faceData.similarite * 100) : null;
 
   // Statut identité selon résultat KYC
   const identiteStatut = kycResult
