@@ -134,7 +134,10 @@ export async function POST(request: Request) {
     // ─── 4. Auto-validation : paiement confirmé = demande validée ────────
     await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-service": "kiosk-borne",
+      },
       body: JSON.stringify({ statut: "VALIDEE" }),
     });
 

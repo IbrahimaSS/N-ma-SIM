@@ -100,8 +100,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
  */
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Accepte soit un admin authentifié, soit un appel interne de la borne (service token)
     const authUser = getAuthUser(request)
-    if (!authUser) return apiError('Non authentifié', 401)
+    const isInternalService = request.headers.get('x-internal-service') === 'kiosk-borne'
+    
+    if (!authUser && !isInternalService) return apiError('Non authentifié', 401)
 
     const { id } = await params
     const body = await request.json()
@@ -113,7 +116,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       where: { id },
       data: {
         ...parsed.data,
-        traitePar: authUser.email,
+        traitePar: authUser?.email || 'borne-automatique',
       },
       include: {
         client: { select: { nom: true, prenom: true } },
