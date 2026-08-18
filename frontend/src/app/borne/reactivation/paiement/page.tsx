@@ -132,6 +132,7 @@ export default function PaiementReactivation() {
 
       sessionStorage.setItem("ticket_ref", data.numeroDossier);
       sessionStorage.setItem("demande_id", data.demandeId);
+      sessionStorage.setItem("reactivation_montant_paye", prix.toString());
       // Nettoyage
       sessionStorage.removeItem("kiosk_client_info");
       sessionStorage.removeItem("kyc_champs");

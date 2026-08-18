@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, Suspense, useEffect } from "react";
@@ -26,11 +26,14 @@ function RecuContent() {
   const [demandeId, setDemandeId] = useState("");
   const [isFinishing, setIsFinishing] = useState(false);
   const [lang, setLang] = useState("fr");
+  const [montantPaye, setMontantPaye] = useState("10 000");
 
   useEffect(() => {
     setTicketRef(sessionStorage.getItem("ticket_ref") || "NMA-RE-0000");
     setDemandeId(sessionStorage.getItem("demande_id") || "");
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+    const prixStr = sessionStorage.getItem("reactivation_montant_paye");
+    if (prixStr) setMontantPaye(Number(prixStr).toLocaleString('fr-FR'));
   }, []);
 
   const handleFinish = async () => {
@@ -110,7 +113,7 @@ function RecuContent() {
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 font-semibold text-primary">{lang === "en" ? "Amount paid" : "Montant payé"}</td>
-                    <td className="py-3 text-text-muted text-right font-medium">10 000 GNF</td>
+                    <td className="py-3 text-text-muted text-right font-medium">{montantPaye} GNF</td>
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 font-semibold text-primary">{lang === "en" ? "Ticket number" : "Numéro de ticket"}</td>
