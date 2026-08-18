@@ -133,11 +133,15 @@ function RecuContent() {
 
             {/* QR Code */}
             <div className="w-40 h-40 bg-white border-2 border-border-light rounded-xl p-2 mx-auto flex-shrink-0 flex items-center justify-center">
-              <div className="w-full h-full bg-[repeating-conic-gradient(#1F0270_0_90deg,#fff_0_180deg)] bg-[length:12px_12px] opacity-80 rounded flex items-center justify-center">
-                 <div className="w-10 h-10 bg-white flex items-center justify-center rounded">
-                    <span className="text-[10px] font-bold text-primary">NMA</span>
-                 </div>
-              </div>
+              {ticketRef !== "NMA-RE-0000" ? (
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`Ticket:${ticketRef}|Service:Reactivation|Montant:${montantPaye}`)}`}
+                  alt="QR Code Ticket"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <Loader2 className="w-8 h-8 animate-spin text-primary/30" />
+              )}
             </div>
           </div>
         </Card>
