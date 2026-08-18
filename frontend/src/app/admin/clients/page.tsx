@@ -10,6 +10,16 @@ function getToken(): string | null {
   return JSON.parse(s).token ?? null;
 }
 
+function formatTypePiece(type?: string): string {
+  if (!type || type === "-") return "—";
+  const t = type.toLowerCase();
+  if (t === "cni") return "Carte d'identité (CNI)";
+  if (t === "carte_electeur") return "Carte d'électeur";
+  if (t === "passeport") return "Passeport";
+  if (t === "recepisse") return "Récépissé";
+  return type.toUpperCase();
+}
+
 // Composant générique pour les Modals
 function Modal({ isOpen, onClose, title, customUI, children }: any) {
   if (!isOpen) return null;
@@ -165,9 +175,9 @@ export default function Clients() {
                       <td style={{ padding: "13px 12px" }}>
                         <span style={{ background: "#EEF2FF", color: "#4338CA", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>{c.typeClient}</span>
                       </td>
-                      <td style={{ padding: "13px 12px", fontSize: 13, color: "#374151" }}>{c.typePiece || '-'}</td>
-                      <td style={{ padding: "13px 12px", fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>{c.numeroPiece || '-'}</td>
-                      <td style={{ padding: "13px 12px", fontSize: 13, color: "#374151" }}>{c.telephone || '-'}</td>
+                      <td style={{ padding: "13px 12px", fontSize: 13, color: "#374151" }}>{formatTypePiece(c.typePiece)}</td>
+                      <td style={{ padding: "13px 12px", fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>{!c.numeroPiece || c.numeroPiece === "-" ? "—" : c.numeroPiece}</td>
+                      <td style={{ padding: "13px 12px", fontSize: 13, color: "#374151" }}>{!c.telephone || c.telephone === "-" ? "—" : c.telephone}</td>
                       <td style={{ padding: "13px 12px" }}>
                         <span style={{ background: c.statut === "VALIDE" || c.statut === "VALIDEE" ? "#DCFCE7" : c.statut === "REJETE" ? "#FEE2E2" : "#FEF3C7", color: c.statut === "VALIDE" || c.statut === "VALIDEE" ? "#166534" : c.statut === "REJETE" ? "#991B1B" : "#92400E", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>
                           {c.statut.replace(/_/g, ' ')}
@@ -242,11 +252,11 @@ export default function Clients() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Type de pièce</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{selectedModalClient.typePiece || '-'}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{formatTypePiece(selectedModalClient.typePiece)}</div>
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Numéro de pièce</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{selectedModalClient.numeroPiece || '-'}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{!selectedModalClient.numeroPiece || selectedModalClient.numeroPiece === "-" ? "—" : selectedModalClient.numeroPiece}</div>
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Date de naissance</div>
