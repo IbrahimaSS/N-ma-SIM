@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import {
   ShieldCheck, Lock, Receipt, RefreshCcw, ArrowLeft, ChevronRight,
-  CheckCircle2, CreditCard, Camera, ScanLine, Loader2, AlertCircle, Phone
+  AlertCircle, Phone, CreditCard, Loader2
 } from "lucide-react";
 
 // Prix par défaut si le backend ne répond pas
@@ -15,21 +15,31 @@ const PRIX_DEFAUT = 10000;
 
 export default function PaiementReactivation() {
   const router = useRouter();
-  const [method, setMethod] = useState("orange-money");
   const [lang, setLang] = useState("fr");
-  const [omStep, setOmStep] = useState<"initial" | "requested">("initial");
-  const [omPhone, setOmPhone] = useState("");
-  const [omCode, setOmCode] = useState("");
-  const [visaStep, setVisaStep] = useState<"form" | "scanning">("form");
-  const [visaData, setVisaData] = useState({ number: "", exp: "", cvv: "" });
-  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
   // Données dynamiques
   const [prix, setPrix] = useState<number>(PRIX_DEFAUT);
   const [isLoadingPrice, setIsLoadingPrice] = useState(true);
   const [numero, setNumero] = useState("—");
   const [motif, setMotif] = useState("—");
+
+  // Écouter le message de succès de l'Iframe Lengo Pay
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.type === "LENGO_PAY_SUCCESS") {
+        await validerPaiementReactivation({
+          method: "Lengo Pay",
+          reference: event.data?.pay_id || "NMA-PAY-LENG-01"
+        });
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [prix]); // Dépendance sur 'prix' pour valider avec le bon montant
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
@@ -60,50 +70,8 @@ export default function PaiementReactivation() {
       .finally(() => setIsLoadingPrice(false));
   }, []);
 
-  const prixFormate = isLoadingPrice
-    ? "..."
-    : prix.toLocaleString("fr-FR") + " GNF";
-
-  const t = {
-    summary: lang === "en" ? "Summary" : "Récapitulatif",
-    service: lang === "en" ? "Service" : "Service",
-    serviceVal: lang === "en" ? "SIM Reactivation" : "Réactivation puce",
-    number: lang === "en" ? "Number" : "Numéro",
-    reason: lang === "en" ? "Reason" : "Motif",
-    amount: lang === "en" ? "Amount" : "Montant",
-    total: lang === "en" ? "Total to pay" : "Total à payer",
-    secure: lang === "en" ? "100% secure transactions." : "Transactions 100% sécurisées.",
-    encrypted: lang === "en" ? "Encrypted and confidential data." : "Données chiffrées et confidentielles.",
-    payMethod: lang === "en" ? "Payment method" : "Mode de paiement",
-    omFast: lang === "en" ? "Fast mobile payment." : "Paiement mobile rapide.",
-    visaCard: lang === "en" ? "Visa Card" : "Carte Visa",
-    visaFast: lang === "en" ? "Pay by bank card." : "Paiement par carte bancaire.",
-    phoneNum: lang === "en" ? "Phone number" : "Numéro de téléphone",
-    totalDebit: lang === "en" ? "Total to debit" : "Total à débiter",
-    sendReq: lang === "en" ? "Send request" : "Envoyer la demande",
-    reqSent: lang === "en" ? "Request sent!" : "Demande envoyée !",
-    checkPhone: lang === "en" ? "Please check your phone and enter your Orange Money secret code." : "Veuillez consulter votre téléphone et entrer votre code secret Orange Money.",
-    confirmCode: lang === "en" ? "Confirmation code (received by SMS)" : "Code de confirmation (reçu par SMS)",
-    bankCard: lang === "en" ? "Bank Card" : "Carte Bancaire",
-    placeCard: lang === "en" ? "Place your card" : "Placez votre carte",
-    scanning: lang === "en" ? "OCR scan in progress..." : "Analyse optique (OCR) en cours...",
-    scanCamera: lang === "en" ? "Scan my card via camera" : "Scanner ma carte via caméra",
-    cardNum: lang === "en" ? "Card number" : "Numéro de carte",
-    expiry: lang === "en" ? "Expiry" : "Expiration",
-    totalDue: lang === "en" ? "Total due" : "Total à régler",
-    back: lang === "en" ? "Back" : "Retour",
-    confirmPay: lang === "en" ? "Confirm payment" : "Confirmer le paiement",
-    processing: lang === "en" ? "Processing..." : "Traitement en cours...",
-  };
-
-  const handleOmRequest = () => { if (omPhone) setOmStep("requested"); };
-  const handleScanCard = () => {
-    setVisaStep("scanning");
-    setTimeout(() => { setVisaData({ number: "4567 8901 2345 6789", exp: "12/28", cvv: "" }); setVisaStep("form"); }, 3000);
-  };
-
-  const handleConfirm = async () => {
-    setIsProcessing(true);
+  const validerPaiementReactivation = async (paymentInfo: { method: string; reference: string }) => {
+    setIsLoading(true);
     setError("");
     try {
       const kycInfo = JSON.parse(sessionStorage.getItem("kiosk_client_info") || "{}");
@@ -121,8 +89,8 @@ export default function PaiementReactivation() {
           motif_reactivation: motifReactivation,
           paiement: {
             montant: prix,
-            methode: method,
-            reference: method === "orange-money" ? omCode : "VISA_TEST",
+            methode: paymentInfo.method,
+            reference: paymentInfo.reference,
           },
         }),
       });
@@ -133,24 +101,74 @@ export default function PaiementReactivation() {
       sessionStorage.setItem("ticket_ref", data.numeroDossier);
       sessionStorage.setItem("demande_id", data.demandeId);
       sessionStorage.setItem("reactivation_montant_paye", prix.toString());
+      
       // Nettoyage
       sessionStorage.removeItem("kiosk_client_info");
       sessionStorage.removeItem("kyc_champs");
+      
       router.push("/borne/reactivation/recu");
     } catch (err: unknown) {
       console.error("[REACTIVATION]", err);
       setError(lang === "en"
         ? "An error occurred during validation. Please try again."
         : "Une erreur est survenue lors de la validation. Veuillez réessayer.");
+      setPaymentUrl(null); // Permet de réessayer
     } finally {
-      setIsProcessing(false);
+      setIsLoading(false);
     }
+  };
+
+  const initLengoPay = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/paiement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: prix, currency: "GNF" })
+      });
+      const data = await res.json();
+      if (data.payment_url) {
+        setPaymentUrl(data.payment_url);
+      } else {
+        setError(lang === "en" ? "Error initializing payment." : "Erreur lors de l'initialisation du paiement.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError(lang === "en" ? "Network error" : "Erreur réseau");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const prixFormate = isLoadingPrice
+    ? "..."
+    : prix.toLocaleString("fr-FR") + " GNF";
+
+  const t = {
+    summary: lang === "en" ? "Summary" : "Récapitulatif",
+    service: lang === "en" ? "Service" : "Service",
+    serviceVal: lang === "en" ? "SIM Reactivation" : "Réactivation puce",
+    number: lang === "en" ? "Number" : "Numéro",
+    reason: lang === "en" ? "Reason" : "Motif",
+    amount: lang === "en" ? "Amount" : "Montant",
+    total: lang === "en" ? "Total to pay" : "Total à payer",
+    secure: lang === "en" ? "100% secure transactions." : "Transactions 100% sécurisées.",
+    encrypted: lang === "en" ? "Encrypted and confidential data." : "Données chiffrées et confidentielles.",
+    totalDue: lang === "en" ? "Total due" : "Total à régler",
+    back: lang === "en" ? "Back" : "Retour",
   };
 
   return (
     <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 shrink-0" /><p className="text-sm">{error}</p>
+        </div>
+      )}
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* ── Récapitulatif ── */}
         <Card className="p-4">
           <h3 className="font-bold text-primary mb-4 text-base">{t.summary}</h3>
@@ -202,115 +220,50 @@ export default function PaiementReactivation() {
           </div>
         </Card>
 
-        {/* ── Mode de paiement ── */}
-        <Card className="p-4">
-          <h3 className="font-bold text-primary mb-4 text-base">{t.payMethod}</h3>
-          <div className="flex flex-col gap-4">
-            <div
-              className={`p-4 rounded-xl border-2 flex items-center cursor-pointer transition-colors ${method === "orange-money" ? "border-accent bg-accent/5" : "border-border-light hover:border-primary/20"}`}
-              onClick={() => { setMethod("orange-money"); setOmStep("initial"); }}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === "orange-money" ? "border-accent" : "border-gray-300"}`}>
-                  {method === "orange-money" && <div className="w-2.5 h-2.5 bg-accent rounded-full" />}
-                </div>
-                <div className="w-10 h-10 bg-[#FF6600] rounded-lg flex items-center justify-center text-white font-bold text-xs">OM</div>
-                <div><p className="font-bold text-primary">Orange Money</p><p className="text-xs text-text-muted">{t.omFast}</p></div>
+        {/* ── Espace de paiement Lengo Pay ── */}
+        <Card className="p-0 lg:col-span-2 overflow-hidden flex flex-col items-center justify-center min-h-[400px] border-2 border-primary/10 relative">
+          {paymentUrl ? (
+            <>
+              <iframe 
+                src={paymentUrl} 
+                className="w-full h-full min-h-[500px] border-0" 
+                allow="payment"
+                title="Lengo Pay"
+              />
+              <div className="absolute top-2 right-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => validerPaiementReactivation({ method: "Lengo Pay (Mode Démo)", reference: "NMA-DEMO-2026" })}
+                  className="text-xs bg-white text-gray-500 hover:text-primary shadow-sm"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Bypass (Mode Démo)"}
+                </Button>
               </div>
-            </div>
-
-            <div
-              className={`p-4 rounded-xl border-2 flex items-center cursor-pointer transition-colors ${method === "visa" ? "border-primary bg-primary/5" : "border-border-light hover:border-primary/20"}`}
-              onClick={() => setMethod("visa")}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === "visa" ? "border-primary" : "border-gray-300"}`}>
-                  {method === "visa" && <div className="w-2.5 h-2.5 bg-primary rounded-full" />}
-                </div>
-                <div className="w-10 h-10 bg-[#1434CB] rounded-lg flex items-center justify-center text-white font-bold italic">VISA</div>
-                <div><p className="font-bold text-primary">{t.visaCard}</p><p className="text-xs text-text-muted">{t.visaFast}</p></div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center p-8 text-center h-full">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                <CreditCard className="w-10 h-10 text-primary" />
               </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* ── Panneau de saisie paiement ── */}
-        <Card className="p-4">
-          {method === "orange-money" && (
-            <div className="flex flex-col h-full">
-              <h3 className="font-bold text-primary mb-6 text-lg text-center border-b border-border-light pb-4">Orange Money</h3>
-              {omStep === "initial" ? (
-                <div className="flex flex-col gap-4 flex-grow">
-                  <div>
-                    <label className="text-sm font-semibold text-primary mb-2 block">{t.phoneNum}</label>
-                    <input type="tel" placeholder="Ex: 620 00 00 00" className="w-full p-4 rounded-xl border border-border-light focus:border-accent outline-none bg-gray-50" value={omPhone} onChange={(e) => setOmPhone(e.target.value)} disabled={isProcessing} />
-                  </div>
-                  <div className="flex-grow" />
-                  <div className="bg-orange-50 p-4 rounded-xl mb-4 border border-orange-100">
-                    <p className="text-sm text-[#FF6600] mb-1">{t.totalDebit}</p>
-                    <p className={`text-2xl font-black text-[#FF6600] ${isLoadingPrice ? "animate-pulse" : ""}`}>{prixFormate}</p>
-                  </div>
-                  <Button onClick={handleOmRequest} className="w-full py-6 text-md bg-[#FF6600] hover:bg-[#E65C00] text-white shadow-md border-none" disabled={!omPhone || isProcessing || isLoadingPrice}>
-                    {t.sendReq}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4 flex-grow animate-in slide-in-from-right-4 duration-300">
-                  <div className="bg-success/10 border border-success/30 text-success p-4 rounded-xl flex items-start gap-3">
-                    <CheckCircle2 className="w-6 h-6 shrink-0 mt-0.5" />
-                    <div><p className="font-bold text-lg">{t.reqSent}</p><p className="text-sm mt-1">{t.checkPhone}</p></div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="text-sm font-semibold text-primary mb-2 block">{t.confirmCode}</label>
-                    <input type="text" placeholder="Ex: 1234" className="w-full p-4 rounded-xl border border-border-light focus:border-accent outline-none bg-gray-50 text-center tracking-widest text-lg font-bold" value={omCode} onChange={(e) => setOmCode(e.target.value)} maxLength={4} disabled={isProcessing} />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {method === "visa" && (
-            <div className="flex flex-col h-full">
-              <h3 className="font-bold text-primary mb-6 text-lg text-center border-b border-border-light pb-4">{t.bankCard}</h3>
-              {visaStep === "scanning" ? (
-                <div className="flex flex-col items-center justify-center flex-grow py-12 bg-gray-50 rounded-xl border-2 border-dashed border-primary/30">
-                  <Camera className="w-16 h-16 text-primary mb-4 animate-pulse" />
-                  <p className="font-bold text-primary mb-2 text-lg">{t.placeCard}</p>
-                  <p className="text-sm text-text-muted text-center px-6">{t.scanning}</p>
-                  <Loader2 className="w-8 h-8 text-accent mt-6 animate-spin" />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4 flex-grow">
-                  <Button variant="outline" className="w-full mb-2 border-primary/20 text-primary bg-primary/5 hover:bg-primary/10" onClick={handleScanCard} disabled={isProcessing}>
-                    <ScanLine className="w-5 h-5 mr-2 text-accent" /> {t.scanCamera}
-                  </Button>
-                  <div className="relative">
-                    <label className="text-xs font-semibold text-text-muted mb-1 block uppercase tracking-wider">{t.cardNum}</label>
-                    <input type="text" placeholder="0000 0000 0000 0000" className="w-full p-3 rounded-xl border border-border-light focus:border-accent outline-none font-mono text-primary bg-gray-50" value={visaData.number} onChange={(e) => setVisaData({ ...visaData, number: e.target.value })} disabled={isProcessing} />
-                    <CreditCard className="w-5 h-5 text-gray-400 absolute right-3 top-8" />
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="text-xs font-semibold text-text-muted mb-1 block uppercase tracking-wider">{t.expiry}</label>
-                      <input type="text" placeholder="MM/AA" className="w-full p-3 rounded-xl border border-border-light focus:border-accent outline-none font-mono text-primary bg-gray-50" value={visaData.exp} onChange={(e) => setVisaData({ ...visaData, exp: e.target.value })} disabled={isProcessing} />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs font-semibold text-text-muted mb-1 block uppercase tracking-wider">CVV</label>
-                      <input type="password" placeholder="•••" className="w-full p-3 rounded-xl border border-border-light focus:border-accent outline-none font-mono text-center text-primary bg-gray-50" value={visaData.cvv} onChange={(e) => setVisaData({ ...visaData, cvv: e.target.value })} maxLength={3} disabled={isProcessing} />
-                    </div>
-                  </div>
-                </div>
-              )}
+              <h3 className="text-xl font-bold text-primary mb-2">Paiement Sécurisé</h3>
+              <p className="text-text-muted mb-8 max-w-md">
+                Vous allez être redirigé vers la passerelle sécurisée Lengo Pay pour finaliser votre paiement avec Orange Money, Mobile Money ou Carte Bancaire.
+              </p>
+              <Button 
+                size="lg" 
+                className="px-10 py-6 text-lg w-full max-w-sm shadow-md"
+                onClick={initLengoPay}
+                disabled={isLoading || isLoadingPrice}
+              >
+                {isLoading ? <Loader2 className="w-6 h-6 mr-2 animate-spin" /> : <ShieldCheck className="w-6 h-6 mr-2" />}
+                {isLoading ? "Initialisation..." : "Payer maintenant"}
+              </Button>
             </div>
           )}
         </Card>
       </div>
-
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0" /><p className="text-sm">{error}</p>
-        </div>
-      )}
 
       {/* Barre de bas de page */}
       <div className="bg-white border border-border-light rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between shadow-sm gap-3">
@@ -319,23 +272,8 @@ export default function PaiementReactivation() {
           <p className={`text-3xl font-extrabold text-primary ${isLoadingPrice ? "animate-pulse" : ""}`}>{prixFormate}</p>
         </div>
         <div className="flex gap-4">
-          <Button variant="secondary" className="h-14 px-6" onClick={() => router.back()} disabled={isProcessing}>
+          <Button variant="secondary" className="h-14 px-6" onClick={() => router.back()} disabled={isLoading}>
             <ArrowLeft className="w-5 h-5 mr-2" /> {t.back}
-          </Button>
-          <Button
-            size="lg"
-            className="h-14 px-8 text-lg shadow-md"
-            onClick={handleConfirm}
-            disabled={
-              isProcessing || isLoadingPrice ||
-              (method === "orange-money" && (!omCode || omCode.length < 4)) ||
-              (method === "visa" && (!visaData.number || !visaData.cvv))
-            }
-          >
-            {isProcessing
-              ? <><Loader2 className="w-6 h-6 mr-2 animate-spin" /> {t.processing}</>
-              : <>{t.confirmPay} <ChevronRight className="w-6 h-6 ml-2" /></>
-            }
           </Button>
         </div>
       </div>
