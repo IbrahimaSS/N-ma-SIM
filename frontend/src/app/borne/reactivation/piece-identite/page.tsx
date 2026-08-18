@@ -143,8 +143,12 @@ export default function ReactivationPieceIdentite() {
       if (versoFile) await saveKycImage("kyc_verso", versoFile);
       if (docType) sessionStorage.setItem("kiosk_doc_type", docType);
       // Appel KYC — extraction pièce uniquement (sans selfie à ce stade)
+      // On NE sauvegarde PAS le résultat ici pour ne pas écraser celui du selfie.
+      // On stocke seulement les champs extraits pour pré-remplissage.
       const result = await verifierKYC(rectoFile, null, versoFile ?? undefined);
-      await saveKycResult(result);
+      if (result.champs) {
+        sessionStorage.setItem("kyc_champs", JSON.stringify(result.champs));
+      }
       // → Aller au selfie de réactivation
       router.push("/borne/reactivation/selfie");
     } catch {
