@@ -131,6 +131,13 @@ export async function POST(request: Request) {
       }
     }
 
+    // ─── 5. Auto-validation : paiement confirmé = demande validée ────────
+    await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ statut: "VALIDEE" }),
+    });
+
     return NextResponse.json({
       success: true,
       numeroDossier: numeroDossier || "NMA-RE-0000",

@@ -131,7 +131,14 @@ export async function POST(request: Request) {
       // On ne bloque pas — la demande est créée, le paiement peut être rattrapé manuellement
     }
 
-    // ─── 4. Retourner le numéro de ticket ─────────────────────────────────
+    // ─── 4. Auto-validation : paiement confirmé = demande validée ────────
+    await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ statut: "VALIDEE" }),
+    });
+
+    // ─── 5. Retourner le numéro de ticket ─────────────────────────────────
     return NextResponse.json({
       success: true,
       numeroDossier: numeroDossier || "NMA-2026-0001",
