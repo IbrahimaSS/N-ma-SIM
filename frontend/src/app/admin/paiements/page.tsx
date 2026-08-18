@@ -216,7 +216,11 @@ export default function Paiements() {
                   </td>
                   <td style={{ padding: "13px 12px" }}><ModeBadge mode={p.methodePaiement} /></td>
                   <td style={{ padding: "13px 12px", fontSize: 13, fontWeight: 600, color: "#111827" }}>{p.montant.toLocaleString("fr-FR")} GNF</td>
-                  <td style={{ padding: "13px 12px", fontSize: 13, color: "#374151" }}>{p.demande?.type === "RECHARGE" ? "Recharge de crédit" : p.demande?.offre?.nom || "—"}</td>
+                  <td style={{ padding: "13px 12px", fontSize: 13, color: "#374151" }}>
+                    {p.demande?.type === "RECHARGE" ? "Recharge de crédit" : 
+                     p.demande?.type === "REACTIVATION" ? "Réactivation puce" : 
+                     p.demande?.offre?.nom || "—"}
+                  </td>
                   <td style={{ padding: "13px 12px" }}><StatutBadge statut={p.statut === "CONFIRME" ? "Confirmé" : p.statut === "ECHOUE" ? "Échoué" : p.statut === "REMBOURSE" ? "Remboursé" : "En attente"} /></td>
                   <td style={{ padding: "13px 12px", fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap" }}>{new Date(p.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
                   <td style={{ padding: "13px 12px" }}>
@@ -362,7 +366,11 @@ export default function Paiements() {
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Service</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{selectedPaiement.demande?.type === "RECHARGE" ? "Recharge de crédit" : selectedPaiement.demande?.offre?.nom || "—"}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>
+                      {selectedPaiement.demande?.type === "RECHARGE" ? "Recharge de crédit" : 
+                       selectedPaiement.demande?.type === "REACTIVATION" ? "Réactivation puce" : 
+                       selectedPaiement.demande?.offre?.nom || "—"}
+                    </div>
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 6 }}>Mode de paiement</div>
@@ -388,7 +396,9 @@ export default function Paiements() {
                 <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", border: "1px solid #EAECF5" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
                     <span style={{ fontSize: 13, color: "#374151" }}>
-                      {selectedPaiement.demande?.type === "RECHARGE" ? "Montant de la recharge" : selectedPaiement.demande?.offre?.nom || "Service (SIM/Internet)"}
+                      {selectedPaiement.demande?.type === "RECHARGE" ? "Montant de la recharge" : 
+                       selectedPaiement.demande?.type === "REACTIVATION" ? "Frais de réactivation" : 
+                       selectedPaiement.demande?.offre?.nom || "Service (SIM/Internet)"}
                     </span>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>
                       {selectedPaiement.montant?.toLocaleString("fr-FR")} GNF
