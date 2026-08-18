@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { BorneHeader } from "@/components/borne/BorneHeader";
 import { AgentIA } from "@/components/borne/AgentIA";
 
@@ -72,7 +72,7 @@ export default function BorneLayout({ children }: { children: ReactNode }) {
         }}
       >
         {children}
-        <AgentIA />
+        <Suspense fallback={null}><AgentIA /></Suspense>
       </main>
 
     </div>

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import {
   Search, Plus, Edit2, MoreHorizontal, Shield, User, Wrench, Eye,
   Menu, Bell, ChevronDown, Check, Info, Lock, Unlock, Phone, Mail, EyeOff,
-  Briefcase, X, UserPlus, CloudUpload, Camera, ShieldCheck, MessageSquare, Filter, Settings
+  Briefcase, X, UserPlus, CloudUpload, Camera, ShieldCheck, MessageSquare, Filter, Settings, XCircle
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import "../admin-responsive.css";
@@ -144,7 +144,7 @@ export default function Utilisateurs() {
   const handleStartEdit = (userToEdit: Utilisateur) => {
     setEditingUser(userToEdit);
     setNomComplet(userToEdit.nom);
-    setTelephone(userToEdit.tel);
+    setTelephone((userToEdit as any).tel || (userToEdit as any).telephone || "");
     setEmail(userToEdit.email);
     setService("");
     setRole(userToEdit.role);
@@ -341,7 +341,7 @@ export default function Utilisateurs() {
           {/* KPIs */}
           <div className="users-kpi-row" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
             {[
-              { icon: Shield, label: "Total utilisateurs", value: users.length.toString(), sub: `↑ ${users.filter(u => u.derniereConnexion.includes("Aujourd'hui")).length} actifs`, color: "#059669", bg: "#EEF2FF", iconColor: "#4F46E5" },
+              { icon: Shield, label: "Total utilisateurs", value: users.length.toString(), sub: `↑ ${users.filter(u => u.derniereConnexion?.includes("Aujourd'hui")).length} actifs`, color: "#059669", bg: "#EEF2FF", iconColor: "#4F46E5" },
               { icon: Shield, label: "Administrateurs", value: users.filter(u => u.role === "Admin").length.toString(), sub: "Niveau max", color: "#059669", bg: "#FEF3C7", iconColor: "#D97706" },
               { icon: User, label: "Agents", value: users.filter(u => u.role === "Agent").length.toString(), sub: "Terrain & validation", color: "#059669", bg: "#E0F2FE", iconColor: "#0284C7" },
               { icon: Wrench, label: "Techniciens", value: users.filter(u => u.role === "Technicien").length.toString(), sub: "Maintenance", color: "#166534", bg: "#DCFCE7", iconColor: "#166534" },

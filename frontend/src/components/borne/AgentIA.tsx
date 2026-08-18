@@ -108,8 +108,8 @@ export function AgentIA({ language = null, profile = null, termsAccepted = false
     }
 
     // Auto-déductions à partir de la mémoire de la session
-    currentLang = sessionLang || currentLang || 'fr';
-    currentProfile = sessionProfile || currentProfile || 'resident';
+    currentLang = (sessionLang as "fr" | "en" | null) || currentLang || 'fr';
+    currentProfile = (sessionProfile as "resident" | "etranger" | null) || currentProfile || 'resident';
 
     // Si on est dans un service, les conditions sont forcément acceptées
     const postTermsSteps = ['choix-service', 'scan-piece', 'confirmation-infos', 'selfie',

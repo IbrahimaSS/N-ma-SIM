@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
@@ -232,13 +234,13 @@ export default function Selfie() {
                 {kycResult.visage && (
                   <div className="flex items-center gap-3 text-sm text-text-main font-medium">
                     <CheckCircle2 className="w-5 h-5 text-success" />
-                    {t.similarity} : {kycResult.visage.similarite.toFixed(0)}%
+                    {t.similarity} : {kycResult.visage.similarite?.toFixed(0) || "0"}%
                   </div>
                 )}
                 {kycResult.liveness_selfie && (
                   <div className="flex items-center gap-3 text-sm text-text-main font-medium">
                     <CheckCircle2 className="w-5 h-5 text-success" />
-                    Anti-spoofing : {(kycResult.liveness_selfie.score * 100).toFixed(0)}%
+                    Anti-spoofing : {((kycResult.liveness_selfie.score ?? 0) * 100).toFixed(0)}%
                   </div>
                 )}
               </div>

@@ -273,7 +273,7 @@ export default function Clients() {
                           <div style={{ width: 8, height: 8, borderRadius: "50%", background: h.statut === "VALIDEE" ? "#10B981" : "#F59E0B" }} />
                           <div>
                             <div style={{ fontSize: 13, fontWeight: 800, color: "#1F0270" }}>{h.id.substring(0, 10)}...</div>
-                            <div style={{ fontSize: 12, color: "#6B7280", mt: 2 }}>{h.type}</div>
+                            <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>{h.type}</div>
                           </div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
