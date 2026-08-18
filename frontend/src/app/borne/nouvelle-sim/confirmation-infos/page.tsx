@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
@@ -24,6 +26,7 @@ export default function ConfirmationInfos() {
   const [dateNaissance, setDateNaissance] = useState("");
   const [dateExpiration, setDateExpiration] = useState("");
   const [adresse, setAdresse] = useState("");
+  const [telephone, setTelephone] = useState("");
   const [typePiece, setTypePiece] = useState("cni");
   const [numeroPiece, setNumeroPiece] = useState("");
 

@@ -2,6 +2,8 @@
 import { useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default function PaiementCallback() {
   useEffect(() => {
     // Cette page est chargée à l'intérieur de l'Iframe après le succès du paiement Lengo Pay.

@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+export const dynamic = "force-dynamic";
+
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
@@ -271,7 +273,7 @@ export default function Offres() {
             onClick={handleContinue}
             disabled={!canContinue}
             size="lg"
-            variant={selectedOffer ? "default" : "outline"}
+            variant={selectedOffer ? "primary" : "outline"}
             className={`px-8 shadow-md ${!selectedOffer ? 'border-primary text-primary hover:bg-primary/5' : ''}`}
           >
             {selectedOffer ? 'Continuer avec cette offre' : 'Continuer sans offre'} <ChevronRight className="w-5 h-5 ml-2" />
