@@ -14,6 +14,7 @@ type CameraTarget = "recto" | "verso";
 export default function ScanPiece() {
   const router = useRouter();
   const [lang, setLang] = useState("fr");
+  const [profile, setProfile] = useState("resident");
 
   // Type de document sélectionné
   const [docType, setDocType] = useState<DocType>(null);
@@ -37,7 +38,14 @@ export default function ScanPiece() {
   const versoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+    const savedLang = sessionStorage.getItem("kiosk_lang") || "fr";
+    const savedProfile = sessionStorage.getItem("kiosk_profile") || "resident";
+    setLang(savedLang);
+    setProfile(savedProfile);
+    // Si l'utilisateur est étranger, seul le passeport est accepté → présélection auto
+    if (savedProfile === "etranger") {
+      setDocType("passeport");
+    }
   }, []);
 
   // Nettoyer stream caméra à la fermeture
@@ -299,25 +307,47 @@ export default function ScanPiece() {
       <CardContent>
 
         {/* ── 1. Sélection du type de document ── */}
-        <div className="mb-5">
-          <p className="font-bold text-text-main mb-1">{t.docTypeLabel}</p>
-          <p className="text-xs text-text-muted mb-3">{t.docTypeSub}</p>
-          <div className="flex gap-3 flex-wrap">
-            {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
-              <button
-                key={type}
-                onClick={() => handleDocTypeChange(type)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${
-                  docType === type
-                    ? "bg-primary text-white border-primary"
-                    : "bg-white text-text-main border-border-light hover:border-primary hover:text-primary"
-                }`}
-              >
-                {type === "cni" ? t.cni : type === "passeport" ? t.passeport : t.carteElecteur}
-              </button>
-            ))}
+        {profile === "etranger" ? (
+          // Étranger : bandeau informatif — Passeport présélectionné automatiquement
+          <div className="mb-5 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <span style={{ fontSize: 22 }}>🌍</span>
+            <div>
+              <p className="font-bold text-blue-800 text-sm mb-0.5">
+                {lang === "en" ? "Foreign national profile" : "Profil Étranger"}
+              </p>
+              <p className="text-xs text-blue-700">
+                {lang === "en"
+                  ? "For foreigners, only a Passport is accepted as valid identification."
+                  : "Pour les étrangers, seul le Passeport est accepté comme pièce d'identité valide."}
+              </p>
+              <div className="mt-2 inline-flex items-center gap-2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+                <span>🛂</span>
+                {lang === "en" ? "Passport" : "Passeport"}
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          // Résident : sélecteur normal
+          <div className="mb-5">
+            <p className="font-bold text-text-main mb-1">{t.docTypeLabel}</p>
+            <p className="text-xs text-text-muted mb-3">{t.docTypeSub}</p>
+            <div className="flex gap-3 flex-wrap">
+              {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleDocTypeChange(type)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${
+                    docType === type
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-text-main border-border-light hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {type === "cni" ? t.cni : type === "passeport" ? t.passeport : t.carteElecteur}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── 2. Zones de capture (visibles seulement après sélection du type) ── */}
         {docType && (
@@ -377,14 +407,14 @@ export default function ScanPiece() {
                 <>
                   <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center gap-3 mb-4">
                     <CheckCircle2 className="w-6 h-6 text-primary" />
-                    <span className="font-bold text-primary text-lg">Prêt pour l'analyse</span>
+                    <span className="font-bold text-primary text-lg">{lang === "en" ? "Ready for analysis" : "Prêt pour l'analyse"}</span>
                   </div>
                   <div className="flex flex-col gap-3 flex-grow">
                     <div className="flex items-center gap-3 text-sm text-text-main">
-                      <CheckCircle2 className="w-5 h-5 text-success" /> Photos enregistrées
+                      <CheckCircle2 className="w-5 h-5 text-success" /> {lang === "en" ? "Photos saved" : "Photos enregistrées"}
                     </div>
                     <div className="flex items-center gap-3 text-sm text-text-main">
-                      <CheckCircle2 className="w-5 h-5 text-success" /> Prêt pour l'extraction OCR
+                      <CheckCircle2 className="w-5 h-5 text-success" /> {lang === "en" ? "Ready for OCR extraction" : "Prêt pour l'extraction OCR"}
                     </div>
                   </div>
                 </>
