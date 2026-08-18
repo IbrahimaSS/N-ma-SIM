@@ -126,13 +126,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Log
     if (parsed.data.statut) {
+      const email = authUser?.email || 'Borne automatique';
+      const uid = authUser?.id || null;
+      
       await prisma.log.create({
         data: {
           type: `Demande ${parsed.data.statut}`,
-          description: `Demande ${demande.numeroDossier} (${demande.client.nom} ${demande.client.prenom}) → ${parsed.data.statut} par ${authUser.email}`,
+          description: `Demande ${demande.numeroDossier} (${demande.client.nom} ${demande.client.prenom}) → ${parsed.data.statut} par ${email}`,
           entiteId: id,
           entiteType: 'DemandeSIM',
-          utilisateurId: authUser.id,
+          utilisateurId: uid,
         }
       })
     }
