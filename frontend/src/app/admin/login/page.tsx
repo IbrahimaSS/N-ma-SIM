@@ -34,7 +34,7 @@ export default function AdminLogin() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Identifiants incorrects.");
+        setError(data.message || data.error || "Erreur de connexion au serveur.");
         setIsLoading(false);
         return;
       }
