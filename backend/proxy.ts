@@ -2,29 +2,24 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function proxy(request: NextRequest) {
-  // Récupérer l'origine de la requête
-  const origin = request.headers.get('origin') ?? ''
-  
-  // Autoriser toutes les origines en développement (ou configurer pour la prod)
-  const isAllowedOrigin = true // On autorise tout pour la borne/dashboard
+  const origin = request.headers.get('origin') ?? '*'
 
-  // Préparer les headers CORS
-  const headers = new Headers({
-    'Access-Control-Allow-Origin': isAllowedOrigin ? origin || '*' : '',
+  // Headers CORS — autorise tout domaine (borne Vercel, admin, etc.)
+  const corsHeaders = new Headers({
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, x-internal-service',
     'Access-Control-Allow-Credentials': 'true',
   })
 
-  // Gérer la requête de pré-vérification (Preflight / OPTIONS)
+  // Répondre immédiatement aux requêtes de pré-vérification (Preflight OPTIONS)
   if (request.method === 'OPTIONS') {
-    return new NextResponse(null, { status: 200, headers })
+    return new NextResponse(null, { status: 200, headers: corsHeaders })
   }
 
-  // Passer à la route suivante en injectant les headers
+  // Injecter les headers CORS dans toutes les réponses API
   const response = NextResponse.next()
-  
-  headers.forEach((value, key) => {
+  corsHeaders.forEach((value, key) => {
     response.headers.set(key, value)
   })
 
