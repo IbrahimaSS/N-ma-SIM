@@ -161,8 +161,8 @@ export function AgentIA({ language = null, profile = null, termsAccepted = false
     setIsLoading(true);
     
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const res = await fetch(`${baseUrl}/agent-ia`, {
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const res = await fetch(`${baseUrl}/api/agent-ia`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
