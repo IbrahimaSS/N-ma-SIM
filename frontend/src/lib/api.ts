@@ -1,4 +1,4 @@
-const BACKEND = "http://localhost:3001";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
