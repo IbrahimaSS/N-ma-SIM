@@ -24,7 +24,8 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3001/api/auth/login", {
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+      const res = await fetch(`${baseUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, motDePasse: password }),
