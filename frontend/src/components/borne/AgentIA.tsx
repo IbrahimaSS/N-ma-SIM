@@ -235,7 +235,7 @@ export function AgentIA({
 
     recognition.onstart = () => setIsListening(true);
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: any) => {
       if (isSpeakingRef.current) return; // Ne pas s'écouter parler !
       const transcript = event.results[0][0].transcript;
       sendMessage(transcript, false);
