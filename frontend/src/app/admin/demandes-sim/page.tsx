@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { Search, SlidersHorizontal, Eye, Loader2, RefreshCcw } from "lucide-react";
 
-const BACKEND = "http://localhost:3001";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function getToken(): string | null {

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, RefreshCcw, AlertTriangle, Search, Plus, MonitorSmartphone, Settings, Power, Lock, UserCog, Signal, SignalHigh, WifiOff, Wrench, X, CheckCircle2, MapPin, Key, Copy } from "lucide-react";
 
-const BACKEND = "http://localhost:3001";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;

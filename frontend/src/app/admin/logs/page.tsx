@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, Calendar, FileText, User, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import "../admin-responsive.css";
 
-const BACKEND = "http://localhost:3001";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;

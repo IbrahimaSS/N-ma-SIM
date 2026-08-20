@@ -46,7 +46,7 @@ export function AdminSidebar() {
         const headers: any = { "Content-Type": "application/json" };
         if (token) headers.Authorization = `Bearer ${JSON.parse(token).token}`;
         
-        const res = await fetch("http://localhost:3001/api/parametres", { headers });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001"}/api/parametres`, { headers });
         if (res.ok) {
           const data = await res.json();
           if (data.data && data.data["Nom de l'organisation"]) {

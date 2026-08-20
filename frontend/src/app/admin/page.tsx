@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import "./admin-responsive.css";
 
-const BACKEND = "http://localhost:3001";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function getToken(): string | null {

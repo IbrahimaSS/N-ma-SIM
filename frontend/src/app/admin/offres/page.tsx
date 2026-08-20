@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Edit2, Power, Tag, X, CheckCircle2, Loader2, RefreshCcw, AlertTriangle } from "lucide-react";
 
-const BACKEND = "http://localhost:3001";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;

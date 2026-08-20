@@ -40,7 +40,7 @@ function Modal({ isOpen, onClose, title, customUI, children }: any) {
   );
 }
 
-const BACKEND = "http://localhost:3001";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
 export default function Clients() {
   const token = getToken();
