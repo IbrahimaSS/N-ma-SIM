@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useRouter } from "next/navigation";
@@ -39,7 +39,6 @@ export default function Offres() {
       })
       .then((data) => {
         const list: OffreDB[] = data.data || data || [];
-        // On exclut les offres de type SIM (déjà incluse dans le prix de base)
         const filtered = list.filter(
           (o) => o.type !== "SIM" && o.type !== "SIM_STANDARD" && !o.nom.toLowerCase().includes("sim standard")
         );
@@ -52,6 +51,28 @@ export default function Offres() {
       })
       .finally(() => setIsLoading(false));
   }, []);
+
+  // Écoute les commandes de l'Agent IA
+  useEffect(() => {
+    const handleAiFill = (e: Event) => {
+      const { target, value } = (e as CustomEvent).detail;
+      // Sélectionner une offre par son nom (ex: "recharge")
+      if (target === "select-offre") {
+        const found = offres.find(o => o.nom.toLowerCase().includes(value.toLowerCase()));
+        if (found) setSelectedOffer(found.id);
+      }
+      // Appliquer un montant de recharge dans le panneau offres
+      if (target === "select-offre-montant") {
+        const montant = parseInt(value);
+        if (!isNaN(montant) && montant >= 1000) {
+          setRechargeMontant(montant);
+          setCustomMontant("");
+        }
+      }
+    };
+    document.addEventListener("ai-fill", handleAiFill);
+    return () => document.removeEventListener("ai-fill", handleAiFill);
+  }, [offres]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -270,6 +291,7 @@ export default function Offres() {
         </Button>
         {!showRechargePanel && (
           <Button
+            data-ai-action="btn-continuer-offres"
             onClick={handleContinue}
             disabled={!canContinue}
             size="lg"

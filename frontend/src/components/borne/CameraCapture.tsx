@@ -33,6 +33,7 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
   const [countdown, setCountdown] = useState<number | null>(null);
   const [captured, setCaptured] = useState(false);
   const [warmup, setWarmup] = useState(true); // délai mise au point caméra
+  const warmupRef = useRef(true); // Ref pour éviter le stale closure dans analyzeFrame
 
   // ─── Démarrer la caméra ───────────────────────────────────────────────────
   useEffect(() => {
@@ -53,7 +54,10 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
           videoRef.current.play();
         }
         // Délai de 2s pour la mise au point automatique de la webcam
-        setTimeout(() => setWarmup(false), 2000);
+        setTimeout(() => {
+          warmupRef.current = false; // ← Mettre à jour le REF (pas juste le state)
+          setWarmup(false);
+        }, 2000);
       })
       .catch(() => setCameraError("Caméra inaccessible. Vérifiez les autorisations."));
 
@@ -90,8 +94,8 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
 
     ctx.drawImage(video, 0, 0, W, H);
 
-    // Zone de détection (correspond exactement au guide visuel de 40% pour document, 40% pour selfie)
-    const zoneW = Math.floor(W * (mode === "document" ? 0.40 : 0.40));
+    // Zone de détection (correspond exactement au guide visuel de 55% pour document, 40% pour selfie)
+    const zoneW = Math.floor(W * (mode === "document" ? 0.55 : 0.40));
     const zoneH = Math.floor(zoneW / (mode === "document" ? 1.586 : 0.75));
     const zoneX = Math.floor((W - zoneW) / 2);
     const zoneY = Math.floor((H - zoneH) / 2);
@@ -110,7 +114,7 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
       }
     }
     const density = nonWhiteCount / totalPixels;
-    const hasObject = density > 0.60; // Il faut que l'objet remplisse bien le cadre
+    const hasObject = density > 0.35; // La pièce remplit partiellement le cadre
 
     // 2. Calcul de la stabilité (mouvement)
     let isStable = false;
@@ -125,14 +129,15 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
       }
       const avgMotion = motion / (totalPixels / 4);
       // Si avgMotion est faible, la carte ne bouge plus
-      isStable = avgMotion < 30; 
+      isStable = avgMotion < 60; // Tolérance plus grande pour les légères vibrations de main
     }
 
     // Mise à jour de la frame précédente pour le prochain calcul
     prevDataRef.current = new Uint8ClampedArray(data);
 
     // L'objet est "Détecté" seulement s'il est présent ET stabilisé ET hors warmup
-    setIsDetected(!warmup && hasObject && isStable);
+    // ⚠️ On utilise warmupRef.current (pas le state warmup) pour éviter le stale closure
+    setIsDetected(!warmupRef.current && hasObject && isStable);
 
     rafRef.current = requestAnimationFrame(analyzeFrame);
   }, [mode]);
@@ -183,23 +188,54 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
     const W = video.videoWidth;
     const H = video.videoHeight;
 
-    // On capture TOUTE l'image de la caméra (pleine résolution)
-    // Le cadre guide est uniquement visuel pour aider l'utilisateur à centrer.
-    // Envoyer l'image complète garantit une résolution suffisante pour l'OCR.
-    const canvas = document.createElement("canvas");
-    canvas.width = W;
-    canvas.height = H;
+    // ── Étape 1 : Capture de la frame complète ──────────────────────────────
+    const fullCanvas = document.createElement("canvas");
+    fullCanvas.width = W;
+    fullCanvas.height = H;
+    const fullCtx = fullCanvas.getContext("2d");
+    if (!fullCtx) return;
+    fullCtx.drawImage(video, 0, 0, W, H);
 
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      if (mode === "selfie") {
-        ctx.translate(W, 0);
-        ctx.scale(-1, 1);
-      }
-      ctx.drawImage(video, 0, 0, W, H);
+    // ── Étape 2 : Recadrage sur la zone du guide (même coords que l'analyse) ─
+    // Guide document : 55% de large, centré, ratio 1.586:1 (carte ID ISO)
+    let cropX: number, cropY: number, cropW: number, cropH: number;
+
+    if (mode === "document") {
+      cropW = Math.floor(W * 0.55);
+      cropH = Math.floor(cropW / 1.586);
+      cropX = Math.floor((W - cropW) / 2);
+      cropY = Math.floor((H - cropH) / 2);
+    } else {
+      // Selfie : zone centrale 52% en ovale → on crop un carré centré
+      cropW = Math.floor(W * 0.52);
+      cropH = Math.floor(cropW / 0.75);
+      cropX = Math.floor((W - cropW) / 2);
+      cropY = Math.floor((H - cropH) / 2);
     }
 
-    canvas.toBlob((blob) => {
+    // ── Étape 3 : Upscale du recadrage → qualité OCR maximale ───────────────
+    const OUT_W = mode === "document" ? 1600 : 800;
+    const OUT_H = Math.floor(OUT_W / (mode === "document" ? 1.586 : 0.75));
+
+    const croppedCanvas = document.createElement("canvas");
+    croppedCanvas.width = OUT_W;
+    croppedCanvas.height = OUT_H;
+    const croppedCtx = croppedCanvas.getContext("2d");
+    if (!croppedCtx) return;
+
+    if (mode === "selfie") {
+      // Miroir horizontal pour le selfie
+      croppedCtx.translate(OUT_W, 0);
+      croppedCtx.scale(-1, 1);
+    }
+
+    croppedCtx.drawImage(
+      fullCanvas,
+      cropX, cropY, cropW, cropH,   // source : zone guide
+      0, 0, OUT_W, OUT_H            // destination : canvas upscalé
+    );
+
+    croppedCanvas.toBlob((blob) => {
       if (!blob) return;
       const filename = mode === "selfie" ? "selfie_capture.jpg" : "document_capture.jpg";
       const file = new File([blob], filename, { type: "image/jpeg" });
@@ -207,6 +243,8 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
       onCapture(file);
     }, "image/jpeg", 0.97);
   }, [captured, mode, onCapture, stop]);
+
+
 
   // ─── Styles du guide ─────────────────────────────────────────────────────
   const guideColor = isDetected ? "#22c55e" : "#ef4444"; // success vert / danger rouge
@@ -262,7 +300,7 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
             /* Guide rectangulaire pour carte d'identité — ratio ISO 85.6×53.98mm ≈ 1.586:1 */
             <div
               style={{
-                width: "40%", // Cadre encore plus petit pour forcer l'éloignement et la mise au point
+                width: "55%", // Cadre plus grand pour faciliter le placement de la pièce
                 aspectRatio: "1.586",
                 border: `3px solid ${guideColor}`,
                 borderRadius: "12px",

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
@@ -156,6 +156,7 @@ export default function Paiement() {
                 Vous allez être redirigé vers la passerelle sécurisée Lengo Pay pour finaliser votre commande avec Orange Money, Mobile Money ou Carte Bancaire.
               </p>
               <Button 
+                data-ai-action="btn-confirmer-paiement"
                 size="lg" 
                 className="px-10 py-6 text-lg w-full max-w-sm shadow-md"
                 onClick={initLengoPay}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef } from "react";
@@ -147,6 +147,7 @@ export default function Selfie() {
           <div className="grid grid-cols-2 gap-4 mb-5">
             <button
               onClick={() => setCameraMode(true)}
+              data-ai-action="btn-selfie"
               className="flex items-center justify-center gap-4 p-4 min-h-[52px] border border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group bg-white shadow-sm"
             >
               <div className="p-3 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform">
