@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
@@ -82,6 +82,7 @@ export default function Services() {
         {services.map((service) => (
           <div
             key={service.id}
+            data-ai-action={`btn-${service.id}`}
             onClick={!service.disabled ? service.action : undefined}
             style={{
               background: "white",

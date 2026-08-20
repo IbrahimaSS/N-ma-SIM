@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useRouter } from "next/navigation";
@@ -211,6 +211,7 @@ export default function Accueil() {
 
         {/* Bouton principal */}
         <button
+          data-ai-action="btn-accepter"
           onClick={() => canStart && router.push("/borne/services")}
           style={{
             width: "100%", height: 58,

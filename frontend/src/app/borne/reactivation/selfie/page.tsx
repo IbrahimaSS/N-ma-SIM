@@ -91,7 +91,7 @@ export default function ReactivationSelfie() {
       <CardContent>
         {!hasSelfie && !cameraMode && (
           <div className="grid grid-cols-2 gap-4 mb-5">
-            <button onClick={() => setCameraMode(true)} className="flex items-center justify-center gap-4 p-4 min-h-[52px] border border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group bg-white shadow-sm">
+            <button data-ai-action="btn-selfie" onClick={() => setCameraMode(true)} className="flex items-center justify-center gap-4 p-4 min-h-[52px] border border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group bg-white shadow-sm">
               <div className="p-3 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform"><Camera className="w-6 h-6" /></div>
               <div className="flex flex-col items-start"><span className="font-bold text-primary">{t.takeSelfie}</span><span className="text-xs text-text-muted">{t.useCamera}</span></div>
             </button>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
@@ -29,6 +29,31 @@ export default function Identification() {
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+  }, []);
+
+  // Écoute les commandes de remplissage de l'Agent IA
+  useEffect(() => {
+    const handleAiFill = (e: Event) => {
+      const { target, value } = (e as CustomEvent).detail;
+      if (target === "input-reactivation-numero") {
+        setNumero(value);
+        setErrors((p) => ({ ...p, numero: "" }));
+      }
+      if (target === "select-reactivation-motif") {
+        setMotif(value);
+        setErrors((p) => ({ ...p, motif: "" }));
+      }
+      if (target === "input-reactivation-freq1") {
+        setFreq1(value);
+        setErrors((p) => ({ ...p, freq1: "" }));
+      }
+      if (target === "input-reactivation-freq2") {
+        setFreq2(value);
+        setErrors((p) => ({ ...p, freq2: "" }));
+      }
+    };
+    document.addEventListener("ai-fill", handleAiFill);
+    return () => document.removeEventListener("ai-fill", handleAiFill);
   }, []);
 
   const t = {
@@ -108,6 +133,7 @@ export default function Identification() {
             {/* Numéro à réactiver */}
             <div className="flex flex-col gap-1">
               <Input
+                data-ai-action="input-reactivation-numero"
                 label={t.numberLabel}
                 placeholder={t.numberPlaceholder}
                 value={numero}
@@ -125,6 +151,7 @@ export default function Identification() {
             {/* Motif */}
             <div className="flex flex-col gap-1">
               <Select
+                data-ai-action="select-reactivation-motif"
                 label={t.reasonLabel}
                 value={motif}
                 onChange={(e) => { setMotif(e.target.value); if (submitted) setErrors((p) => ({ ...p, motif: "" })); }}
@@ -155,6 +182,7 @@ export default function Identification() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <Input
+                  data-ai-action="input-reactivation-freq1"
                   label={t.freq1Label}
                   placeholder="Ex. : 623 76 54 32"
                   className={`bg-white ${errors.freq1 ? "border-red-400" : ""}`}
@@ -170,6 +198,7 @@ export default function Identification() {
               </div>
               <div className="flex flex-col gap-1">
                 <Input
+                  data-ai-action="input-reactivation-freq2"
                   label={t.freq2Label}
                   placeholder="Ex. : 620 11 22 33"
                   className={`bg-white ${errors.freq2 ? "border-red-400" : ""}`}
@@ -198,7 +227,7 @@ export default function Identification() {
             <Button variant="secondary" onClick={() => router.back()}>
               <ArrowLeft className="w-5 h-5 mr-2" /> {t.back}
             </Button>
-            <Button onClick={handleContinue} className="px-8">
+            <Button data-ai-action="btn-continuer-reactivation" onClick={handleContinue} className="px-8">
               {t.continue} <ChevronRight className="w-5 h-5 ml-2" />
             </Button>
           </div>

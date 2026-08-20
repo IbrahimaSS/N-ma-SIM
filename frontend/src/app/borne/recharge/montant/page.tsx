@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
@@ -17,6 +17,26 @@ export default function RechargeMontant() {
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+  }, []);
+
+  // Écoute les commandes de sélection de montant de l'Agent IA
+  useEffect(() => {
+    const handleAiFill = (e: Event) => {
+      const { target, value } = (e as CustomEvent).detail;
+      if (target === "select-recharge-montant") {
+        const montant = parseInt(value);
+        if (!isNaN(montant) && montant >= 1000) {
+          setSelected(montant);
+          setCustom("");
+        } else if (!isNaN(montant)) {
+          // Montant libre
+          setCustom(String(montant));
+          setSelected(null);
+        }
+      }
+    };
+    document.addEventListener("ai-fill", handleAiFill);
+    return () => document.removeEventListener("ai-fill", handleAiFill);
   }, []);
 
   const t = {
@@ -92,7 +112,11 @@ export default function RechargeMontant() {
           <Button variant="secondary" onClick={() => router.back()}>
             <ArrowLeft className="w-5 h-5 mr-2" /> {t.back}
           </Button>
-          <Button onClick={handleNext} disabled={!finalAmount || finalAmount < 1000}>
+          <Button
+            data-ai-action="btn-continuer-montant"
+            onClick={handleNext}
+            disabled={!finalAmount || finalAmount < 1000}
+          >
             {t.next} <ChevronRight className="w-5 h-5 ml-2" />
           </Button>
         </div>

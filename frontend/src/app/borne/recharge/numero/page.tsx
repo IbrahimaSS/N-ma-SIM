@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
@@ -16,6 +16,19 @@ export default function RechargeNumero() {
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+  }, []);
+
+  // Écoute les commandes de remplissage de l'Agent IA
+  useEffect(() => {
+    const handleAiFill = (e: Event) => {
+      const { target, value } = (e as CustomEvent).detail;
+      if (target === "input-recharge-numero") {
+        setNumero(value);
+        setError("");
+      }
+    };
+    document.addEventListener("ai-fill", handleAiFill);
+    return () => document.removeEventListener("ai-fill", handleAiFill);
   }, []);
 
   const t = {
@@ -51,6 +64,7 @@ export default function RechargeNumero() {
           </div>
           <div className="w-full max-w-sm">
             <Input
+              data-ai-action="input-recharge-numero"
               label={t.label}
               placeholder={t.placeholder}
               value={numero}
@@ -65,7 +79,11 @@ export default function RechargeNumero() {
           <Button variant="secondary" onClick={() => router.back()}>
             <ArrowLeft className="w-5 h-5 mr-2" /> {t.back}
           </Button>
-          <Button onClick={handleNext} disabled={!numero}>
+          <Button
+            data-ai-action="btn-continuer-recharge"
+            onClick={handleNext}
+            disabled={!numero}
+          >
             {t.next} <ChevronRight className="w-5 h-5 ml-2" />
           </Button>
         </div>

@@ -258,6 +258,7 @@ export default function PaiementReactivation() {
                 Vous allez être redirigé vers la passerelle sécurisée Lengo Pay pour finaliser votre paiement avec Orange Money, Mobile Money ou Carte Bancaire.
               </p>
               <Button 
+                data-ai-action="btn-confirmer-paiement"
                 size="lg" 
                 className="px-10 py-6 text-lg w-full max-w-sm shadow-md"
                 onClick={initLengoPay}

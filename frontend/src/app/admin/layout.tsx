@@ -3,6 +3,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useState, Suspense, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { AdminAgentIA } from "@/components/admin/AdminAgentIA";
 import "./admin-responsive.css";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setAuthorized(true);
     }
   }, [pathname, isLoginPage, router]);
+
+  useEffect(() => {
+    const handleAdminAction = (e: any) => {
+      if (e.detail?.action === "refresh") {
+        window.location.reload();
+      }
+    };
+    document.addEventListener("admin-ai-action", handleAdminAction);
+    return () => document.removeEventListener("admin-ai-action", handleAdminAction);
+  }, []);
 
   if (isLoginPage) {
     return <>{children}</>;
@@ -78,7 +89,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Suspense>
       </div>
 
-      {/* Main content */}
       <main
         className="admin-main"
         style={{
@@ -86,11 +96,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           marginLeft: 250,
           maxWidth: "calc(100vw - 250px)",
           padding: "32px 28px",
-          overflowX: "hidden"
+          overflowX: "hidden",
+          position: "relative"
         }}
       >
         {children}
       </main>
+
+      {/* Copilote IA Administrateur */}
+      <AdminAgentIA />
     </div>
   );
 }
