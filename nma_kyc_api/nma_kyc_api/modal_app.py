@@ -23,7 +23,7 @@ image = modal.Image.debian_slim(python_version="3.11").apt_install(
     "rapidfuzz==3.9.7"
 ).env({
     "FLAGS_use_mkldnn": "0" # Fix pour Paddle sur CPU
-}).add_local_dir("nma_kyc", remote_path="/root/nma_kyc")
+}).add_local_dir("nma_kyc", remote_path="/root/nma_kyc").add_local_file("app.py", remote_path="/root/app.py")
 
 # 3. Déploiement de l'API FastAPI
 @app.function(

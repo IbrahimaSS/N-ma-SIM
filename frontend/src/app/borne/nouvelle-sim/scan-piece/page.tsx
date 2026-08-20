@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef } from "react";
@@ -201,7 +201,7 @@ export default function ScanPiece() {
       if (docType) sessionStorage.setItem("kiosk_doc_type", docType);
 
       // Appel de l'API pour extraire les informations (sans selfie)
-      const result = await verifierKYC(rectoFile, null, versoFile ?? undefined);
+      const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       await saveKycResult(result);
 
       router.push("/borne/nouvelle-sim/confirmation-infos");

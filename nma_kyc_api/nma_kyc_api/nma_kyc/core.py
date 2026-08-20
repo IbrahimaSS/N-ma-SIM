@@ -1056,8 +1056,11 @@ def _ensure_ocr():
         extraire_zones = creer_moteur_ocr(MOTEUR_OCR, gpu=UTILISER_GPU)
     return extraire_zones
 
-def kyc_complet(chemin_recto, chemin_verso=None, chemin_selfie=None):
-    """Chaîne KYC complète -> rapport structuré."""
+def kyc_complet(chemin_recto, chemin_verso=None, chemin_selfie=None, type_force=None):
+    """Chaîne KYC complète -> rapport structuré.
+    type_force : 'CNI' | 'PASSEPORT' | 'CARTE_ELECTEUR' — type déclaré par l'utilisateur,
+                 prioritaire sur la détection automatique par OCR.
+    """
     _ensure_ocr()                                         # charge l'OCR au 1er appel
     # 1) Prétraitement + OCR du recto
     recto, qualite = pretraiter(chemin_recto)             # image + netteté brute
@@ -1066,12 +1069,14 @@ def kyc_complet(chemin_recto, chemin_verso=None, chemin_selfie=None):
     # 2) MRZ du recto (passeport) — sinon on la cherchera au verso (CNI)
     mrz = lire_mrz(extraire_lignes_mrz(zones_recto))
 
-    # 3) Identification du type (indice MRZ inclus)
-    type_piece, scores = identifier_type(zones_recto, mrz["type"] if mrz else None)
+    # 3) Identification du type — le type déclaré par l'utilisateur a PRIORITÉ sur l'OCR
+    if type_force:
+        type_piece = type_force
+        scores = {type_force: 100}
+    else:
+        type_piece, scores = identifier_type(zones_recto, mrz["type"] if mrz else None)
 
     # 3 bis) GATE QUALITÉ pour la Carte d'Électeur (pas de MRZ = qualité = seule garantie)
-    # Si l'image est trop floue, on renvoie REPRENDRE_PHOTO SANS tenter l'extraction
-    # (mieux vaut redemander une photo que d'extraire des données à moitié fausses).
     if type_piece == "CARTE_ELECTEUR" and qualite < SEUIL_NETTETE_ELECTEUR:
         return {"type_piece": type_piece, "qualite": round(qualite,1), "mrz": None,
                 "champs": {}, "face": {"verifie": None, "erreur": "Non évalué (photo à reprendre)"},
