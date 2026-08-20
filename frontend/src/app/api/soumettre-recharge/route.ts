@@ -110,9 +110,13 @@ export async function POST(request: Request) {
     }
 
     // ─── 5. Valider immédiatement (recharge = service immédiat) ──────────
+    // Le backend mettra aussi à jour le statut du client → VALIDE automatiquement
     await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-service": "kiosk-borne",
+      },
       body: JSON.stringify({ statut: "VALIDEE", traitePar: "borne" }),
     });
 
