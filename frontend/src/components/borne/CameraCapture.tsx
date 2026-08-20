@@ -206,9 +206,9 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
       cropX = Math.floor((W - cropW) / 2);
       cropY = Math.floor((H - cropH) / 2);
     } else {
-      // Selfie : zone centrale 52% en ovale → on crop un carré centré
-      cropW = Math.floor(W * 0.52);
-      cropH = Math.floor(cropW / 0.75);
+      // Selfie : on base la taille sur la hauteur pour ne pas déborder (paysage)
+      cropH = Math.floor(H * 0.80);
+      cropW = Math.floor(cropH * 0.75); // Ratio 3:4 portrait
       cropX = Math.floor((W - cropW) / 2);
       cropY = Math.floor((H - cropH) / 2);
     }
