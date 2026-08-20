@@ -654,7 +654,7 @@ def valeur_verso(zones, libelle, seuil=78, gap_rx=0.015):
     - Cas A : valeur COLLÉE au libellé ('Commune TOMBOLIA'). Cas B : valeur à droite, même ligne.
     - La MRZ est ignorée par son CONTENU (est_ligne_mrz)."""
     lib_n = norm(libelle)
-    tol_ry = _espacement_lignes(zones) * 0.6              # tolérance verticale adaptative
+    tol_ry = _espacement_lignes(zones) * 0.95             # tolérance verticale élargie (95% de l'espacement)
     for z in zones:                                       # on cherche le fragment-libellé
         if est_ligne_mrz(z["texte"]):                     # on saute la MRZ (par contenu)
             continue
@@ -667,7 +667,7 @@ def valeur_verso(zones, libelle, seuil=78, gap_rx=0.015):
             # Cas B : valeur sur la même ligne, à droite, ni libellé ni MRZ ni parasite
             cand = [a for a in zones
                     if not est_ligne_mrz(a["texte"])
-                    and abs(a["ry"] - z["ry"]) < tol_ry                          # même ligne (adaptatif)
+                    and abs(a["ry"] - z["ry"]) < tol_ry                          # même ligne (tolérance élargie)
                     and a["rx"] > z["rx"] + gap_rx                               # à droite (relatif)
                     and norm(a["texte"].split()[0]) not in MOTS_LIBELLE_VERSO    # pas un libellé
                     and not est_parasite(a["texte"])]                           # pas un en-tête/autorité
@@ -717,8 +717,8 @@ def extraire_champs(type_piece, zones_recto, zones_verso, champs_mrz):
             champs["lieu_naissance"] = valeur_verso(zones_verso, "LIEU DE NAISSANCE")
             champs["region"]         = valeur_verso(zones_verso, "REGION")
             champs["commune"]        = valeur_verso(zones_verso, "COMMUNE")
-            champs["quartier"]       = valeur_verso(zones_verso, "QUARTIER")
-            champs["secteur"]        = valeur_verso(zones_verso, "SECTEUR")
+            champs["quartier"]       = valeur_verso(zones_verso, "QUARTIER") or valeur_verso(zones_verso, "DISTRICT")
+            champs["secteur"]        = valeur_verso(zones_verso, "SECTEUR") or valeur_verso(zones_verso, "VILLAGE")
             mnin = PAT_NIN.search(joindre(zones_verso).replace(" ", ""))
             champs["nin"] = mnin.group() if mnin else None
     elif type_piece == "CARTE_ELECTEUR":                  # recto seul, pas de MRZ
