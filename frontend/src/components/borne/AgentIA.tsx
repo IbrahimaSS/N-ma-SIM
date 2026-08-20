@@ -100,7 +100,7 @@ export function AgentIA({
   // Références pour suivre les changements
   const prevStepRef = useRef(currentStep);
   const hasTriggeredInitial = useRef(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const keepListeningRef = useRef(false);
   const isSpeakingRef = useRef(false);
 
