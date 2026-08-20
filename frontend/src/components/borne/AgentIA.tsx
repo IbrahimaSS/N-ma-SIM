@@ -20,8 +20,8 @@ interface AgentAction {
 // Déclaration globale SpeechRecognition (API native navigateur)
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
   }
 }
 
