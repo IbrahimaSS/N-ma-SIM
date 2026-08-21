@@ -94,8 +94,11 @@ export default function Selfie() {
       // Sauvegarder le selfie dans IndexedDB
       await saveKycImage("kyc_selfie", selfieFile);
 
+      // Récupère le type de pièce sélectionné (important pour la carte d'électeur)
+      const docType = sessionStorage.getItem("kiosk_doc_type") || undefined;
+
       // Appeler l'API KYC
-      const result = await verifierKYC(recto, selfieFile, verso ?? undefined);
+      const result = await verifierKYC(recto, selfieFile, verso ?? undefined, docType);
       setKycResult(result);
 
       // Sauvegarder le résultat pour la page suivante

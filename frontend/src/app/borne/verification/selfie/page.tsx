@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef } from "react";
@@ -57,7 +57,8 @@ export default function VerificationSelfie() {
       if (!recto) { setKycError(t.noRecto); return; }
       const verso = await getKycImage("kyc_verso");
       await saveKycImage("kyc_selfie", selfieFile);
-      const result = await verifierKYC(recto, selfieFile, verso ?? undefined);
+      const docType = sessionStorage.getItem("kiosk_doc_type") || undefined;
+      const result = await verifierKYC(recto, selfieFile, verso ?? undefined, docType);
       setKycResult(result);
       await saveKycResult(result);
       // Naviguer vers la page résultat

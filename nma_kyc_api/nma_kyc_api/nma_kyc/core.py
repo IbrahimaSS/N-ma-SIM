@@ -33,7 +33,7 @@ UTILISER_GPU = False                                       # True pour EasyOCR/H
 # 👉 MOTEUR VISAGE : "insightface" (ArcFace, recommandé) ou "deepface"
 MOTEUR_VISAGE = "insightface"
 
-SEUIL_NETTETE_ELECTEUR = 200                               # carte d'électeur sous ce seuil -> REPRENDRE_PHOTO
+SEUIL_NETTETE_ELECTEUR = 80                                # carte d'électeur sous ce seuil -> REPRENDRE_PHOTO (abaissé : 200 rejetait les photos de borne lisibles)
 SEUIL_VISAGE = 0.35                                        # seuil de similarité ArcFace (>= = même personne)
 AGE_MINIMUM = 18                                           # âge minimum pour obtenir une SIM (ajuste selon l'ARPT)
 
@@ -739,7 +739,7 @@ def extraire_champs(type_piece, zones_recto, zones_verso, champs_mrz):
 
 from datetime import datetime                          # pour valider les dates
 
-AUJOURD_HUI = datetime(2026, 8, 8)                       # date de référence (adapte si besoin)
+AUJOURD_HUI = datetime.now()                             # date de référence dynamique (toujours aujourd'hui)
 
 def _valeur_origine(fragment, libelle):
     """Renvoie la valeur après le libellé, avec ou sans ':' (casse d'origine préservée)."""
