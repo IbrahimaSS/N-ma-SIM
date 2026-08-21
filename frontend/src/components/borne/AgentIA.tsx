@@ -84,6 +84,10 @@ export function AgentIA({
     else if (pathname.includes("/recharge/numero"))             { currentStep = "recharge-numero"; currentService = null; }
     else if (pathname.includes("/recharge/montant"))            { currentStep = "recharge-montant"; currentService = null; }
     else if (pathname.includes("/recharge/paiement"))           { currentStep = "paiement"; currentService = null; }
+    // Vérification de profil
+    else if (pathname.includes("/verification/resultat"))       { currentStep = "verification-resultat"; currentService = null; }
+    else if (pathname.includes("/verification/selfie"))         { currentStep = "verification-selfie"; currentService = null; }
+    else if (pathname.includes("/verification/scan-piece"))     { currentStep = "verification-scan-piece"; currentService = null; }
 
     currentLang = (sessionLang as "fr" | "en" | null) || currentLang || "fr";
     currentProfile = (sessionProfile as "resident" | "etranger" | null) || currentProfile || "resident";
@@ -378,8 +382,8 @@ export function AgentIA({
           title="Répéter le guide IA"
           style={{
             width: 72, height: 72, borderRadius: "50%",
-            background: orbColor,
-            backgroundSize: "200% 200%",
+            backgroundImage: typeof orbColor === 'string' && orbColor.startsWith('linear') ? orbColor : 'none',
+            backgroundColor: typeof orbColor === 'string' && !orbColor.startsWith('linear') ? orbColor : 'transparent',
             border: "none", cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: isMuted ? "none" : "0 8px 32px rgba(31,2,112,0.35)",
