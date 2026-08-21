@@ -33,7 +33,7 @@ UTILISER_GPU = False                                       # True pour EasyOCR/H
 # 👉 MOTEUR VISAGE : "insightface" (ArcFace, recommandé) ou "deepface"
 MOTEUR_VISAGE = "insightface"
 
-SEUIL_NETTETE_ELECTEUR = 200                               # carte d'électeur sous ce seuil -> REPRENDRE_PHOTO
+SEUIL_NETTETE_ELECTEUR = 80                                # carte d'électeur sous ce seuil -> REPRENDRE_PHOTO (abaissé : 200 rejetait les photos de borne lisibles)
 SEUIL_VISAGE = 0.35                                        # seuil de similarité ArcFace (>= = même personne)
 AGE_MINIMUM = 18                                           # âge minimum pour obtenir une SIM (ajuste selon l'ARPT)
 
@@ -654,7 +654,7 @@ def valeur_verso(zones, libelle, seuil=78, gap_rx=0.015):
     - Cas A : valeur COLLÉE au libellé ('Commune TOMBOLIA'). Cas B : valeur à droite, même ligne.
     - La MRZ est ignorée par son CONTENU (est_ligne_mrz)."""
     lib_n = norm(libelle)
-    tol_ry = _espacement_lignes(zones) * 0.6              # tolérance verticale adaptative
+    tol_ry = _espacement_lignes(zones) * 0.95             # tolérance verticale élargie (95% de l'espacement)
     for z in zones:                                       # on cherche le fragment-libellé
         if est_ligne_mrz(z["texte"]):                     # on saute la MRZ (par contenu)
             continue
@@ -667,7 +667,7 @@ def valeur_verso(zones, libelle, seuil=78, gap_rx=0.015):
             # Cas B : valeur sur la même ligne, à droite, ni libellé ni MRZ ni parasite
             cand = [a for a in zones
                     if not est_ligne_mrz(a["texte"])
-                    and abs(a["ry"] - z["ry"]) < tol_ry                          # même ligne (adaptatif)
+                    and abs(a["ry"] - z["ry"]) < tol_ry                          # même ligne (tolérance élargie)
                     and a["rx"] > z["rx"] + gap_rx                               # à droite (relatif)
                     and norm(a["texte"].split()[0]) not in MOTS_LIBELLE_VERSO    # pas un libellé
                     and not est_parasite(a["texte"])]                           # pas un en-tête/autorité
@@ -717,8 +717,8 @@ def extraire_champs(type_piece, zones_recto, zones_verso, champs_mrz):
             champs["lieu_naissance"] = valeur_verso(zones_verso, "LIEU DE NAISSANCE")
             champs["region"]         = valeur_verso(zones_verso, "REGION")
             champs["commune"]        = valeur_verso(zones_verso, "COMMUNE")
-            champs["quartier"]       = valeur_verso(zones_verso, "QUARTIER")
-            champs["secteur"]        = valeur_verso(zones_verso, "SECTEUR")
+            champs["quartier"]       = valeur_verso(zones_verso, "QUARTIER") or valeur_verso(zones_verso, "DISTRICT")
+            champs["secteur"]        = valeur_verso(zones_verso, "SECTEUR") or valeur_verso(zones_verso, "VILLAGE")
             mnin = PAT_NIN.search(joindre(zones_verso).replace(" ", ""))
             champs["nin"] = mnin.group() if mnin else None
     elif type_piece == "CARTE_ELECTEUR":                  # recto seul, pas de MRZ
@@ -739,7 +739,7 @@ def extraire_champs(type_piece, zones_recto, zones_verso, champs_mrz):
 
 from datetime import datetime                          # pour valider les dates
 
-AUJOURD_HUI = datetime(2026, 8, 8)                       # date de référence (adapte si besoin)
+AUJOURD_HUI = datetime.now()                             # date de référence dynamique (toujours aujourd'hui)
 
 def _valeur_origine(fragment, libelle):
     """Renvoie la valeur après le libellé, avec ou sans ':' (casse d'origine préservée)."""
@@ -1056,8 +1056,11 @@ def _ensure_ocr():
         extraire_zones = creer_moteur_ocr(MOTEUR_OCR, gpu=UTILISER_GPU)
     return extraire_zones
 
-def kyc_complet(chemin_recto, chemin_verso=None, chemin_selfie=None):
-    """Chaîne KYC complète -> rapport structuré."""
+def kyc_complet(chemin_recto, chemin_verso=None, chemin_selfie=None, type_force=None):
+    """Chaîne KYC complète -> rapport structuré.
+    type_force : 'CNI' | 'PASSEPORT' | 'CARTE_ELECTEUR' — type déclaré par l'utilisateur,
+                 prioritaire sur la détection automatique par OCR.
+    """
     _ensure_ocr()                                         # charge l'OCR au 1er appel
     # 1) Prétraitement + OCR du recto
     recto, qualite = pretraiter(chemin_recto)             # image + netteté brute
@@ -1066,12 +1069,14 @@ def kyc_complet(chemin_recto, chemin_verso=None, chemin_selfie=None):
     # 2) MRZ du recto (passeport) — sinon on la cherchera au verso (CNI)
     mrz = lire_mrz(extraire_lignes_mrz(zones_recto))
 
-    # 3) Identification du type (indice MRZ inclus)
-    type_piece, scores = identifier_type(zones_recto, mrz["type"] if mrz else None)
+    # 3) Identification du type — le type déclaré par l'utilisateur a PRIORITÉ sur l'OCR
+    if type_force:
+        type_piece = type_force
+        scores = {type_force: 100}
+    else:
+        type_piece, scores = identifier_type(zones_recto, mrz["type"] if mrz else None)
 
     # 3 bis) GATE QUALITÉ pour la Carte d'Électeur (pas de MRZ = qualité = seule garantie)
-    # Si l'image est trop floue, on renvoie REPRENDRE_PHOTO SANS tenter l'extraction
-    # (mieux vaut redemander une photo que d'extraire des données à moitié fausses).
     if type_piece == "CARTE_ELECTEUR" and qualite < SEUIL_NETTETE_ELECTEUR:
         return {"type_piece": type_piece, "qualite": round(qualite,1), "mrz": None,
                 "champs": {}, "face": {"verifie": None, "erreur": "Non évalué (photo à reprendre)"},

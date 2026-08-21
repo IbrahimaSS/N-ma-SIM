@@ -21,7 +21,8 @@ import type { KycReponse, KycError } from "@/types/kyc";
 export async function verifierKYC(
   recto: File | Blob,
   selfie?: File | Blob | null,
-  verso?: File | Blob | null
+  verso?: File | Blob | null,
+  docType?: string | null
 ): Promise<KycReponse> {
   const formData = new FormData();
 
@@ -34,6 +35,10 @@ export async function verifierKYC(
 
   if (verso) {
     formData.append("verso", verso, getFileName(verso, "verso.jpg"));
+  }
+
+  if (docType) {
+    formData.append("doc_type", docType);
   }
 
   let response: Response;

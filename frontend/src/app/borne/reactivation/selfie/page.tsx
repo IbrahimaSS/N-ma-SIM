@@ -65,8 +65,10 @@ export default function ReactivationSelfie() {
       if (!recto) { setKycError(t.noRecto); setIsAnalyzing(false); return; }
       const verso = await getKycImage("kyc_verso");
       await saveKycImage("kyc_selfie", selfieFile);
+      // Récupère le type de pièce sélectionné (important pour la carte d'électeur)
+      const docType = sessionStorage.getItem("kiosk_doc_type") || undefined;
       // Appel KYC complet avec selfie → comparaison visage/document
-      const result = await verifierKYC(recto, selfieFile, verso ?? undefined);
+      const result = await verifierKYC(recto, selfieFile, verso ?? undefined, docType);
       setKycResult(result);
       await saveKycResult(result);
       // → Aller à la page de vérification réactivation
@@ -78,6 +80,7 @@ export default function ReactivationSelfie() {
       setIsAnalyzing(false);
     }
   };
+
 
   const hasSelfie = !!selfieFile;
 
