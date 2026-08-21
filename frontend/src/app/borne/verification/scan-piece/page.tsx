@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef } from "react";
@@ -92,7 +92,7 @@ export default function VerificationScanPiece() {
       await saveKycImage("kyc_recto", rectoFile);
       if (versoFile) await saveKycImage("kyc_verso", versoFile);
       // Pré-analyse OCR sans selfie — le selfie sera capturé à l'étape suivante
-      const result = await verifierKYC(rectoFile, null, versoFile ?? undefined);
+      const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       await saveKycResult(result);
       router.push("/borne/verification/selfie");
     } catch {

@@ -116,7 +116,7 @@ export default function Accueil() {
             display: "flex", overflow: "hidden", border: "1px solid #E5E7EB"
           }}>
             {(["fr", "en"] as const).map((l) => (
-              <button key={l} onClick={() => setLang(l)} style={{
+              <button key={l} data-ai-action={`btn-lang-${l}`} onClick={() => setLang(l)} style={{
                 flex: 1, height: 50,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 fontWeight: 700, fontSize: 14,
@@ -141,7 +141,7 @@ export default function Accueil() {
               { key: "resident", label_fr: "Résident", label_en: "Resident", icon: <UserIcon size={16} /> },
               { key: "etranger", label_fr: "Étranger", label_en: "Foreigner", icon: <Briefcase size={16} /> },
             ] as const).map((p) => (
-              <button key={p.key} onClick={() => setProfile(p.key)} style={{
+              <button key={p.key} data-ai-action={`btn-profil-${p.key}`} onClick={() => setProfile(p.key)} style={{
                 flex: 1, height: 50,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 fontWeight: 700, fontSize: 14,

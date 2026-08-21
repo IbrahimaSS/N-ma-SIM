@@ -33,7 +33,7 @@ UTILISER_GPU = False                                       # True pour EasyOCR/H
 # 👉 MOTEUR VISAGE : "insightface" (ArcFace, recommandé) ou "deepface"
 MOTEUR_VISAGE = "insightface"
 
-SEUIL_NETTETE_ELECTEUR = 80                                # carte d'électeur sous ce seuil -> REPRENDRE_PHOTO (abaissé : 200 rejetait les photos de borne lisibles)
+SEUIL_NETTETE_ELECTEUR = 40                                # carte d'électeur sous ce seuil -> REPRENDRE_PHOTO (abaissé : 200 rejetait les photos de borne lisibles)
 SEUIL_VISAGE = 0.35                                        # seuil de similarité ArcFace (>= = même personne)
 AGE_MINIMUM = 18                                           # âge minimum pour obtenir une SIM (ajuste selon l'ARPT)
 
@@ -782,7 +782,8 @@ def extraire_electeur(zones):
     """On lit TOUT dans l'ordre ; pour chaque libellé on prend la valeur qui SUIT (en sautant
     les autres libellés/parasites). Aucune position -> robuste à l'angle. Les champs à format fixe
     (identifiant, dates, numéro) sont confirmés par MOTIF."""
-    seq = [z["texte"] for z in sorted(zones, key=lambda z: (z["ry"], z["rx"]))]
+    # Arrondir la position verticale (ry) par pas de 2% pour grouper les textes de la même ligne
+    seq = [z["texte"] for z in sorted(zones, key=lambda z: (round(z["ry"] / 0.02), z["rx"]))]
     champs = {}
     i = 0
     while i < len(seq):
