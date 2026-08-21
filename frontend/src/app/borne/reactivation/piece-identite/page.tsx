@@ -145,7 +145,7 @@ export default function ReactivationPieceIdentite() {
       // Appel KYC — extraction pièce uniquement (sans selfie à ce stade)
       // On NE sauvegarde PAS le résultat ici pour ne pas écraser celui du selfie.
       // On stocke seulement les champs extraits pour pré-remplissage.
-      const result = await verifierKYC(rectoFile, null, versoFile ?? undefined);
+      const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       if (result.champs) {
         sessionStorage.setItem("kyc_champs", JSON.stringify(result.champs));
       }
