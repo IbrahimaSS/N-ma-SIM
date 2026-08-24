@@ -75,6 +75,18 @@ Réponds brièvement et poliment.
       const msg = message.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
       if (/imprimer|impression|imprime/.test(msg)) {
+        if (/clients/.test(msg)) {
+          return NextResponse.json({ answer: "Je navigue vers les clients et lance l'impression.", action: { type: 'print', target: '/admin/clients' } });
+        }
+        if (/demandes/.test(msg)) {
+          return NextResponse.json({ answer: "Je navigue vers les demandes et lance l'impression.", action: { type: 'print', target: '/admin/demandes-sim' } });
+        }
+        if (/utilisateurs/.test(msg)) {
+          return NextResponse.json({ answer: "J'imprime la liste des utilisateurs.", action: { type: 'print', target: '/admin/utilisateurs' } });
+        }
+        if (/paiements/.test(msg)) {
+          return NextResponse.json({ answer: "J'imprime la liste des paiements.", action: { type: 'print', target: '/admin/paiements' } });
+        }
         return NextResponse.json({ answer: "Très bien, je lance l'impression de la page actuelle.", action: { type: 'print', target: '' } });
       }
       if (/rafraichir|actualiser|recharger/.test(msg)) {
