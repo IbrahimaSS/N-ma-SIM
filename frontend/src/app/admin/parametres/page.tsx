@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Settings, Shield, Bell, CreditCard, Box, FileText, Globe, PenTool as Tool, Check, Eye } from "lucide-react";
+import { Settings, Shield, Bell, CreditCard, Box, FileText, Globe, PenTool as Tool, Check, Eye, Download, Trash2, AlertTriangle, X, FileBarChart } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function Parametres() {
   const [activeTab, setActiveTab] = useState("Informations générales");
@@ -51,7 +53,15 @@ export default function Parametres() {
   
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("Modifications enregistrées avec succès !");
   const [loading, setLoading] = useState(true);
+  
+  // États spécifiques Backup & Wipe
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [showWipeModal, setShowWipeModal] = useState(false);
+  const [wipeConfirmText, setWipeConfirmText] = useState("");
+  const [isWiping, setIsWiping] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -101,12 +111,210 @@ export default function Parametres() {
         method: 'POST',
         body: JSON.stringify(settings)
       });
+      setToastMessage("Modifications enregistrées avec succès !");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
       console.error("Erreur sauvegarde", err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      // Pour forcer le téléchargement depuis l'API Route GET
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001"}/api/system/backup`;
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank"; // Ouvre au pire dans un nouvel onglet
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setToastMessage("Sauvegarde générée et téléchargée.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err) {
+      console.error("Erreur backup", err);
+      alert("Erreur lors de la sauvegarde.");
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
+
+  const handlePdfReport = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001"}/api/system/backup`);
+      const backupData = await res.json();
+      
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // En-tête
+      doc.setFillColor(31, 2, 112); // #1F0270
+      doc.rect(0, 0, pageWidth, 40, "F");
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text("N'ma SIM - Rapport d'Audit Système", 14, 25);
+      
+      // Infos générales
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Date de génération : ${new Date().toLocaleString('fr-FR')}`, 14, 55);
+      doc.text(`Environnement : Production`, 14, 62);
+      
+      // Statistiques
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Statistiques Globales", 14, 80);
+      
+      const clients = backupData.data?.clients || [];
+      const demandes = backupData.data?.demandes || [];
+      const paiements = backupData.data?.paiements || [];
+      const utilisateurs = backupData.data?.utilisateurs || [];
+      
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Total Clients : ${clients.length}`, 14, 90);
+      doc.text(`Total Demandes : ${demandes.length}`, 14, 96);
+      doc.text(`Total Paiements : ${paiements.length}`, 14, 102);
+      doc.text(`Total Comptes Admin : ${utilisateurs.length}`, 14, 108);
+      
+      // Tableau Demandes
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Dernières Demandes (Aperçu)", 14, 125);
+      
+      const demandesData = demandes.slice(0, 10).map((d: any) => [
+        d.numeroDossier,
+        d.type,
+        d.statut,
+        new Date(d.createdAt).toLocaleDateString('fr-FR')
+      ]);
+
+      autoTable(doc, {
+        startY: 130,
+        head: [['N° Dossier', 'Type', 'Statut', 'Date']],
+        body: demandesData,
+        theme: 'striped',
+        headStyles: { fillColor: [31, 2, 112] },
+        styles: { fontSize: 10 }
+      });
+      
+      // Tableau Paiements
+      const finalYDemandes = (doc as any).lastAutoTable.finalY || 130;
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Derniers Paiements", 14, finalYDemandes + 15);
+      
+      const paiementsData = paiements.slice(0, 10).map((p: any) => [
+        p.montant + " " + p.devise,
+        p.methodePaiement,
+        p.statut,
+        new Date(p.createdAt).toLocaleDateString('fr-FR')
+      ]);
+
+      autoTable(doc, {
+        startY: finalYDemandes + 20,
+        head: [['Montant', 'Méthode', 'Statut', 'Date']],
+        body: paiementsData,
+        theme: 'striped',
+        headStyles: { fillColor: [31, 2, 112] },
+        styles: { fontSize: 10 }
+      });
+
+      // Tableau Clients
+      const finalYPaiements = (doc as any).lastAutoTable.finalY || finalYDemandes + 40;
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Derniers Clients Inscrits", 14, finalYPaiements + 15);
+      
+      const clientsData = clients.slice(0, 10).map((c: any) => [
+        c.nom + " " + c.prenom,
+        c.telephone || "N/A",
+        c.typeClient,
+        new Date(c.createdAt).toLocaleDateString('fr-FR')
+      ]);
+
+      autoTable(doc, {
+        startY: finalYPaiements + 20,
+        head: [['Nom & Prénom', 'Téléphone', 'Type', 'Inscrit le']],
+        body: clientsData,
+        theme: 'striped',
+        headStyles: { fillColor: [31, 2, 112] },
+        styles: { fontSize: 10 }
+      });
+
+      // Tableau Utilisateurs
+      const finalYClients = (doc as any).lastAutoTable.finalY || finalYPaiements + 40;
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Comptes Administrateurs & Agents", 14, finalYClients + 15);
+      
+      const utilisateursData = utilisateurs.map((u: any) => [
+        u.nom,
+        u.email,
+        u.role,
+        u.statut
+      ]);
+
+      autoTable(doc, {
+        startY: finalYClients + 20,
+        head: [['Nom', 'Email', 'Rôle', 'Statut']],
+        body: utilisateursData,
+        theme: 'striped',
+        headStyles: { fillColor: [31, 2, 112] },
+        styles: { fontSize: 10 }
+      });
+      
+      // Pied de page
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text(`Rapport Généré par N'ma SIM - Page ${i}/${pageCount}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+      }
+      
+      doc.save(`Rapport_Systeme_NmaSIM_${new Date().toISOString().split('T')[0]}.pdf`);
+      setToastMessage("Rapport PDF généré avec succès !");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err) {
+      console.error("Erreur génération PDF", err);
+      alert("Erreur lors de la génération du rapport PDF.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleWipe = async () => {
+    if (wipeConfirmText !== "CONFIRMER") {
+      alert("Veuillez taper CONFIRMER en majuscules.");
+      return;
+    }
+    setIsWiping(true);
+    try {
+      const res = await apiFetch('/api/system/wipe', { method: 'POST' });
+      if (res.success) {
+        setShowWipeModal(false);
+        setWipeConfirmText("");
+        setToastMessage("Données supprimées avec succès.");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+      } else {
+        alert("Erreur : " + res.message);
+      }
+    } catch (err) {
+      console.error("Erreur wipe", err);
+      alert("Une erreur est survenue lors de la suppression.");
+    } finally {
+      setIsWiping(false);
     }
   };
 
@@ -139,7 +347,35 @@ export default function Parametres() {
       {showToast && (
         <div style={{ position: "fixed", bottom: 40, right: 40, background: "#10B981", color: "white", padding: "12px 24px", borderRadius: 8, display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 12px rgba(16,185,129,0.2)", zIndex: 1000, animation: "slideUp 0.3s ease-out" }}>
           <Check size={20} />
-          <span style={{ fontWeight: 600, fontSize: 14 }}>Modifications enregistrées avec succès !</span>
+          <span style={{ fontWeight: 600, fontSize: 14 }}>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Modal Wipe */}
+      {showWipeModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 450, padding: 32, boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#FEE2E2", color: "#DC2626", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <AlertTriangle size={24} />
+              </div>
+              <button onClick={() => setShowWipeModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B7280" }}><X size={24} /></button>
+            </div>
+            <h3 style={{ margin: "0 0 12px", fontSize: 18, color: "#111827", fontWeight: 700 }}>Supprimer toutes les données ?</h3>
+            <p style={{ margin: "0 0 24px", fontSize: 14, color: "#4B5563", lineHeight: 1.5 }}>
+              Cette action va <strong style={{ color: "#DC2626" }}>définitivement effacer</strong> tous les clients, toutes les demandes SIM, tous les paiements et tous les logs de transactions. Vos configurations (Bornes, Offres, Administrateurs) seront conservées.
+            </p>
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 8 }}>Veuillez taper <strong style={{ color: "#111827" }}>CONFIRMER</strong> pour valider :</label>
+              <input type="text" value={wipeConfirmText} onChange={e => setWipeConfirmText(e.target.value)} placeholder="CONFIRMER" style={{ width: "100%", padding: "12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, fontWeight: 600, textAlign: "center" }} />
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button onClick={() => setShowWipeModal(false)} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
+              <button onClick={handleWipe} disabled={wipeConfirmText !== "CONFIRMER" || isWiping} style={{ flex: 1, padding: "12px", borderRadius: 8, border: "none", background: "#DC2626", color: "white", fontWeight: 600, cursor: (wipeConfirmText !== "CONFIRMER" || isWiping) ? "not-allowed" : "pointer", opacity: (wipeConfirmText !== "CONFIRMER" || isWiping) ? 0.5 : 1 }}>
+                {isWiping ? "Suppression..." : "Supprimer"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -504,13 +740,38 @@ export default function Parametres() {
                   <ToggleSwitch active={settings["Auto Backup"]} onClick={() => handleToggle("Auto Backup")} />
                 </div>
               </div>
-              <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 16, border: "1px solid #EAECF5", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginBottom: 4 }}>Dernière sauvegarde réussie</div>
-                  <div style={{ fontSize: 12, color: "#10B981", fontWeight: 600 }}>Aujourd'hui, 03:00 AM (45.2 MB)</div>
+              <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 16, border: "1px solid #EAECF5", display: "flex", alignItems: "center", justifyItems: "center", gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginBottom: 4 }}>Rapport d'Audit (PDF)</div>
+                  <div style={{ fontSize: 12, color: "#6B7280" }}>Rapport synthétique et lisible de l'état du système.</div>
                 </div>
-                <button onClick={handleSave} disabled={isSaving} style={{ background: "white", color: "#4F46E5", border: "1px solid #E5E7EB", borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: isSaving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-                  {isSaving ? "Sauvegarde..." : "Créer une sauvegarde"}
+                <button onClick={handlePdfReport} disabled={isGeneratingPdf} style={{ background: "white", color: "#1F0270", border: "1px solid #E5E7EB", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: isGeneratingPdf ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s" }}>
+                  <FileBarChart size={16} /> {isGeneratingPdf ? "Génération..." : "Télécharger PDF"}
+                </button>
+              </div>
+              <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 16, border: "1px solid #EAECF5", display: "flex", alignItems: "center", justifyItems: "center", gap: 16, marginTop: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginBottom: 4 }}>Sauvegarde Technique Complète (JSON)</div>
+                  <div style={{ fontSize: 12, color: "#6B7280" }}>Toutes les données brutes. Nécessaire pour une restauration de secours.</div>
+                </div>
+                <button onClick={handleBackup} disabled={isBackingUp} style={{ background: "white", color: "#4F46E5", border: "1px solid #E5E7EB", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: isBackingUp ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s" }}>
+                  <Download size={16} /> {isBackingUp ? "Création..." : "Télécharger JSON"}
+                </button>
+              </div>
+            </div>
+            
+            {/* Zone de Danger (WIPE) */}
+            <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "#DC2626", fontWeight: 700 }}>Zone de Danger</h4>
+              </div>
+              <div style={{ background: "#FEF2F2", borderRadius: 12, padding: 16, border: "1px solid #FECACA", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#991B1B", marginBottom: 4 }}>Réinitialiser le système (Wipe)</div>
+                  <div style={{ fontSize: 12, color: "#B91C1C", maxWidth: 400 }}>Supprime définitivement toutes les transactions, paiements et dossiers clients (les offres et les accès admins seront conservés).</div>
+                </div>
+                <button onClick={() => setShowWipeModal(true)} style={{ background: "#DC2626", color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 2px 4px rgba(220,38,38,0.2)" }}>
+                  <Trash2 size={16} /> Vider la base
                 </button>
               </div>
             </div>
