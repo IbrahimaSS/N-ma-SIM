@@ -38,6 +38,7 @@ const AUDIO_MAP: Record<string, string> = {
   'nouvelle-sim:selfie':                `${BASE}/nouvelle_sim/Etape_3_1_Selfie_Scan.wav`,
   'nouvelle-sim:selfie-erreur':         `${BASE}/nouvelle_sim/Etape_3_2_erreur_lors_verification_visage.wav`,
   'nouvelle-sim:choix-offre':           `${BASE}/nouvelle_sim/Etape_4_choix_recharge_direct_facultatives.wav`,
+  'nouvelle-sim:choix-montant':         `${BASE}/nouvelle_sim/Etape_4_1_choix_montant_recharge.m4a`,
   'nouvelle-sim:paiement':              `${BASE}/nouvelle_sim/Etape_5_Choix_de_moyen_paiement.wav`,
   'nouvelle-sim:paiement-om-confirm':   `${BASE}/nouvelle_sim/Etape_6_Confirmation_de_paiement_via_OM.wav`,
   'nouvelle-sim:recu':                  `${BASE}/nouvelle_sim/Etape_7_Recuperation_de_recu.wav`,
