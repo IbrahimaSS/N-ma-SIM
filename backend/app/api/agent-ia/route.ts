@@ -49,6 +49,14 @@ export async function POST(request: NextRequest) {
       message = ''
     } = body;
 
+    // ══════════════════════════════════════════════════════════════════
+    // SOUSSOU : l'audio WAV est joué côté frontend — Groq ne parle pas Soussou.
+    // On retourne immédiatement sans appeler le LLM.
+    // ══════════════════════════════════════════════════════════════════
+    if (language === 'sus') {
+      return NextResponse.json({ answer: '', action: { type: 'none', target: '' } });
+    }
+
     const isFr = language !== 'en';
     const msg = normalize(message);
     const hasMessage = msg.length > 0;

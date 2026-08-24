@@ -9,6 +9,15 @@ import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, L
 import { CameraCapture } from "@/components/borne/CameraCapture";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
+import { jouerSoussou } from "@/lib/soussou-audio";
+
+// Helper pour déclencher l'audio Soussou uniquement
+function direInstructions(lang: string, type: "recto" | "verso", service: "nouvelle-sim" | "reactivation") {
+  if (lang === "sus") {
+    // Dans le dossier, la réactivation utilise "piece-identite-recto"
+    jouerSoussou(type === "recto" ? "piece-identite-recto" : "piece-identite-verso", service);
+  }
+}
 
 type DocType = "cni" | "passeport" | "carte_electeur" | null;
 type CameraTarget = "recto" | "verso";
@@ -122,8 +131,21 @@ export default function ReactivationPieceIdentite() {
     canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
     canvas.toBlob((blob) => {
       if (!blob) return;
-      if (cameraTarget === "recto") { const file = new File([blob], "recto_capture.jpg", { type: "image/jpeg" }); if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl); setRectoFile(file); setRectoPreviewUrl(URL.createObjectURL(file)); }
-      else { const file = new File([blob], "verso_capture.jpg", { type: "image/jpeg" }); if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl); setVersoFile(file); setVersoPreviewUrl(URL.createObjectURL(file)); }
+      if (cameraTarget === "recto") { 
+        const file = new File([blob], "recto_capture.jpg", { type: "image/jpeg" }); 
+        if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl); 
+        setRectoFile(file); 
+        setRectoPreviewUrl(URL.createObjectURL(file)); 
+        // Demander le verso si nécessaire
+        if (docType === "cni" || docType === "passeport") {
+          setTimeout(() => direInstructions(lang, "verso", "reactivation"), 500);
+        }
+      } else { 
+        const file = new File([blob], "verso_capture.jpg", { type: "image/jpeg" }); 
+        if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl); 
+        setVersoFile(file); 
+        setVersoPreviewUrl(URL.createObjectURL(file)); 
+      }
       setSaveError(null); stopCamera();
     }, "image/jpeg", 0.92);
   };
@@ -133,6 +155,7 @@ export default function ReactivationPieceIdentite() {
     if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
     if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
     setRectoFile(null); setRectoPreviewUrl(null); setVersoFile(null); setVersoPreviewUrl(null); setSaveError(null);
+    direInstructions(lang, "recto", "reactivation");
   };
 
   const handleContinue = async () => {

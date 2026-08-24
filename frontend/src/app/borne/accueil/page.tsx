@@ -11,7 +11,7 @@ import {
 export default function Accueil() {
   const router = useRouter();
   const [accepted, setAccepted] = useState(false);
-  const [lang, setLang] = useState<"fr" | "en" | null>("fr");
+  const [lang, setLang] = useState<"fr" | "en" | "sus">("fr");
   const [profile, setProfile] = useState<"resident" | "etranger" | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -110,26 +110,68 @@ export default function Accueil() {
             SÉLECTEURS LANGUE ET PROFIL
         ============================================= */}
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
-          {/* Langue */}
+          {/* Langue — 3 options : Français | English | Soussou */}
           <div style={{
             width: "100%", background: "#F9FAFB", borderRadius: 16,
             display: "flex", overflow: "hidden", border: "1px solid #E5E7EB"
           }}>
-            {(["fr", "en"] as const).map((l) => (
-              <button key={l} data-ai-action={`btn-lang-${l}`} onClick={() => setLang(l)} style={{
-                flex: 1, height: 50,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                fontWeight: 700, fontSize: 14,
-                color: lang === l ? "#1F0270" : "#9CA3AF",
-                background: lang === l ? "rgba(31,2,112,0.05)" : "transparent", 
-                border: "none",
-                borderBottom: lang === l ? "3px solid #1F0270" : "3px solid transparent",
-                cursor: "pointer", transition: "all 0.2s",
+            {/* Français */}
+            <button data-ai-action="btn-lang-fr" onClick={() => setLang("fr")} style={{
+              flex: 1, height: 54,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              fontWeight: 700, fontSize: 13,
+              color: lang === "fr" ? "#1F0270" : "#9CA3AF",
+              background: lang === "fr" ? "rgba(31,2,112,0.05)" : "transparent",
+              border: "none",
+              borderBottom: lang === "fr" ? "3px solid #1F0270" : "3px solid transparent",
+              cursor: "pointer", transition: "all 0.2s",
+            }}>
+              <span style={{ fontSize: 20 }}>🇫🇷</span>
+              Français
+            </button>
+
+            {/* English */}
+            <button data-ai-action="btn-lang-en" onClick={() => setLang("en")} style={{
+              flex: 1, height: 54,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              fontWeight: 700, fontSize: 13,
+              color: lang === "en" ? "#1F0270" : "#9CA3AF",
+              background: lang === "en" ? "rgba(31,2,112,0.05)" : "transparent",
+              border: "none",
+              borderLeft: "1px solid #E5E7EB",
+              borderBottom: lang === "en" ? "3px solid #1F0270" : "3px solid transparent",
+              cursor: "pointer", transition: "all 0.2s",
+            }}>
+              <span style={{ fontSize: 20 }}>🇬🇧</span>
+              English
+            </button>
+
+            {/* Soussou */}
+            <button data-ai-action="btn-lang-sus" onClick={() => setLang("sus")} style={{
+              flex: 1, height: 54,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              fontWeight: 700, fontSize: 13,
+              color: lang === "sus" ? "#1F6B2D" : "#9CA3AF",
+              background: lang === "sus" ? "rgba(31,107,45,0.07)" : "transparent",
+              border: "none",
+              borderLeft: "1px solid #E5E7EB",
+              borderBottom: lang === "sus" ? "3px solid #1F6B2D" : "3px solid transparent",
+              cursor: "pointer", transition: "all 0.2s",
+            }}>
+              {/* Icône Soussou — drapeau Guinée + badge SUS */}
+              <span style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                width: 28, height: 28, borderRadius: "50%",
+                background: "linear-gradient(135deg, #CE1126 33%, #FCD116 33% 66%, #009A44 66%)",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+                fontSize: 9, fontWeight: 900, color: "white",
+                letterSpacing: 0, flexShrink: 0,
+                textShadow: "0 1px 2px rgba(0,0,0,0.5)"
               }}>
-                <Globe size={16} color={lang === l ? "#1F0270" : "#9CA3AF"} />
-                {l === "fr" ? "Français" : "English"}
-              </button>
-            ))}
+                SUS
+              </span>
+              Soussou
+            </button>
           </div>
 
           {/* Profil */}

@@ -1,0 +1,22 @@
+N'ma SIM — Paquet vocal pour l'intégration (langue : soussou)
+==============================================================
+
+CONTENU :
+  Guide_Vocal_Integration_NmaSIM.pdf   -> à lire en premier (PDF)
+  Guide_Vocal_Integration_NmaSIM.docx  -> même guide, modifiable
+  audio/sus/                           -> les fichiers audio soussou (WAV mono 16 kHz)
+      commun/        Choix_Service.wav
+      nouvelle_sim/  Etape_1_... à Etape_8_...
+      reactivation/  Etape_1_1_... à Etape_7_...
+
+EN BREF :
+  - Le son doit sortir côté navigateur (frontend), pas côté serveur.
+  - Français  -> API Grok (déjà en place).
+  - Soussou   -> jouer les fichiers audio de ce paquet (Grok ne fait pas le soussou).
+  - Une seule fonction parler(service, etape, texte) qui choisit selon la langue.
+  - Voir le guide pour le tableau étape -> fichier et le code d'aiguillage.
+
+ENCORE À VENIR (enregistrements) :
+  - Accueil : bienvenue, choix de la langue (dossier commun)
+  - Services Recharge et Vérification
+  - Autres langues (même structure : audio/<langue>/...)
