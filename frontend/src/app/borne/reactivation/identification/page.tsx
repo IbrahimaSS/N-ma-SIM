@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Phone, ChevronRight, ArrowLeft, User as UserIcon, Info, AlertCircle } from "lucide-react";
+import { jouerSoussou } from "@/lib/soussou-audio";
 
 function isValidGuineanNumber(num: string) {
   return /^\d{9}$/.test(num.replace(/\s/g, ""));
@@ -26,6 +27,9 @@ export default function Identification() {
   // Erreurs & état de soumission
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+
+  // Pour ne jouer l'audio qu'une seule fois par section
+  const [audioPlayed, setAudioPlayed] = useState({ numero: false, motif: false, freq: false });
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
@@ -137,6 +141,12 @@ export default function Identification() {
                 label={t.numberLabel}
                 placeholder={t.numberPlaceholder}
                 value={numero}
+                onFocus={() => {
+                  if (lang === "sus" && !audioPlayed.numero) {
+                    jouerSoussou("numero-reactivation-numero", "reactivation");
+                    setAudioPlayed(p => ({ ...p, numero: true }));
+                  }
+                }}
                 onChange={(e) => { setNumero(e.target.value); if (submitted) setErrors((p) => ({ ...p, numero: "" })); }}
                 type="tel"
                 className={errors.numero ? "border-red-400" : ""}
@@ -154,7 +164,16 @@ export default function Identification() {
                 data-ai-action="select-reactivation-motif"
                 label={t.reasonLabel}
                 value={motif}
-                onChange={(e) => { setMotif(e.target.value); if (submitted) setErrors((p) => ({ ...p, motif: "" })); }}
+                onFocus={() => {
+                  if (lang === "sus" && !audioPlayed.motif) {
+                    jouerSoussou("numero-reactivation-motif", "reactivation");
+                    setAudioPlayed(p => ({ ...p, motif: true }));
+                  }
+                }}
+                onChange={(e) => {
+                  setMotif(e.target.value);
+                  if (submitted) setErrors((p) => ({ ...p, motif: "" }));
+                }}
                 className={errors.motif ? "border-red-400" : ""}
               >
                 <option value="" disabled>{t.selectReason}</option>
@@ -187,6 +206,12 @@ export default function Identification() {
                   placeholder="Ex. : 623 76 54 32"
                   className={`bg-white ${errors.freq1 ? "border-red-400" : ""}`}
                   value={freq1}
+                  onFocus={() => {
+                    if (lang === "sus" && !audioPlayed.freq) {
+                      jouerSoussou("numero-reactivation-freq", "reactivation");
+                      setAudioPlayed(p => ({ ...p, freq: true }));
+                    }
+                  }}
                   onChange={(e) => { setFreq1(e.target.value); if (submitted) setErrors((p) => ({ ...p, freq1: "" })); }}
                   type="tel"
                 />

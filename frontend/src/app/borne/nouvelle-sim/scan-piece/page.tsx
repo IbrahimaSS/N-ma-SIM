@@ -9,6 +9,14 @@ import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, L
 import { CameraCapture } from "@/components/borne/CameraCapture";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
+import { jouerSoussou } from "@/lib/soussou-audio";
+
+// Helper pour déclencher l'audio Soussou uniquement
+function direInstructions(lang: string, type: "recto" | "verso", service: "nouvelle-sim" | "reactivation") {
+  if (lang === "sus") {
+    jouerSoussou(`scan-${type}`, service);
+  }
+}
 
 type DocType = "cni" | "passeport" | "carte_electeur" | null;
 type CameraTarget = "recto" | "verso";
@@ -165,6 +173,10 @@ export default function ScanPiece() {
         if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
         setRectoFile(file);
         setRectoPreviewUrl(URL.createObjectURL(file));
+        // Demander le verso si nécessaire
+        if (docType === "cni" || docType === "passeport") {
+          setTimeout(() => direInstructions(lang, "verso", "nouvelle-sim"), 500);
+        }
       } else {
         const file = new File([blob], "verso_capture.jpg", { type: "image/jpeg" });
         if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
@@ -186,6 +198,8 @@ export default function ScanPiece() {
     setVersoFile(null);
     setVersoPreviewUrl(null);
     setSaveError(null);
+    // Déclenche l'instruction vocale
+    direInstructions(lang, "recto", "nouvelle-sim");
   };
 
   /** Sauvegarde dans IndexedDB puis navigation */

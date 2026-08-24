@@ -2,9 +2,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Bot, Mic, MicOff, VolumeX, Volume2 } from "lucide-react";
+import { jouerSoussou } from "@/lib/soussou-audio";
 
 interface AgentIAProps {
-  language?: "fr" | "en" | null;
+  language?: "fr" | "en" | "sus" | null;
   profile?: "resident" | "etranger" | null;
   termsAccepted?: boolean;
   service?: "nouvelle-sim" | "reactivation" | null;
@@ -40,18 +41,15 @@ export function AgentIA({
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [sessionLang, setSessionLang] = useState<string | null>(null);
-  const [sessionProfile, setSessionProfile] = useState<string | null>(null);
+
+  // Lecture SYNCHRONE du sessionStorage — pas de useState async qui arrive trop tard
+  // typeof window !== 'undefined' : garde pour le rendu SSR de Next.js
+  const sessionLang    = typeof window !== 'undefined' ? sessionStorage.getItem("kiosk_lang")    : null;
+  const sessionProfile = typeof window !== 'undefined' ? sessionStorage.getItem("kiosk_profile") : null;
 
   // Bulle de dialogue
   const [bubble, setBubble] = useState<{ user?: string; ai?: string } | null>(null);
   const bubbleTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Mettre à jour la session globale à chaque changement de page
-  useEffect(() => {
-    setSessionLang(sessionStorage.getItem("kiosk_lang"));
-    setSessionProfile(sessionStorage.getItem("kiosk_profile"));
-  }, [pathname]);
 
   // Déduire l'étape et le service d'après l'URL
   let currentStep = step;
@@ -89,7 +87,7 @@ export function AgentIA({
     else if (pathname.includes("/verification/selfie"))         { currentStep = "verification-selfie"; currentService = null; }
     else if (pathname.includes("/verification/scan-piece"))     { currentStep = "verification-scan-piece"; currentService = null; }
 
-    currentLang = (sessionLang as "fr" | "en" | null) || currentLang || "fr";
+    currentLang = (sessionLang as "fr" | "en" | "sus" | null) || currentLang || "fr";
     currentProfile = (sessionProfile as "resident" | "etranger" | null) || currentProfile || "resident";
 
     const postTermsSteps = ["choix-service", "scan-piece", "confirmation-infos", "selfie",
@@ -115,12 +113,20 @@ export function AgentIA({
     bubbleTimerRef.current = setTimeout(() => setBubble(null), 6000);
   }, []);
 
-  // ─── Synthèse vocale ────────────────────────────────────────────────────────
+  // ─── Synthèse vocale + Audio Soussou ────────────────────────────────────────────
   const speak = useCallback((text: string, lang: string) => {
-    if (isMuted || !window.speechSynthesis) return;
+    if (isMuted) return;
+
+    // ═ Soussou : jouer le fichier WAV correspondant à l'étape ═
+    if (lang === 'sus') {
+      jouerSoussou(currentStep, currentService);
+      return;
+    }
+
+    // ═ Français / Anglais : synthèse vocale navigateur ═
+    if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     
-    // Léger délai pour éviter les superpositions sur certains navigateurs (bug Chrome)
     setTimeout(() => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang === "en" ? "en-US" : "fr-FR";
@@ -133,7 +139,7 @@ export function AgentIA({
 
       window.speechSynthesis.speak(utterance);
     }, 50);
-  }, [isMuted]);
+  }, [isMuted, currentStep, currentService]);
 
   // ─── Exécuter une action retournée par Groq ────────────────────────────────────
   const executeAction = useCallback((action: AgentAction) => {
@@ -164,6 +170,13 @@ export function AgentIA({
 
   // ─── Envoi du message au backend Groq ──────────────────────────────────────
   const sendMessage = useCallback(async (userText: string, isInitial = false) => {
+
+    // ══ SOUSSOU : pas de Groq, pas de bulle — juste le WAV ══
+    if (currentLang === 'sus') {
+      jouerSoussou(currentStep, currentService);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
