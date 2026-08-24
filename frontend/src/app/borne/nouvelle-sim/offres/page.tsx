@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Microchip, Smartphone, Banknote, ChevronRight, ArrowLeft, CheckCircle2, Loader2, AlertCircle, ShoppingCart } from "lucide-react";
+import { jouerSoussou } from "@/lib/soussou-audio";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 const PRIX_NOUVELLE_SIM = 10000; // Prix fixe de la carte SIM
@@ -30,8 +31,11 @@ export default function Offres() {
   // État spécifique pour le panneau Recharge
   const [rechargeMontant, setRechargeMontant] = useState<number | null>(null);
   const [customMontant, setCustomMontant] = useState<string>("");
+  const [lang, setLang] = useState("fr");
 
   useEffect(() => {
+    setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+    
     fetch(`${BACKEND_URL}/api/offres`)
       .then((res) => {
         if (!res.ok) throw new Error("Erreur réseau");
@@ -185,6 +189,8 @@ export default function Offres() {
                     if (offer.type !== "RECHARGE") {
                       setRechargeMontant(null);
                       setCustomMontant("");
+                    } else if (lang === "sus") {
+                      jouerSoussou("choix-montant", "nouvelle-sim");
                     }
                   }
                 }}
