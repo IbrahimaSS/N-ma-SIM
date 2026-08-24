@@ -96,7 +96,7 @@ export default function Clients() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+      <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Clients</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Base clients et profils</p>
@@ -121,7 +121,7 @@ export default function Clients() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+      <div className="print:hidden" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { label: "Total clients", value: stats.total.toString(), subColor: "#D97706" },
           { label: "Résidents", value: stats.residents.toString(), subColor: "#059669" },
@@ -137,7 +137,7 @@ export default function Clients() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
         {/* Table */}
-        <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden" }}>
+        <div style={{ background: "white", borderRadius: 16, border: "1px solid #EAECF5", overflow: "hidden" }} className="print:border-none print:shadow-none print:overflow-visible">
           
           {isLoading ? (
             <div className="flex flex-col items-center justify-center p-12">
@@ -153,9 +153,10 @@ export default function Clients() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
-                    {["Client", "Type", "Type de pièce", "Numéro de pièce", "Téléphone", "Statut", "Inscrit le", "Action"].map(h => (
+                    {["Client", "Type", "Type de pièce", "Numéro de pièce", "Téléphone", "Statut", "Inscrit le"].map(h => (
                       <th key={h} style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                     ))}
+                    <th className="print:hidden" style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -184,7 +185,7 @@ export default function Clients() {
                         </span>
                       </td>
                       <td style={{ padding: "13px 12px", fontSize: 12, color: "#9CA3AF" }}>{new Date(c.createdAt).toLocaleDateString('fr-FR')}</td>
-                      <td style={{ padding: "13px 12px" }}>
+                      <td className="print:hidden" style={{ padding: "13px 12px" }}>
                         <button onClick={() => setSelectedModalClient(c)} style={{ background: "#EEF2FF", border: "none", borderRadius: 8, padding: "7px 10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "#E0E7FF"} onMouseOut={e => e.currentTarget.style.background = "#EEF2FF"}>
                           <Eye size={15} style={{ color: "#4F46E5" }} />
                         </button>
@@ -193,7 +194,7 @@ export default function Clients() {
                   ))}
                 </tbody>
               </table>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
+              <div className="print:hidden" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
                 <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {clients.length} sur {stats.total} clients</span>
               </div>
             </>

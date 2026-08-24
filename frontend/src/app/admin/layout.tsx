@@ -83,14 +83,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </button>
 
       {/* Sidebar */}
-      <div className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+      <div className={`admin-sidebar print:hidden ${sidebarOpen ? "open" : ""}`}>
         <Suspense fallback={<div style={{ width: 220, background: "#1F0270", minHeight: "100vh" }} />}>
           <AdminSidebar />
         </Suspense>
       </div>
 
       <main
-        className="admin-main"
+        className="admin-main print:!m-0 print:!p-0 print:!max-w-full print:!w-full print:!bg-white"
         style={{
           flex: 1,
           marginLeft: 250,
@@ -104,7 +104,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </main>
 
       {/* Copilote IA Administrateur */}
-      <AdminAgentIA />
+      <div className="print:hidden">
+        <AdminAgentIA />
+      </div>
     </div>
   );
 }
