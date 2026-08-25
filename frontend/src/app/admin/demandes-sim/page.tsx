@@ -126,7 +126,7 @@ function DemandesContent() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+      <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Demandes SIM</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Dashboard administrateur</p>
@@ -146,7 +146,7 @@ function DemandesContent() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
+      <div className="print:hidden" style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { label: "En attente de validation", value: stats?.demandes?.enAttente ?? "-", sub: "À traiter d'urgence", badge: "Priorité élevée", color: "#D97706" },
           { label: "Validées", value: stats?.demandes?.validees ?? "-", sub: "Ce mois", color: "#059669" },
@@ -163,7 +163,7 @@ function DemandesContent() {
       </div>
 
       {/* Table */}
-      <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden" }}>
+      <div style={{ background: "white", borderRadius: 16, border: "1px solid #EAECF5", overflow: "hidden" }} className="print:border-none print:shadow-none print:overflow-visible">
         {loading ? (
            <div style={{ padding: 40, display: "flex", justifyContent: "center" }}><Loader2 size={32} className="animate-spin" style={{ color: "#1F0270" }} /></div>
         ) : filtered.length === 0 ? (
@@ -172,9 +172,10 @@ function DemandesContent() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
-                {["Ticket", "Type de service", "Client", "Offre", "Paiement", "Score IA", "Statut demande", "Statut paiement", "Action"].map(h => (
+                {["Ticket", "Type de service", "Client", "Offre", "Paiement", "Score IA", "Statut demande", "Statut paiement"].map(h => (
                   <th key={h} style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                 ))}
+                <th className="print:hidden" style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -214,7 +215,7 @@ function DemandesContent() {
                   </td>
                   <td style={{ padding: "14px 12px" }}><StatutBadge statut={d.statut} /></td>
                   <td style={{ padding: "14px 12px" }}><PaiementBadge statut={(d.paiement?.statut || d.paiement?.[0]?.statut) || "EN_ATTENTE"} /></td>
-                  <td style={{ padding: "14px 12px" }}>
+                  <td className="print:hidden" style={{ padding: "14px 12px" }}>
                     <button
                       onClick={() => router.push(`/admin/demandes-sim/${d.id}`)}
                       style={{ background: "#EEF2FF", border: "none", borderRadius: 8, padding: "8px 10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
@@ -227,7 +228,7 @@ function DemandesContent() {
             </tbody>
           </table>
         )}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
+        <div className="print:hidden" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
           <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {filtered.length} sur {demandes.length} demandes</span>
         </div>
       </div>

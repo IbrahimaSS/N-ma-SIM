@@ -53,12 +53,22 @@ export function AdminAgentIA() {
     if (action.type === "navigate" && action.target) {
       setTimeout(() => router.push(action.target), 1000);
     } else if (action.type === "print") {
-      setTimeout(() => {
-        const event = new CustomEvent("admin-ai-action", { detail: { action: "print" } });
-        document.dispatchEvent(event);
-        // Fallback natif si la page ne gère pas l'event
-        setTimeout(() => window.print(), 500);
-      }, 1000);
+      if (action.target && action.target !== pathname && action.target.startsWith('/')) {
+        // Si l'utilisateur demande d'imprimer une autre page, on y navigue d'abord
+        setTimeout(() => router.push(action.target), 500);
+        setTimeout(() => {
+          const event = new CustomEvent("admin-ai-action", { detail: { action: "print" } });
+          document.dispatchEvent(event);
+          setTimeout(() => window.print(), 500);
+        }, 2500); // Attendre que la nouvelle page charge
+      } else {
+        setTimeout(() => {
+          const event = new CustomEvent("admin-ai-action", { detail: { action: "print" } });
+          document.dispatchEvent(event);
+          // Fallback natif si la page ne gère pas l'event
+          setTimeout(() => window.print(), 500);
+        }, 1000);
+      }
     } else if (action.type === "refresh") {
       setTimeout(() => {
         const event = new CustomEvent("admin-ai-action", { detail: { action: "refresh" } });
