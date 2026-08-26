@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Search, SlidersHorizontal, Calendar, FileText, User, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Search, SlidersHorizontal, Calendar, FileText, User, CheckCircle2, XCircle, AlertTriangle, Download } from "lucide-react";
+import { generateNmaSimPDF } from "@/lib/pdf-generator";
 import "../admin-responsive.css";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
@@ -139,6 +140,33 @@ export default function LogsHistorique() {
     l.type?.toLowerCase().includes('session')
   );
 
+  const generatePDF = useCallback(() => {
+    if (filtered.length === 0) { alert("Aucun log à exporter."); return; }
+
+    const tableData = filtered.map((l: any) => [
+      new Date(l.createdAt).toLocaleString('fr-FR'),
+      l.utilisateur?.nom || 'Système',
+      l.entiteType || '—',
+      l.type,
+      l.description || '—',
+      determineNiveau(l.type)
+    ]);
+
+    generateNmaSimPDF({
+      title: "Logs & Historique",
+      subtitle: `Affiché : ${filtered.length} / ${logs.length} événements`,
+      columns: ['Date', 'Utilisateur', 'Module', 'Action', 'Détail', 'Niveau'],
+      data: tableData,
+      filename: "Logs"
+    });
+  }, [filtered, logs.length]);
+
+  useEffect(() => {
+    const handler = (e: any) => { if (e.detail?.action === "print") { e.preventDefault(); generatePDF(); } };
+    document.addEventListener("admin-ai-action", handler);
+    return () => document.removeEventListener("admin-ai-action", handler);
+  }, [generatePDF]);
+
   return (
     <div>
       <div className="logs-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
@@ -200,10 +228,13 @@ export default function LogsHistorique() {
             )}
           </div>
         </div>
+        <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600, flexShrink: 0 }}>
+          <Download size={16} /> Export PDF
+        </button>
       </div>
 
       {/* KPIs */}
-      <div className="logs-kpi-row" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+      <div className="logs-kpi-row print:hidden" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { icon: FileText, label: "Actions totales", value: logs.length, color: "#059669", bg: "#EEF2FF", iconColor: "#4F46E5" },
           { icon: User, label: "Connexions", value: logs.filter(l => l.type.toLowerCase().includes('connexion')).length, color: "#059669", bg: "#E0F2FE", iconColor: "#0284C7" },
@@ -224,11 +255,11 @@ export default function LogsHistorique() {
       </div>
 
 
-      <div className="logs-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
+      <div className="logs-grid print:block" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
         {/* Colonne Gauche (Tableau + Graphique en bas) */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {viewMode === "logs" ? (
-            <div className="logs-table-wrapper" style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden", height: "fit-content" }}>
+            <div className="logs-table-wrapper print:shadow-none print:border-none" style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden", height: "fit-content" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
@@ -268,7 +299,7 @@ export default function LogsHistorique() {
                 })}
               </tbody>
             </table>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
+            <div className="print:hidden" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
               <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage {Math.min((page-1)*PAGE_SIZE+1, filtered.length)} à {Math.min(page*PAGE_SIZE, filtered.length)} sur {filtered.length} logs</span>
               <div style={{ display: "flex", gap: 6 }}>
                 <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 13, cursor: page===1?"default":"pointer", padding: "0 8px", opacity: page===1?0.4:1 }}>‹</button>
@@ -323,7 +354,7 @@ export default function LogsHistorique() {
         )}
 
         {/* Activité de sécurité (Déplacé au-dessous du tableau, SANS légende, taille augmentée) */}
-        <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div className="print:hidden" style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", alignItems: "center" }}>
           <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 15, width: "100%", textAlign: "left", marginBottom: 16 }}>Activité de sécurité</h3>
           
           {/* Donut Chart dynamique */}
@@ -357,7 +388,7 @@ export default function LogsHistorique() {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="print:hidden" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 15 }}>Dernières alertes</h3>

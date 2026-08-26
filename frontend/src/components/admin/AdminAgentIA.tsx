@@ -57,16 +57,16 @@ export function AdminAgentIA() {
         // Si l'utilisateur demande d'imprimer une autre page, on y navigue d'abord
         setTimeout(() => router.push(action.target), 500);
         setTimeout(() => {
-          const event = new CustomEvent("admin-ai-action", { detail: { action: "print" } });
-          document.dispatchEvent(event);
-          setTimeout(() => window.print(), 500);
+          const event = new CustomEvent("admin-ai-action", { detail: { action: "print" }, cancelable: true });
+          const notPrevented = document.dispatchEvent(event);
+          if (notPrevented) setTimeout(() => window.print(), 500);
         }, 2500); // Attendre que la nouvelle page charge
       } else {
         setTimeout(() => {
-          const event = new CustomEvent("admin-ai-action", { detail: { action: "print" } });
-          document.dispatchEvent(event);
+          const event = new CustomEvent("admin-ai-action", { detail: { action: "print" }, cancelable: true });
+          const notPrevented = document.dispatchEvent(event);
           // Fallback natif si la page ne gère pas l'event
-          setTimeout(() => window.print(), 500);
+          if (notPrevented) setTimeout(() => window.print(), 500);
         }, 1000);
       }
     } else if (action.type === "refresh") {

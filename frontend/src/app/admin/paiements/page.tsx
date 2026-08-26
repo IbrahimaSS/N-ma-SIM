@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { Search, SlidersHorizontal, Eye, X, User, Phone, CheckCircle2, Clock, AlertCircle, Download, Loader2, RefreshCcw } from "lucide-react";
+import { generateNmaSimPDF } from "@/lib/pdf-generator";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
@@ -113,6 +114,36 @@ export default function Paiements() {
     return searchString.includes(search.toLowerCase());
   });
 
+  const generatePDF = useCallback(() => {
+    if (filtered.length === 0) { alert("Aucune donnée à exporter."); return; }
+    
+    const tableData = filtered.map((p: any) => [
+      p.referenceExterne || p.id.slice(0, 12),
+      p.demande?.numeroDossier || "—",
+      p.demande?.client ? `${p.demande.client.prenom || ""} ${p.demande.client.nom || ""}`.trim() : "Inconnu",
+      p.methodePaiement || "—",
+      `${(p.montant || 0).toLocaleString('fr-FR')} GNF`,
+      p.statut === "CONFIRME" ? "Confirmé" : p.statut === "ECHOUE" ? "Échoué" : p.statut === "REMBOURSE" ? "Remboursé" : "En attente",
+      new Date(p.createdAt).toLocaleDateString('fr-FR')
+    ]);
+
+    generateNmaSimPDF({
+      title: "Liste des Paiements",
+      subtitle: `Total affiché : ${filtered.length} paiement(s)`,
+      columns: ['Référence', 'Ticket', 'Client', 'Mode', 'Montant', 'Statut', 'Date'],
+      data: tableData,
+      filename: "Paiements"
+    });
+  }, [filtered]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail?.action === "print") { e.preventDefault(); generatePDF(); }
+    };
+    document.addEventListener("admin-ai-action", handler);
+    return () => document.removeEventListener("admin-ai-action", handler);
+  }, [generatePDF]);
+
   if (loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "50vh", flexDirection: "column", gap: 16 }}>
@@ -134,7 +165,7 @@ export default function Paiements() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+      <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Paiements</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Suivi des transactions</p>
@@ -147,6 +178,9 @@ export default function Paiements() {
           <button onClick={fetchPaiements} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <RefreshCcw size={16} /> Actualiser
           </button>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+            <Download size={16} /> Export PDF
+          </button>
           <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <SlidersHorizontal size={16} /> Filtrer
           </button>
@@ -154,7 +188,8 @@ export default function Paiements() {
       </div>
 
       {/* KPIs */}
-      {(() => {
+      {/* KPIs - masqués à l'impression */}
+      {(()  => {
         const total = paiements.length;
         const confirmes = paiements.filter(p => p.statut === "CONFIRME").length;
         const enAttente = paiements.filter(p => p.statut === "EN_ATTENTE" || !p.statut).length;
@@ -170,7 +205,7 @@ export default function Paiements() {
         ];
         
         return (
-          <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+          <div className="print:hidden" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
             {kpis.map(k => (
               <div key={k.label} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
                 <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 8, fontWeight: 500 }}>{k.label}</div>
@@ -183,13 +218,14 @@ export default function Paiements() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16 }}>
         {/* Table */}
-        <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden" }}>
+        <div className="print:col-span-full print:border-none print:shadow-none" style={{ background: "white", borderRadius: 16, border: "1px solid #EAECF5", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
-                {["Référence", "Ticket", "Client", "Mode", "Montant", "Service", "Statut", "Date", "Action"].map(h => (
+                {["Référence", "Ticket", "Client", "Mode", "Montant", "Service", "Statut", "Date"].map(h => (
                   <th key={h} style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                 ))}
+                <th className="print:hidden" style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -223,7 +259,7 @@ export default function Paiements() {
                   </td>
                   <td style={{ padding: "13px 12px" }}><StatutBadge statut={p.statut === "CONFIRME" ? "Confirmé" : p.statut === "ECHOUE" ? "Échoué" : p.statut === "REMBOURSE" ? "Remboursé" : "En attente"} /></td>
                   <td style={{ padding: "13px 12px", fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap" }}>{new Date(p.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
-                  <td style={{ padding: "13px 12px" }}>
+                  <td className="print:hidden" style={{ padding: "13px 12px" }}>
                     <button onClick={() => setSelectedPaiement(p)} style={{ background: "#EEF2FF", border: "none", borderRadius: 8, padding: "7px 10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "#E0E7FF"} onMouseOut={e => e.currentTarget.style.background = "#EEF2FF"}>
                       <Eye size={15} style={{ color: "#4F46E5" }} />
                     </button>
@@ -232,7 +268,7 @@ export default function Paiements() {
               ))}
             </tbody>
           </table>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
+          <div className="print:hidden" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
             <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {filtered.length} sur 1 248 transactions</span>
             <div style={{ display: "flex", gap: 6 }}>
               {[1, 2, 3, "...", 125].map((p, i) => (
@@ -242,8 +278,8 @@ export default function Paiements() {
           </div>
         </div>
 
-        {/* Répartition */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Répartition - masquée à l'impression */}
+        <div className="print:hidden" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px" }}>Répartition des modes</h3>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
