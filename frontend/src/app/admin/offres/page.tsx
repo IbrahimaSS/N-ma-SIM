@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit2, Power, Tag, X, CheckCircle2, Loader2, RefreshCcw, AlertTriangle } from "lucide-react";
+import { Plus, Edit2, Power, Tag, X, CheckCircle2, Loader2, RefreshCcw, AlertTriangle, Download } from "lucide-react";
+import { generateNmaSimPDF } from "@/lib/pdf-generator";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
@@ -98,6 +99,39 @@ export default function Offres() {
 
   useEffect(() => { fetchOffres(); }, [fetchOffres]);
 
+  // KPI calculations
+  const actives = offres.filter(o => o.estActif).length;
+  const inactives = offres.filter(o => !o.estActif).length;
+  const total = offres.length;
+  const nouvelles = offres.filter(o => ["SIM_STANDARD", "SIM_INTERNET", "SIM_ETUDIANT", "SIM_ENTREPRISE"].includes(o.type)).length;
+  const reactivations = offres.filter(o => o.type === "DEPOT").length;
+
+  const generatePDF = useCallback(() => {
+    if (offres.length === 0) { alert("Aucune offre à exporter."); return; }
+
+    const tableData = offres.map((o: any) => [
+      o.nom,
+      o.description || "—",
+      `${o.prix.toLocaleString('fr-FR')} GNF`,
+      TYPE_LABEL[o.type] || o.type,
+      o.estActif ? "Active" : "Inactive"
+    ]);
+
+    generateNmaSimPDF({
+      title: "Liste des Offres",
+      subtitle: `${offres.length} offres • ${actives} actives • ${inactives} inactives`,
+      columns: ['Offre', 'Description', 'Prix', 'Type', 'Statut'],
+      data: tableData,
+      filename: "Offres"
+    });
+  }, [offres, actives, inactives]);
+
+  useEffect(() => {
+    const handler = (e: any) => { if (e.detail?.action === "print") { e.preventDefault(); generatePDF(); } };
+    document.addEventListener("admin-ai-action", handler);
+    return () => document.removeEventListener("admin-ai-action", handler);
+  }, [generatePDF]);
+
   const openAdd = () => {
     setForm({ nom: "", description: "", prix: "", type: "SIM_STANDARD" });
     setFormError(null);
@@ -153,12 +187,7 @@ export default function Offres() {
     }
   };
 
-  // KPI calculations
-  const actives = offres.filter(o => o.estActif).length;
-  const inactives = offres.filter(o => !o.estActif).length;
-  const total = offres.length;
-  const nouvelles = offres.filter(o => ["SIM_STANDARD", "SIM_INTERNET", "SIM_ETUDIANT", "SIM_ENTREPRISE"].includes(o.type)).length;
-  const reactivations = offres.filter(o => o.type === "DEPOT").length;
+  // KPIs déplacés plus haut
 
   if (loading) {
     return (
@@ -172,7 +201,7 @@ export default function Offres() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+      <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Offres</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Gestion des offres SIM</p>
@@ -180,6 +209,9 @@ export default function Offres() {
         <div style={{ display: "flex", gap: 12 }}>
           <button onClick={fetchOffres} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <RefreshCcw size={16} /> Actualiser
+          </button>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+            <Download size={16} /> Export PDF
           </button>
           <button onClick={openAdd} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
             <Plus size={16} /> Ajouter une offre
@@ -194,7 +226,7 @@ export default function Offres() {
       )}
 
       {/* KPIs dynamiques */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+      <div className="print:hidden" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { icon: Tag, label: "Offres actives", value: actives, iconColor: "#166534", bg: "#DCFCE7" },
           { icon: Tag, label: "Offres inactives", value: inactives, iconColor: "#374151", bg: "#F3F4F6" },
@@ -214,9 +246,9 @@ export default function Offres() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20 }}>
+      <div className="print:grid-cols-1" style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20 }}>
         {/* Table des offres */}
-        <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden" }}>
+        <div style={{ background: "white", borderRadius: 16, border: "1px solid #EAECF5", overflow: "hidden" }}>
           {offres.length === 0 ? (
             <div style={{ padding: 48, textAlign: "center", color: "#9CA3AF" }}>
               <Tag size={40} style={{ marginBottom: 12, opacity: 0.3 }} />
@@ -263,7 +295,7 @@ export default function Offres() {
                       </div>
                     </td>
                     <td style={{ padding: "16px 20px" }}>
-                      <div style={{ display: "flex", gap: 8 }}>
+                      <div className="print:hidden" style={{ display: "flex", gap: 8 }}>
                         <button onClick={() => openEdit(o)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
                           <Edit2 size={12} /> Modifier
                         </button>
@@ -279,8 +311,8 @@ export default function Offres() {
           )}
         </div>
 
-        {/* Paramètres tarifaires */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Paramètres tarifaires - masqué à l'impression */}
+        <div className="print:hidden" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Paramètres tarifaires</h3>
             <div style={{ marginBottom: 16 }}>

@@ -124,6 +124,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('[STATS GET]', error)
-    return apiError('Erreur interne', 500)
+    return apiError(error instanceof Error ? error.message : 'Erreur interne', 500, error)
   }
 }

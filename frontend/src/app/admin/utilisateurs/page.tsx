@@ -3,9 +3,10 @@ import { useState, useEffect } from "react";
 import {
   Search, Plus, Edit2, MoreHorizontal, Shield, User, Wrench, Eye,
   Menu, Bell, ChevronDown, Check, Info, Lock, Unlock, Phone, Mail, EyeOff,
-  Briefcase, X, UserPlus, CloudUpload, Camera, ShieldCheck, MessageSquare, Filter, Settings, XCircle
+  Briefcase, X, UserPlus, CloudUpload, Camera, ShieldCheck, MessageSquare, Filter, Settings, XCircle, Download
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { generateNmaSimPDF } from "@/lib/pdf-generator";
 import "../admin-responsive.css";
 
 // Type definitions
@@ -104,6 +105,43 @@ export default function Utilisateurs() {
     const matchStatut = filterStatut === "Tous" || u.statut === filterStatut;
     return matchSearch && matchRole && matchStatut;
   });
+
+  const generatePDF = () => {
+    if (filtered.length === 0) {
+      alert("Aucune donnée à imprimer.");
+      return;
+    }
+
+    const tableData = filtered.map((u: Utilisateur) => [
+      u.nom,
+      u.role,
+      u.email,
+      u.tel || "—",
+      u.statut,
+      u.derniereConnexion || "Jamais connecté"
+    ]);
+
+    generateNmaSimPDF({
+      title: "Liste des Utilisateurs",
+      subtitle: `Total affiché : ${filtered.length} / ${users.length}`,
+      columns: ['Utilisateur', 'Rôle', 'Email', 'Téléphone', 'Statut', 'Dernière connexion'],
+      data: tableData,
+      filename: "Utilisateurs"
+    });
+  };
+
+  useEffect(() => {
+    const handlePrintRequest = (e: any) => {
+      if (e.detail?.action === "print") {
+        if (!isAddingUser) {
+          e.preventDefault(); // Annule l'impression native window.print()
+          generatePDF();
+        }
+      }
+    };
+    document.addEventListener("admin-ai-action", handlePrintRequest);
+    return () => document.removeEventListener("admin-ai-action", handlePrintRequest);
+  }, [filtered, users.length, isAddingUser]);
 
   // Dynamic permissions display based on selected role
   const getPermissionsForRole = (selectedRole: string) => {
@@ -285,7 +323,7 @@ export default function Utilisateurs() {
       {!isAddingUser ? (
         /* ================= VUE TABLEAU & LISTE ================= */
         <div>
-          <div className="users-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+          <div className="users-header print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
             <div>
               <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Utilisateurs</h1>
               <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Gestion des comptes et rôles</p>
@@ -329,6 +367,9 @@ export default function Utilisateurs() {
                   </div>
                 )}
               </div>
+              <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "white", border: "1px solid #E5E7EB", color: "#1F0270", fontSize: 14, fontWeight: 600, cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+                <Download size={16} /> Export PDF
+              </button>
               <button
                 onClick={() => setIsAddingUser(true)}
                 style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
@@ -339,7 +380,7 @@ export default function Utilisateurs() {
           </div>
 
           {/* KPIs */}
-          <div className="users-kpi-row" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+          <div className="users-kpi-row print:hidden" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
             {[
               { icon: Shield, label: "Total utilisateurs", value: users.length.toString(), sub: `↑ ${users.filter(u => u.derniereConnexion?.includes("Aujourd'hui")).length} actifs`, color: "#059669", bg: "#EEF2FF", iconColor: "#4F46E5" },
               { icon: Shield, label: "Administrateurs", value: users.filter(u => u.role === "Admin").length.toString(), sub: "Niveau max", color: "#059669", bg: "#FEF3C7", iconColor: "#D97706" },
@@ -361,13 +402,14 @@ export default function Utilisateurs() {
           </div>
 
           {/* Table */}
-          <div className="users-table-wrapper" style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden", marginBottom: 24 }}>
+          <div className="users-table-wrapper print:border-none print:shadow-none print:overflow-visible" style={{ background: "white", borderRadius: 16, border: "1px solid #EAECF5", overflow: "hidden", marginBottom: 24 }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
-                  {["Utilisateur", "Rôle", "Email", "Téléphone", "Statut", "Dernière connexion", "Permissions", "Action"].map(h => (
+                  {["Utilisateur", "Rôle", "Email", "Téléphone", "Statut", "Dernière connexion", "Permissions"].map(h => (
                     <th key={h} style={{ textAlign: "left", padding: "14px 20px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                   ))}
+                  <th className="print:hidden" style={{ textAlign: "left", padding: "14px 20px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -394,7 +436,7 @@ export default function Utilisateurs() {
                     <td style={{ padding: "14px 20px", fontSize: 12, color: "#6B7280", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {u.permissions.join(", ")}
                     </td>
-                    <td style={{ padding: "14px 20px" }}>
+                    <td className="print:hidden" style={{ padding: "14px 20px" }}>
                       <div style={{ display: "flex", gap: 6, position: "relative" }}>
                         <button onClick={() => handleStartEdit(u)} title="Modifier l'utilisateur" style={{ background: "white", border: "1px solid #E5E7EB", borderRadius: 8, padding: "6px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#4F46E5" }}>
                           <Edit2 size={14} />
@@ -443,7 +485,7 @@ export default function Utilisateurs() {
                 ))}
               </tbody>
             </table>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
+            <div className="print:hidden" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
               <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {filtered.length} sur {users.length} utilisateurs</span>
               <div style={{ display: "flex", gap: 6 }}>
                 {[1, 2, 3, 4, 5, ">"].map((p, i) => (
@@ -454,7 +496,7 @@ export default function Utilisateurs() {
           </div>
 
           {/* Rôles & permissions explainer - Tabbed Layout */}
-          <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+          <div className="print:hidden" style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div>
                 <h3 style={{ fontWeight: 800, color: "#1F0270", margin: "0 0 4px", fontSize: 18 }}>Rôles & Permissions</h3>

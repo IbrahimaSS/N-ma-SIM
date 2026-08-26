@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Loader2, RefreshCcw, AlertTriangle, Search, Plus, MonitorSmartphone, Settings, Power, Lock, UserCog, Signal, SignalHigh, WifiOff, Wrench, X, CheckCircle2, MapPin, Key, Copy } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Loader2, RefreshCcw, AlertTriangle, Search, Plus, MonitorSmartphone, Settings, Power, Lock, UserCog, Signal, SignalHigh, WifiOff, Wrench, X, CheckCircle2, MapPin, Key, Copy, Download } from "lucide-react";
+import { generateNmaSimPDF } from "@/lib/pdf-generator";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
@@ -111,6 +112,34 @@ export default function BornesKiosk() {
     (b.numeroReference || "").toLowerCase().includes(search.toLowerCase())
   );
 
+  const generatePDF = useCallback(() => {
+    if (filtered.length === 0) { alert("Aucune borne à exporter."); return; }
+
+    const tableData = filtered.map((b: any) => [
+      b.nom,
+      b.numeroReference || b.id.substring(0, 8),
+      b.emplacement || '—',
+      STATUT_LABELS[b.statut] || b.statut,
+      b.ip || '—',
+      b.technicien || 'Non assigné',
+      b.derniereSynchro ? new Date(b.derniereSynchro).toLocaleDateString('fr-FR') : 'Jamais'
+    ]);
+
+    generateNmaSimPDF({
+      title: "Bornes Kiosk",
+      subtitle: `${bornes.length} bornes • ${bornes.filter((b: any) => b.statut === 'EN_LIGNE').length} en ligne`,
+      columns: ['Nom', 'Référence', 'Emplacement', 'Statut', 'IP', 'Technicien', 'Dernière synchro'],
+      data: tableData,
+      filename: "Bornes"
+    });
+  }, [filtered, bornes]);
+
+  useEffect(() => {
+    const handler = (e: any) => { if (e.detail?.action === "print") { e.preventDefault(); generatePDF(); } };
+    document.addEventListener("admin-ai-action", handler);
+    return () => document.removeEventListener("admin-ai-action", handler);
+  }, [generatePDF]);
+
   const handleAction = (e: React.MouseEvent, type: string, borne: any) => {
     e.stopPropagation();
     if (type === "config") {
@@ -214,7 +243,7 @@ export default function BornesKiosk() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
+      <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Bornes Kiosk</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Gestion du parc matériel et configuration</p>
@@ -226,6 +255,9 @@ export default function BornesKiosk() {
           </div>
           <button onClick={fetchBornes} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <RefreshCcw size={16} /> Actualiser
+          </button>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+            <Download size={16} /> Export PDF
           </button>
           <button onClick={() => setIsAddBorneOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
             <Plus size={16} /> Ajouter une borne
@@ -240,7 +272,7 @@ export default function BornesKiosk() {
       )}
 
       {/* KPIs */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+      <div className="print:hidden" style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { icon: MonitorSmartphone, label: "Total Bornes", value: bornes.length, sub: "Parc actif", bg: "#EEF2FF", color: "#4F46E5" },
           { icon: SignalHigh, label: "En ligne", value: bornes.filter(b=>b.statut==="EN_LIGNE").length, sub: "Actives", bg: "#DCFCE7", color: "#059669" },
@@ -261,13 +293,14 @@ export default function BornesKiosk() {
       </div>
 
       {/* Table */}
-      <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden" }}>
+      <div style={{ background: "white", borderRadius: 16, border: "1px solid #EAECF5", overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
-              {["ID & Nom", "Emplacement", "Statut", "Réseau / IP", "Dernière synchro", "Technicien", "Actions"].map(h => (
+              {["ID & Nom", "Emplacement", "Statut", "Réseau / IP", "Dernière synchro", "Technicien"].map(h => (
                 <th key={h} style={{ textAlign: "left", padding: "14px 20px", fontSize: 12, color: "#6B7280", fontWeight: 600 }}>{h}</th>
               ))}
+              <th className="print:hidden" style={{ textAlign: "left", padding: "14px 20px", fontSize: 12, color: "#6B7280", fontWeight: 600 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -302,7 +335,7 @@ export default function BornesKiosk() {
                     </div>
                   )}
                 </td>
-                <td style={{ padding: "14px 20px" }}>
+                <td className="print:hidden" style={{ padding: "14px 20px" }}>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={(e) => handleAction(e, "config", b)} title="Paramétrer" style={{ width: 32, height: 32, background: "white", border: "1px solid #E5E7EB", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#4B5563", transition: "all 0.2s" }}>
                       <Settings size={14} />

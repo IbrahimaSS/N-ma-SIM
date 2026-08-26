@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search, SlidersHorizontal, Eye, X, Download, Loader2, RefreshCcw } from "lucide-react";
+import { generateNmaSimPDF } from "@/lib/pdf-generator";
 
 // Helpers
 function getToken(): string | null {
@@ -94,6 +95,41 @@ export default function Clients() {
     fetchClients();
   }, [token, search]); // Refetch when search changes
 
+  const generatePDF = useCallback(() => {
+    if (clients.length === 0) {
+      alert("Aucune donnée à imprimer.");
+      return;
+    }
+    
+    const tableData = clients.map((c: any) => [
+      `${c.prenom} ${c.nom}`,
+      c.typeClient,
+      formatTypePiece(c.typePiece),
+      (!c.telephone || c.telephone === "-") ? "—" : c.telephone,
+      c.statut.replace(/_/g, ' '),
+      new Date(c.createdAt).toLocaleDateString('fr-FR')
+    ]);
+
+    generateNmaSimPDF({
+      title: "Liste des Clients",
+      subtitle: `Total affiché : ${clients.length} / ${stats.total}`,
+      columns: ['Client', 'Type', 'Pièce', 'Téléphone', 'Statut', 'Inscrit le'],
+      data: tableData,
+      filename: "Clients"
+    });
+  }, [clients, stats.total]);
+
+  useEffect(() => {
+    const handlePrintRequest = (e: any) => {
+      if (e.detail?.action === "print") {
+        e.preventDefault(); // Annule l'impression native window.print()
+        generatePDF();
+      }
+    };
+    document.addEventListener("admin-ai-action", handlePrintRequest);
+    return () => document.removeEventListener("admin-ai-action", handlePrintRequest);
+  }, [generatePDF]);
+
   return (
     <div>
       <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
@@ -113,6 +149,9 @@ export default function Clients() {
           </div>
           <button onClick={fetchClients} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
              <RefreshCcw size={16} className={isLoading ? "animate-spin" : ""} /> Actualiser
+          </button>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+             <Download size={16} /> Export PDF
           </button>
           <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <SlidersHorizontal size={16} /> Filtrer

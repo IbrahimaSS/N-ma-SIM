@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { Search, SlidersHorizontal, Eye, Loader2, RefreshCcw } from "lucide-react";
+import { Search, SlidersHorizontal, Eye, Loader2, RefreshCcw, Download } from "lucide-react";
+import { generateNmaSimPDF } from "@/lib/pdf-generator";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 
@@ -123,6 +124,42 @@ function DemandesContent() {
     return nom.includes(s) || prenom.includes(s) || num.includes(s);
   });
 
+  const generatePDF = useCallback(() => {
+    if (filtered.length === 0) {
+      alert("Aucune donnée à imprimer.");
+      return;
+    }
+
+    const tableData = filtered.map((d: any) => [
+      d.numeroDossier,
+      d.type.replace(/_/g, ' '),
+      d.client ? `${d.client.prenom} ${d.client.nom}` : "—",
+      d.offre?.nom || (d.type === "RECHARGE" ? "Recharge" : "—"),
+      (d.paiement?.montant || d.paiement?.[0]?.montant) ? (d.paiement?.montant || d.paiement?.[0]?.montant) + " GNF" : "—",
+      d.statut.replace(/_/g, ' '),
+      new Date(d.createdAt).toLocaleDateString('fr-FR')
+    ]);
+
+    generateNmaSimPDF({
+      title: "Liste des Demandes",
+      subtitle: `Total affiché : ${filtered.length} / ${demandes.length}`,
+      columns: ['Ticket', 'Type', 'Client', 'Offre', 'Paiement', 'Statut', 'Date'],
+      data: tableData,
+      filename: "Demandes"
+    });
+  }, [filtered, demandes.length]);
+
+  useEffect(() => {
+    const handlePrintRequest = (e: any) => {
+      if (e.detail?.action === "print") {
+        e.preventDefault(); // Annule l'impression native
+        generatePDF();
+      }
+    };
+    document.addEventListener("admin-ai-action", handlePrintRequest);
+    return () => document.removeEventListener("admin-ai-action", handlePrintRequest);
+  }, [generatePDF]);
+
   return (
     <div>
       {/* Header */}
@@ -139,6 +176,9 @@ function DemandesContent() {
             <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un ticket, un client..." style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, outline: "none", width: 300, background: "white" }} />
           </div>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+             <Download size={16} /> Export PDF
+          </button>
           <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <SlidersHorizontal size={16} /> Filtrer
           </button>
