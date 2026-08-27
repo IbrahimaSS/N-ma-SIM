@@ -94,6 +94,7 @@ export default function VerificationScanPiece() {
       // Pré-analyse OCR sans selfie — le selfie sera capturé à l'étape suivante
       const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       await saveKycResult(result);
+      sessionStorage.setItem("kiosk_verif_scan_ok", "1");
       router.push("/borne/verification/selfie");
     } catch {
       setSaveError(t.errorSave);

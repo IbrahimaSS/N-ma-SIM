@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Settings, Shield, Bell, CreditCard, Box, FileText, Globe, PenTool as Tool, Check, Eye, Download, Trash2, AlertTriangle, X, FileBarChart } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getToken } from "@/lib/api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -124,14 +124,23 @@ export default function Parametres() {
   const handleBackup = async () => {
     setIsBackingUp(true);
     try {
-      // Pour forcer le téléchargement depuis l'API Route GET
+      // Téléchargement authentifié : l'API exige désormais un token admin (Bearer),
+      // qu'une simple navigation <a href> ne peut pas transmettre.
       const url = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001"}/api/system/backup`;
+      const token = getToken();
+      const res = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank"; // Ouvre au pire dans un nouvel onglet
+      a.href = blobUrl;
+      a.download = `nmasim_backup_${new Date().toISOString().split("T")[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
       setToastMessage("Sauvegarde générée et téléchargée.");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
@@ -146,8 +155,7 @@ export default function Parametres() {
   const handlePdfReport = async () => {
     setIsGeneratingPdf(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001"}/api/system/backup`);
-      const backupData = await res.json();
+      const backupData = await apiFetch('/api/system/backup');
       
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();

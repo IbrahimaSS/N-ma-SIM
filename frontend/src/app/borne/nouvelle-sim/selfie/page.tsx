@@ -117,6 +117,7 @@ export default function Selfie() {
       }
 
       // Naviguer vers offres
+      sessionStorage.setItem("kiosk_selfie_ok", "1");
       router.push("/borne/nouvelle-sim/offres");
     } catch (err) {
       const kycErr = err as KycError;

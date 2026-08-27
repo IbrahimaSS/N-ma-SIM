@@ -62,6 +62,7 @@ export default function VerificationSelfie() {
       setKycResult(result);
       await saveKycResult(result);
       // Naviguer vers la page résultat
+      sessionStorage.setItem("kiosk_verif_selfie_ok", "1");
       router.push("/borne/verification/resultat");
     } catch (err) {
       const kycErr = err as KycError;
