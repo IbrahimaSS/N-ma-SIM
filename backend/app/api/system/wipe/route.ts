@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
-    // Vérification de sécurité (pour une vraie prod, on vérifierait un token JWT admin)
-    // Ici on suppose que la requête vient du panel admin sécurisé
-    
+    // Vérification de sécurité : seul un ADMIN authentifié peut déclencher un wipe.
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      return NextResponse.json({ success: false, message: 'Non authentifié' }, { status: 401 });
+    }
+    if (authUser.role !== 'ADMIN') {
+      return NextResponse.json({ success: false, message: 'Accès refusé' }, { status: 403 });
+    }
+
     // Supprimer dans l'ordre inverse des relations pour éviter les erreurs de clés étrangères
     console.log("[SYSTEM] Début de la suppression des données...");
     

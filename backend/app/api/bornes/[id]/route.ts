@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const authUser = getAuthUser(request);
+    if (!authUser) {
+      return NextResponse.json({ success: false, message: "Non authentifié" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const body = await request.json();
 
@@ -24,6 +30,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const authUser = getAuthUser(request);
+    if (!authUser) {
+      return NextResponse.json({ success: false, message: "Non authentifié" }, { status: 401 });
+    }
+
     const { id } = await context.params;
 
     if (!id) {

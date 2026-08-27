@@ -243,7 +243,10 @@ export default function Verification() {
           </Button>
           <Button
             data-ai-action="btn-continuer-verification"
-            onClick={() => router.push("/borne/reactivation/paiement")}
+            onClick={() => {
+              sessionStorage.setItem("reactivation_verified_ok", "1");
+              router.push("/borne/reactivation/paiement");
+            }}
             className="px-10 h-12 shadow-sm"
           >
             {t.continue} <ChevronRight className="w-5 h-5 ml-2" />

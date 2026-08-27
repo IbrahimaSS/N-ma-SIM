@@ -1,6 +1,8 @@
 import { ReactNode, Suspense } from "react";
 import { BorneHeader } from "@/components/borne/BorneHeader";
 import { AgentIA } from "@/components/borne/AgentIA";
+import { KioskSessionGuard } from "@/components/borne/KioskSessionGuard";
+import { KioskStepGuard } from "@/components/borne/KioskStepGuard";
 
 export default function BorneLayout({ children }: { children: ReactNode }) {
   return (
@@ -8,6 +10,8 @@ export default function BorneLayout({ children }: { children: ReactNode }) {
       className="relative min-h-screen w-screen font-sans"
       style={{ backgroundColor: "#ECEDF5" }}
     >
+      <KioskSessionGuard />
+      <KioskStepGuard />
 
       {/* ================================================================
           FOND DÉCORATIF — position FIXED → toujours visible même en scrollant

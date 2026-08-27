@@ -72,6 +72,7 @@ export default function ReactivationSelfie() {
       setKycResult(result);
       await saveKycResult(result);
       // → Aller à la page de vérification réactivation
+      sessionStorage.setItem("kiosk_selfie_ok_reactivation", "1");
       router.push("/borne/reactivation/verification");
     } catch (err) {
       const kycErr = err as KycError;
