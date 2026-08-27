@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
 
 export async function GET(req: Request) {
   try {
-    // Vérification de sécurité (normalement via token)
-    
+    // Vérification de sécurité : seul un ADMIN authentifié peut exporter toute la base.
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      return NextResponse.json({ success: false, message: 'Non authentifié' }, { status: 401 });
+    }
+    if (authUser.role !== 'ADMIN') {
+      return NextResponse.json({ success: false, message: 'Accès refusé' }, { status: 403 });
+    }
+
     // Récupérer toutes les données de toutes les tables importantes
     const utilisateurs = await prisma.utilisateur.findMany();
     const clients = await prisma.client.findMany();

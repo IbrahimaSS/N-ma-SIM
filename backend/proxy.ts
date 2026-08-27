@@ -5,11 +5,12 @@ export function proxy(request: NextRequest) {
   const origin = request.headers.get('origin') ?? '*'
 
   // Headers CORS — autorise tout domaine (borne Vercel, admin, etc.)
+  // Pas de "Allow-Credentials: true" ici : l'auth se fait par Bearer token (pas par cookies),
+  // donc ce header n'est pas nécessaire et sa combinaison avec un Origin reflété est risquée.
   const corsHeaders = new Headers({
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, x-internal-service',
-    'Access-Control-Allow-Credentials': 'true',
   })
 
   // Répondre immédiatement aux requêtes de pré-vérification (Preflight OPTIONS)
