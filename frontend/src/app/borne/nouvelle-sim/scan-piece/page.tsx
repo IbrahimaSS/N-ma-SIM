@@ -218,7 +218,8 @@ export default function ScanPiece() {
       const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       await saveKycResult(result);
 
-      router.push("/borne/nouvelle-sim/confirmation-infos");
+      const isEsim = sessionStorage.getItem("kiosk_flow") === "esim";
+      router.push(isEsim ? "/borne/nouvelle-sim/esim/confirmation-infos" : "/borne/nouvelle-sim/confirmation-infos");
     } catch {
       setSaveError(t.errorSave);
     } finally {
@@ -351,6 +352,7 @@ export default function ScanPiece() {
               {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
                 <button
                   key={type}
+                  data-ai-action={type === "cni" ? "btn-cni" : type === "passeport" ? "btn-passeport" : "btn-electeur"}
                   onClick={() => handleDocTypeChange(type)}
                   className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${
                     docType === type

@@ -33,6 +33,7 @@ const TYPE_LABEL: Record<string, string> = {
   SIM_INTERNET: "Nouvelle SIM",
   SIM_ETUDIANT: "Nouvelle SIM",
   SIM_ENTREPRISE: "Nouvelle SIM",
+  SIM_ESIM: "Nouvelle SIM · eSIM",
   RECHARGE: "Recharge",
   FORFAIT_PASS: "Forfait Pass",
   DEPOT: "Réactivation",
@@ -42,6 +43,7 @@ const TYPE_ICON: Record<string, string> = {
   SIM_INTERNET: "🌐",
   SIM_ETUDIANT: "🎓",
   SIM_ENTREPRISE: "🏢",
+  SIM_ESIM: "📲",
   RECHARGE: "⚡",
   FORFAIT_PASS: "📦",
   DEPOT: "🔄",
@@ -103,7 +105,7 @@ export default function Offres() {
   const actives = offres.filter(o => o.estActif).length;
   const inactives = offres.filter(o => !o.estActif).length;
   const total = offres.length;
-  const nouvelles = offres.filter(o => ["SIM_STANDARD", "SIM_INTERNET", "SIM_ETUDIANT", "SIM_ENTREPRISE"].includes(o.type)).length;
+  const nouvelles = offres.filter(o => ["SIM_STANDARD", "SIM_INTERNET", "SIM_ETUDIANT", "SIM_ENTREPRISE", "SIM_ESIM"].includes(o.type)).length;
   const reactivations = offres.filter(o => o.type === "DEPOT").length;
 
   const generatePDF = useCallback(() => {
@@ -380,6 +382,7 @@ export default function Offres() {
               <option value="SIM_INTERNET">SIM + Internet</option>
               <option value="SIM_ETUDIANT">SIM Étudiant</option>
               <option value="SIM_ENTREPRISE">SIM Entreprise</option>
+              <option value="SIM_ESIM">eSIM (forfait)</option>
               <option value="DEPOT">Réactivation</option>
               <option value="RECHARGE">Recharge</option>
               <option value="FORFAIT_PASS">Forfait Pass</option>

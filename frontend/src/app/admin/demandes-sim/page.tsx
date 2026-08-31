@@ -25,11 +25,14 @@ async function apiFetch(path: string) {
 }
 
 // ─── Badges ─────────────────────────────────────────────────────────────────
-function TypeBadge({ type }: { type: string }) {
-  const bg = type === "NOUVELLE_SIM" ? "#F0FDF4" : type === "RECHARGE" ? "#FFFBEB" : "#EEF2FF";
-  const color = type === "NOUVELLE_SIM" ? "#166534" : type === "RECHARGE" ? "#B45309" : "#4338CA";
-  const border = type === "NOUVELLE_SIM" ? "#BBF7D0" : type === "RECHARGE" ? "#FDE68A" : "#C7D2FE";
-  const label = type === "NOUVELLE_SIM" ? "Nouvelle SIM" : type === "REACTIVATION" ? "Réactivation" : "Recharge";
+function TypeBadge({ type, formatSim }: { type: string; formatSim?: string }) {
+  const isEsim = type === "NOUVELLE_SIM" && formatSim === "ESIM";
+  const bg = type === "NOUVELLE_SIM" ? (isEsim ? "#EEF2FF" : "#F0FDF4") : type === "RECHARGE" ? "#FFFBEB" : "#EEF2FF";
+  const color = type === "NOUVELLE_SIM" ? (isEsim ? "#3730A3" : "#166534") : type === "RECHARGE" ? "#B45309" : "#4338CA";
+  const border = type === "NOUVELLE_SIM" ? (isEsim ? "#C7D2FE" : "#BBF7D0") : type === "RECHARGE" ? "#FDE68A" : "#C7D2FE";
+  const label = type === "NOUVELLE_SIM"
+    ? (isEsim ? "Nouvelle SIM · eSIM" : "Nouvelle SIM · Physique")
+    : type === "REACTIVATION" ? "Réactivation" : "Recharge";
   return (
     <span style={{
       background: bg, color, border: `1px solid ${border}`,
@@ -132,7 +135,9 @@ function DemandesContent() {
 
     const tableData = filtered.map((d: any) => [
       d.numeroDossier,
-      d.type.replace(/_/g, ' '),
+      d.type === "NOUVELLE_SIM"
+        ? (d.formatSim === "ESIM" ? "Nouvelle SIM eSIM" : "Nouvelle SIM Physique")
+        : d.type.replace(/_/g, ' '),
       d.client ? `${d.client.prenom} ${d.client.nom}` : "—",
       d.offre?.nom || (d.type === "RECHARGE" ? "Recharge" : "—"),
       (d.paiement?.montant || d.paiement?.[0]?.montant) ? (d.paiement?.montant || d.paiement?.[0]?.montant) + " GNF" : "—",
@@ -225,7 +230,7 @@ function DemandesContent() {
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
                   <td style={{ padding: "14px 12px", fontSize: 13, color: "#4F46E5", fontWeight: 600, whiteSpace: "nowrap" }}>{d.numeroDossier}</td>
-                  <td style={{ padding: "14px 12px" }}><TypeBadge type={d.type} /></td>
+                  <td style={{ padding: "14px 12px" }}><TypeBadge type={d.type} formatSim={d.formatSim} /></td>
                   <td style={{ padding: "14px 12px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: "#4F46E5", flexShrink: 0 }}>

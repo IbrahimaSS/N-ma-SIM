@@ -30,6 +30,8 @@ type SousouKey =
 const AUDIO_MAP: Record<string, string> = {
   // ── Commun ────────────────────────────────────────────────────────────────
   'choix-service': `${BASE}/commun/Choix_Service.wav`,
+  'repeter': `${BASE}/commun/Veuillez_repeter.wav`,
+  'non-compris': `${BASE}/commun/Je_nai_pas_compris.wav`,
 
   // ── Nouvelle SIM ──────────────────────────────────────────────────────────
   'nouvelle-sim:scan-piece':            `${BASE}/nouvelle_sim/Etape_1_Type_piece.wav`,

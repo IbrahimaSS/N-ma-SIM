@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       nom: z.string().min(2),
       description: z.string().optional(),
       prix: z.number().positive(),
-      type: z.enum(['SIM_STANDARD', 'SIM_INTERNET', 'SIM_ETUDIANT', 'SIM_ENTREPRISE']),
+      type: z.enum(['SIM_STANDARD', 'SIM_INTERNET', 'SIM_ETUDIANT', 'SIM_ENTREPRISE', 'SIM_ESIM']),
       duree: z.string().optional(),
       data: z.string().optional(),
       appels: z.string().optional(),

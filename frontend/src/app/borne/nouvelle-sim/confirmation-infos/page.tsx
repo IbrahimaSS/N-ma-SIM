@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
@@ -365,7 +365,8 @@ export default function ConfirmationInfos() {
                 typePiece,
                 numeroPiece,
               }));
-              router.push("/borne/nouvelle-sim/selfie");
+              const isEsim = sessionStorage.getItem("kiosk_flow") === "esim";
+              router.push(isEsim ? "/borne/nouvelle-sim/esim/selfie" : "/borne/nouvelle-sim/selfie");
             }}
             disabled={isRejected || !nom || !prenom || !numeroPiece}
           >

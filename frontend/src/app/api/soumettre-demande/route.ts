@@ -35,7 +35,7 @@ function parseOcrDate(dateStr: string | undefined): string | undefined {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { client_info, offre_id, paiement } = body;
+    const { client_info, offre_id, format_sim, paiement } = body;
 
     // ─── 1. Créer le client ───────────────────────────────────────────────
     const clientRes = await fetch(`${BACKEND_URL}/api/clients`, {
@@ -76,6 +76,7 @@ export async function POST(request: Request) {
         clientId,
         type: "NOUVELLE_SIM",
         offreId: offre_id || undefined,
+        formatSim: format_sim === "ESIM" ? "ESIM" : "PHYSIQUE",
       }),
     });
 

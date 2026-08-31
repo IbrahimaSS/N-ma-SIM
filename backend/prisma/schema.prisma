@@ -119,6 +119,7 @@ enum TypeOffre {
   SIM_INTERNET
   SIM_ETUDIANT
   SIM_ENTREPRISE
+  SIM_ESIM
   RECHARGE
   FORFAIT_PASS
   DEPOT
@@ -140,6 +141,9 @@ model DemandeSIM {
   // Offre choisie (pour nouvelle SIM)
   offreId         String?
   offre           Offre?          @relation(fields: [offreId], references: [id])
+
+  // Format de la SIM (pour NOUVELLE_SIM : carte physique ou eSIM)
+  formatSim       FormatSim       @default(PHYSIQUE)
 
   // Réactivation
   numeroAReactiver  String?
@@ -165,6 +169,11 @@ enum TypeDemande {
   NOUVELLE_SIM
   REACTIVATION
   RECHARGE
+}
+
+enum FormatSim {
+  PHYSIQUE
+  ESIM
 }
 
 enum StatutDemande {
