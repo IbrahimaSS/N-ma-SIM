@@ -945,6 +945,7 @@ CHAMPS_OBLIGATOIRES = {
     "CNI":            ["nom","prenom","date_naissance","numero_identite"],
     "CARTE_ELECTEUR": ["nom","prenom","date_naissance"],
     "PASSEPORT":      ["nom","prenom","date_naissance"],
+    "PERMIS":         ["nom","prenom","date_naissance"],   # permis biométrique (recto seul, pas de MRZ)
     "INCONNU":        ["nom","prenom"],
 }
 
@@ -1059,8 +1060,8 @@ def _ensure_ocr():
 
 def kyc_complet(chemin_recto, chemin_verso=None, chemin_selfie=None, type_force=None):
     """Chaîne KYC complète -> rapport structuré.
-    type_force : 'CNI' | 'PASSEPORT' | 'CARTE_ELECTEUR' — type déclaré par l'utilisateur,
-                 prioritaire sur la détection automatique par OCR.
+    type_force : 'CNI' | 'PASSEPORT' | 'CARTE_ELECTEUR' | 'PERMIS' — type déclaré par
+                 l'utilisateur, prioritaire sur la détection automatique par OCR.
     """
     _ensure_ocr()                                         # charge l'OCR au 1er appel
     # 1) Prétraitement + OCR du recto

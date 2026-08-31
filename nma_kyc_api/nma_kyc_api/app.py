@@ -90,14 +90,14 @@ async def verifier_identite(
     recto: UploadFile = File(..., description="Photo du recto de la pièce (obligatoire)"),
     selfie: Optional[UploadFile] = File(None, description="Selfie de la personne (optionnel pour l'extraction seule)"),
     verso: Optional[UploadFile] = File(None, description="Photo du verso (CNI et passeport ; ignorer pour la carte d'électeur)"),
-    doc_type: Optional[str] = Form(None, description="Type de pièce déclaré par l'utilisateur : cni | passeport | carte_electeur"),
+    doc_type: Optional[str] = Form(None, description="Type de pièce déclaré par l'utilisateur : cni | passeport | carte_electeur | permis"),
 ):
     """
     Vérifie une identité à partir des photos d'une pièce + un selfie (optionnel).
     
     Renvoie un JSON :
       - decision        : "✅ ACCEPTÉ" / "⚠️ VÉRIFICATION MANUELLE" / "❌ REJETÉ (...)"
-      - type_piece      : "CNI" / "PASSEPORT" / "CARTE_ELECTEUR" / "INCONNU"
+      - type_piece      : "CNI" / "PASSEPORT" / "CARTE_ELECTEUR" / "PERMIS" / "INCONNU"
       - age             : âge calculé (ou null si illisible)
       - risque          : score 0-100
       - champs          : dictionnaire des champs extraits
@@ -112,7 +112,7 @@ async def verifier_identite(
         p_verso = _sauver_temp(verso, ".jpg") if verso is not None else None
 
         # Convertir le type frontend ('cni') en type backend ('CNI')
-        TYPE_MAP = {"cni": "CNI", "passeport": "PASSEPORT", "carte_electeur": "CARTE_ELECTEUR"}
+        TYPE_MAP = {"cni": "CNI", "passeport": "PASSEPORT", "carte_electeur": "CARTE_ELECTEUR", "permis": "PERMIS"}
         type_force = TYPE_MAP.get((doc_type or "").lower())
         rapport = kyc_complet(p_recto, p_verso, p_selfie, type_force=type_force)
 

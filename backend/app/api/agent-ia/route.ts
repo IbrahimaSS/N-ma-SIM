@@ -115,6 +115,17 @@ export async function POST(request: NextRequest) {
             { type: 'click', target: 'btn-verification' });
       }
 
+      // ── PAGE CHOIX DU TYPE DE SIM (Physique / eSIM) ──────────────────
+      if (currentStep === 'esim-format') {
+        if (/physique|physical|carte traditionnelle|traditionnelle|traditional|carte classique|vraie carte|carte sim/.test(msg))
+          return ok(isFr ? "Je choisis la SIM physique." : "Selecting the physical SIM.",
+            { type: 'click', target: 'btn-sim-physique' });
+
+        if (/\besim\b|e-?sim|numerique|digital|dematerialis|virtuelle|sans carte/.test(msg))
+          return ok(isFr ? "Je choisis l'eSIM." : "Selecting the eSIM.",
+            { type: 'click', target: 'btn-esim' });
+      }
+
       // ── PAGE SELFIE (nouvelle-sim ou reactivation) ───────────────────
       if (currentStep === 'selfie') {
         if (/selfie|photo|prendre|scanner|visage|camera|face/.test(msg))
@@ -304,6 +315,12 @@ function fallbackResponse(lang: string | null, step: string, isFr: boolean) {
     'choix-langue':          ["Bienvenu sur N'ma SIM ! Veuillez sélectionner votre profil et accepter les conditions d'utilisation pour commencer.", "Welcome to N'ma SIM! Please select your profile and accept the terms of use to get started."],
     'accueil-conditions':    ["Bienvenu sur N'ma SIM ! Veuillez sélectionner votre profil et accepter les conditions d'utilisation pour commencer.", "Welcome to N'ma SIM! Please select your profile and accept the terms of use to get started."],
     'choix-service':         ["Choisissez un service : Nouvelle SIM, Réactivation, Recharge ou Vérification.", "Choose a service: New SIM, Reactivation, Recharge, or Verification."],
+    'esim-format':           ["Choisissez votre type de SIM : SIM Physique ou eSIM.", "Choose your SIM type: Physical SIM or eSIM."],
+    'esim-forfait':          ["Choisissez le forfait de données pour votre eSIM, puis validez pour continuer.", "Choose the data plan for your eSIM, then confirm to continue."],
+    'esim-compatibilite':    ["Vérifions la compatibilité eSIM de votre téléphone. Méthode rapide : composez *#06# — si un numéro EID s'affiche, l'eSIM est prise en charge. Sinon, vous pouvez passer à la SIM physique.", "Let's check your phone's eSIM support. Quick method: dial *#06# — if an EID number appears, eSIM is supported. Otherwise, you can switch to the physical SIM."],
+    'esim-recapitulatif':    ["Vérifiez le récapitulatif de votre commande eSIM avant de passer au paiement.", "Review your eSIM order summary before proceeding to payment."],
+    'esim-generation':       ["Votre profil eSIM est en cours de génération. Veuillez patienter et ne rien retirer.", "Your eSIM profile is being generated. Please wait and do not remove anything."],
+    'esim-qr-code':          ["Votre eSIM est prête. Scannez le QR code avec votre téléphone, ou recevez-le par e-mail.", "Your eSIM is ready. Scan the QR code with your phone, or receive it by email."],
     'scan-piece':            ["Veuillez choisir le type de pièce et la placer sur le scanner.", "Please choose your document type and place it on the scanner."],
     'confirmation-infos':    ["Vérifiez les informations extraites et corrigez si nécessaire.", "Verify the extracted information and correct if needed."],
     'selfie':                ["Regardez la caméra et prenez votre selfie pour la vérification.", "Look at the camera and take your selfie for verification."],

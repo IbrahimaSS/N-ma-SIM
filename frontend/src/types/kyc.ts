@@ -9,7 +9,7 @@
 export type KycDecision = string;
 
 /** Type de pièce d'identité détecté */
-export type KycTypePiece = "CNI" | "PASSEPORT" | "CARTE_ELECTEUR" | string;
+export type KycTypePiece = "CNI" | "PASSEPORT" | "CARTE_ELECTEUR" | "PERMIS" | string;
 
 /**
  * Champs extraits de la pièce d'identité via OCR.

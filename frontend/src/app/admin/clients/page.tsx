@@ -17,6 +17,7 @@ function formatTypePiece(type?: string): string {
   if (t === "cni") return "Carte d'identité (CNI)";
   if (t === "carte_electeur") return "Carte d'électeur";
   if (t === "passeport") return "Passeport";
+  if (t === "permis") return "Permis Biométrique";
   if (t === "recepisse") return "Récépissé";
   return type.toUpperCase();
 }

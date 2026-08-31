@@ -76,6 +76,7 @@ export default function FormatSIM() {
 
         {/* SIM Physique */}
         <button
+          data-ai-action="btn-sim-physique"
           onClick={() => {
             sessionStorage.removeItem("kiosk_flow");
             router.push("/borne/nouvelle-sim/scan-piece");
@@ -191,6 +192,7 @@ export default function FormatSIM() {
 
         {/* eSIM */}
         <button
+          data-ai-action="btn-esim"
           onClick={() => {
             sessionStorage.setItem("kiosk_flow", "esim");
             router.push("/borne/nouvelle-sim/esim/forfait");

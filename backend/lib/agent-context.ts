@@ -8,6 +8,12 @@
 // URL => currentStep (défini dans AgentIA.tsx)
 // /borne/accueil            => "accueil-conditions"
 // /borne/services           => "choix-service"
+// /borne/nouvelle-sim/format            => "esim-format"      (service=nouvelle-sim)
+// /borne/nouvelle-sim/esim/forfait      => "esim-forfait"     (service=nouvelle-sim)
+// /borne/nouvelle-sim/esim/compatibilite => "esim-compatibilite" (service=nouvelle-sim)
+// /borne/nouvelle-sim/esim/recapitulatif => "esim-recapitulatif" (service=nouvelle-sim)
+// /borne/nouvelle-sim/esim/generation   => "esim-generation"  (service=nouvelle-sim)
+// /borne/nouvelle-sim/esim/qr-code      => "esim-qr-code" | "felicitations" (service=nouvelle-sim)
 // /borne/nouvelle-sim/scan-piece       => "scan-piece"       (service=nouvelle-sim)
 // /borne/nouvelle-sim/confirmation-infos => "confirmation-infos" (service=nouvelle-sim)
 // /borne/nouvelle-sim/selfie           => "selfie"           (service=nouvelle-sim)
@@ -97,16 +103,78 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
            VOICE: "new SIM"→click btn-nouvelle-sim | "reactivate"→click btn-reactivation
            "recharge"→click btn-recharge | "verify"→click btn-verification`;
 
+    case 'esim-format':
+      return isFr
+        ? `ÉTAPE : Choix du type de SIM (/borne/nouvelle-sim/format).
+           2 OPTIONS :
+           1. SIM Physique → bouton data-ai-action="btn-sim-physique" → mène au scan de la pièce.
+           2. eSIM → bouton data-ai-action="btn-esim" → SIM numérique activée sur un téléphone compatible, mène au choix du forfait.
+           MESSAGE D'ACCUEIL EXACT : "Choisissez votre type de SIM : SIM Physique ou eSIM."
+           COMMANDES VOCALES :
+           - "SIM physique" | "carte physique" | "carte traditionnelle" → click "btn-sim-physique"
+           - "eSIM" | "SIM numérique" | "sans carte" | "dématérialisée" → click "btn-esim"
+           NE PAS parler de scan, selfie ou paiement ici.`
+        : `STEP: SIM type choice (/borne/nouvelle-sim/format).
+           2 OPTIONS: 1. Physical SIM → data-ai-action="btn-sim-physique" (leads to ID scan).
+           2. eSIM → data-ai-action="btn-esim" (digital SIM on a compatible phone, leads to plan choice).
+           EXACT WELCOME MESSAGE: "Choose your SIM type: Physical SIM or eSIM."
+           VOICE: "physical SIM"/"physical card"/"traditional card"→click btn-sim-physique
+           "eSIM"/"digital SIM"/"no card"→click btn-esim. Do NOT mention scan, selfie or payment here.`;
+
+    case 'esim-forfait':
+      return isFr
+        ? `ÉTAPE : Choix du forfait data pour l'eSIM (/borne/nouvelle-sim/esim/forfait).
+           L'utilisateur sélectionne un forfait affiché puis valide pour continuer. Guider verbalement.`
+        : `STEP: eSIM data plan choice (/borne/nouvelle-sim/esim/forfait). User picks a displayed plan then confirms. Guide verbally.`;
+
+    case 'esim-compatibilite':
+      return isFr
+        ? `ÉTAPE : Vérification de compatibilité eSIM du téléphone (/borne/nouvelle-sim/esim/compatibilite).
+           L'utilisateur répond aux questions pour confirmer que son téléphone supporte l'eSIM.
+           MÉTHODE RAPIDE à lui indiquer : composer *#06# sur le téléphone ; si un numéro EID (32 chiffres) s'affiche → l'eSIM est prise en charge.
+           AUTRE MÉTHODE : Paramètres > Réseau mobile / Carte SIM > "Ajouter une eSIM" ; si l'option existe → compatible.
+           S'il n'est pas compatible, il peut basculer sur la SIM physique.`
+        : `STEP: eSIM phone compatibility check (/borne/nouvelle-sim/esim/compatibilite). User answers questions to confirm eSIM support.
+           QUICK METHOD to tell them: dial *#06# on the phone; if an EID number (32 digits) appears -> eSIM is supported.
+           OTHER METHOD: Settings > Mobile Network / SIM > "Add eSIM"; if the option exists -> compatible.
+           If not compatible, they can switch to the physical SIM.`;
+
+    case 'esim-recapitulatif':
+      return isFr
+        ? `ÉTAPE : Récapitulatif de la commande eSIM avant paiement (/borne/nouvelle-sim/esim/recapitulatif).
+           L'utilisateur vérifie ses informations et son forfait, puis continue vers le paiement.`
+        : `STEP: eSIM order summary before payment (/borne/nouvelle-sim/esim/recapitulatif). User reviews info and plan, then continues to payment.`;
+
+    case 'esim-generation':
+      return isFr
+        ? `ÉTAPE : Génération du profil eSIM (/borne/nouvelle-sim/esim/generation).
+           Opération automatique en cours. Demander à l'utilisateur de patienter, ne rien retirer.`
+        : `STEP: eSIM profile generation in progress (/borne/nouvelle-sim/esim/generation). Ask the user to wait and not remove anything.`;
+
+    case 'esim-qr-code':
+      return isFr
+        ? `ÉTAPE : eSIM prête — QR code (/borne/nouvelle-sim/esim/qr-code).
+           L'utilisateur scanne le QR code avec son téléphone, ou le reçoit par e-mail. Proposer de terminer.`
+        : `STEP: eSIM ready — QR code (/borne/nouvelle-sim/esim/qr-code). User scans it with their phone or receives it by email. Offer to finish.`;
+
     case 'scan-piece':
       return isFr
         ? `ÉTAPE : Scan de la pièce d'identité (service: ${service || 'nouvelle-sim'}).
-           L'utilisateur doit : 1) Choisir le type (CNI, Passeport, Carte d'électeur). 2) Capturer le recto (et verso si CNI/Passeport).
+           L'utilisateur doit : 1) Choisir le type (CNI, Passeport, Carte d'électeur, Permis biométrique). 2) Capturer le recto (et verso uniquement pour CNI/Passeport ; recto seul pour Carte d'électeur et Permis biométrique).
            Si profil ÉTRANGER : seul le Passeport est accepté.
-           Pas de bouton IA sur cette page — guider verbalement l'utilisateur.
+           BOUTONS : data-ai-action="btn-cni" | "btn-passeport" | "btn-electeur" | "btn-permis".
+           COMMANDES VOCALES :
+           - "carte d'identité" | "CNI" → click "btn-cni"
+           - "passeport" → click "btn-passeport"
+           - "carte d'électeur" → click "btn-electeur"
+           - "permis" | "permis biométrique" | "permis de conduire" → click "btn-permis"
            NE PAS mentionner le selfie ici. Juste scanner la pièce.`
         : `STEP: ID document scan (service: ${service || 'nouvelle-sim'}).
-           User must: 1) Choose doc type (CNI, Passport, Voter ID). 2) Capture front (and back if CNI/Passport).
-           FOREIGNER profile: only Passport accepted. Guide verbally, no AI button here.`;
+           User must: 1) Choose doc type (National ID / CNI, Passport, Voter ID, Biometric Licence). 2) Capture front (back only for CNI/Passport; front only for Voter ID and Biometric Licence).
+           FOREIGNER profile: only Passport accepted.
+           BUTTONS: data-ai-action="btn-cni" | "btn-passeport" | "btn-electeur" | "btn-permis".
+           VOICE COMMANDS: "ID card"/"CNI"→click btn-cni | "passport"→click btn-passeport
+           "voter ID"→click btn-electeur | "licence"/"biometric licence"/"driving licence"→click btn-permis`;
 
     case 'confirmation-infos':
       return isFr

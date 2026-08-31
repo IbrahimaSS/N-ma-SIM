@@ -72,6 +72,7 @@ export default function ConfirmationInfos() {
           const tp = result.type_piece.toLowerCase();
           if (tp.includes("passport") || tp.includes("passeport")) setTypePiece("passeport");
           else if (tp.includes("electeur")) setTypePiece("carte_electeur");
+          else if (tp.includes("permis")) setTypePiece("permis");
           else setTypePiece("cni");
         }
 
@@ -122,6 +123,7 @@ export default function ConfirmationInfos() {
     cni: lang === "en" ? "National ID Card" : "Carte Nationale d'Identité",
     passport: lang === "en" ? "Passport" : "Passeport",
     carteElecteur: lang === "en" ? "Voter ID" : "Carte d'électeur",
+    permis: lang === "en" ? "Biometric Licence" : "Permis Biométrique",
     idNumber: lang === "en" ? "Document number" : "Numéro de pièce",
 
     infoNote: lang === "en" ? "Your information has been automatically extracted." : "Vos informations ont été extraites automatiquement.",
@@ -330,6 +332,7 @@ export default function ConfirmationInfos() {
             <option value="cni">{t.cni}</option>
             <option value="passeport">{t.passport}</option>
             <option value="carte_electeur">{t.carteElecteur}</option>
+            <option value="permis">{t.permis}</option>
           </Select>
           <Input
             label={t.idNumber}
