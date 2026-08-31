@@ -248,6 +248,7 @@ export default function DetailDemande() {
                     client.typePiece === "cni" ? "Carte Nationale d'Identité" :
                     client.typePiece === "carte_electeur" ? "Carte d'électeur" :
                     client.typePiece === "passeport" ? "Passeport" :
+                    client.typePiece === "permis" ? "Permis Biométrique" :
                     client.typePiece || "—"
                   } />
                   <InfoRow label="Numéro de pièce" value={client.numeroPiece} />

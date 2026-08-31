@@ -221,6 +221,32 @@ export default function EsimCompatibilite() {
               </p>
             </div>
 
+            {/* ── Méthode rapide : *#06# → EID ── */}
+            <div style={{
+              background: "white",
+              border: "1px dashed #1F0270",
+              borderRadius: 14,
+              padding: "14px 16px",
+              marginBottom: 16,
+              display: "flex",
+              gap: 12,
+              alignItems: "flex-start",
+            }}>
+              <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1 }}>⚡</span>
+              <div>
+                <p style={{ fontWeight: 800, fontSize: 13, color: "#1F0270", margin: "0 0 3px" }}>
+                  {lang === "en" ? "Quick method" : "Méthode rapide"}
+                </p>
+                <p style={{ fontSize: 12, color: "#6B7280", margin: 0, lineHeight: 1.5 }}>
+                  {lang === "en" ? (
+                    <>Dial <strong style={{ color: "#1F0270" }}>*#06#</strong> on your phone. If an <strong>EID</strong> number (32 digits) appears, your phone supports eSIM.</>
+                  ) : (
+                    <>Composez <strong style={{ color: "#1F0270" }}>*#06#</strong> sur votre téléphone. Si un numéro <strong>EID</strong> (32 chiffres) s&apos;affiche, votre téléphone est compatible eSIM.</>
+                  )}
+                </p>
+              </div>
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
               {steps.map((s, i) => (
                 <div key={i} style={{
