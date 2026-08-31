@@ -8,6 +8,7 @@ const createDemandeSchema = z.object({
   clientId: z.string(),
   type: z.enum(['NOUVELLE_SIM', 'REACTIVATION', 'RECHARGE']),
   offreId: z.string().optional(),
+  formatSim: z.enum(['PHYSIQUE', 'ESIM']).optional(),
   numeroAReactiver: z.string().optional(),
   motifReactivation: z.string().optional(),
   // Permet au proxy de forcer directement VALIDEE pour les recharges automatiques
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
       return apiError('Données invalides', 400, parsed.error.flatten())
     }
 
-    const { clientId, type, offreId, numeroAReactiver, motifReactivation, statut } = parsed.data
+    const { clientId, type, offreId, formatSim, numeroAReactiver, motifReactivation, statut } = parsed.data
 
     // Vérifier que le client existe
     const client = await prisma.client.findUnique({ where: { id: clientId } })
@@ -160,6 +161,7 @@ export async function POST(request: NextRequest) {
         type,
         clientId,
         offreId: offreId || undefined,
+        formatSim: formatSim || 'PHYSIQUE',
         numeroAReactiver: numeroAReactiver || undefined,
         motifReactivation: motifReactivation || undefined,
         statut: statutFinal,

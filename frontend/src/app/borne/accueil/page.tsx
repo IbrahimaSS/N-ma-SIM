@@ -11,7 +11,7 @@ import {
 export default function Accueil() {
   const router = useRouter();
   const [accepted, setAccepted] = useState(false);
-  const [lang, setLang] = useState<"fr" | "en" | "sus">("fr");
+  const [lang, setLang] = useState<"fr" | "en" | "sus" | "pou">("fr");
   const [profile, setProfile] = useState<"resident" | "etranger" | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -147,7 +147,7 @@ export default function Accueil() {
             </button>
 
             {/* Soussou */}
-            <button data-ai-action="btn-lang-sus" onClick={() => setLang("sus")} style={{
+            <button data-ai-action="btn-lang-sus" onClick={() => { setLang("sus"); setProfile("resident"); }} style={{
               flex: 1, height: 54,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
               fontWeight: 700, fontSize: 13,
@@ -171,6 +171,32 @@ export default function Accueil() {
                 SUS
               </span>
               Soussou
+            </button>
+
+            {/* Poular */}
+            <button data-ai-action="btn-lang-pou" onClick={() => { setLang("pou"); setProfile("resident"); }} style={{
+              flex: 1, height: 54,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              fontWeight: 700, fontSize: 13,
+              color: lang === "pou" ? "#1F6B2D" : "#9CA3AF",
+              background: lang === "pou" ? "rgba(31,107,45,0.07)" : "transparent",
+              border: "none",
+              borderLeft: "1px solid #E5E7EB",
+              borderBottom: lang === "pou" ? "3px solid #1F6B2D" : "3px solid transparent",
+              cursor: "pointer", transition: "all 0.2s",
+            }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                width: 28, height: 28, borderRadius: "50%",
+                background: "linear-gradient(135deg, #CE1126 33%, #FCD116 33% 66%, #009A44 66%)",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+                fontSize: 9, fontWeight: 900, color: "white",
+                letterSpacing: 0, flexShrink: 0,
+                textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+              }}>
+                POU
+              </span>
+              Poular
             </button>
           </div>
 

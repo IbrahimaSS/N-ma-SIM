@@ -21,7 +21,7 @@ export default function Services() {
       title: lang === "en" ? "New SIM" : "Nouvelle SIM",
       description: lang === "en" ? "Get a new SIM card in minutes." : "Obtenez une nouvelle carte SIM en quelques minutes.",
       icon: <Microchip size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
-      action: () => router.push("/borne/nouvelle-sim/scan-piece"),
+      action: () => router.push("/borne/nouvelle-sim/format"),
       disabled: false,
     },
     {

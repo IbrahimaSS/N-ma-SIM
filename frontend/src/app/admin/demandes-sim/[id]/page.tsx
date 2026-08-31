@@ -153,6 +153,11 @@ export default function DetailDemande() {
               <span style={{ background: demande.type === "NOUVELLE_SIM" ? "#F0FDF4" : demande.type === "RECHARGE" ? "#FFFBEB" : "#EEF2FF", color: demande.type === "NOUVELLE_SIM" ? "#166534" : demande.type === "RECHARGE" ? "#B45309" : "#4338CA", border: `1px solid ${demande.type === "NOUVELLE_SIM" ? "#BBF7D0" : demande.type === "RECHARGE" ? "#FDE68A" : "#C7D2FE"}`, borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>
                 {demande.type === "NOUVELLE_SIM" ? "Nouvelle SIM" : demande.type === "RECHARGE" ? "Recharge" : "Réactivation"}
               </span>
+              {demande.type === "NOUVELLE_SIM" && (
+                <span style={{ background: demande.formatSim === "ESIM" ? "#EEF2FF" : "#F1F5F9", color: demande.formatSim === "ESIM" ? "#3730A3" : "#475569", border: `1px solid ${demande.formatSim === "ESIM" ? "#C7D2FE" : "#E2E8F0"}`, borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>
+                  {demande.formatSim === "ESIM" ? "📲 eSIM" : "📱 SIM physique"}
+                </span>
+              )}
               <StatutBadge statut={demande.statut} />
             </div>
           </div>
@@ -261,12 +266,19 @@ export default function DetailDemande() {
               </h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 {demande.type === "NOUVELLE_SIM" && (
+                  <InfoRow label="Format de SIM" value={demande.formatSim === "ESIM" ? "eSIM (profil numérique)" : "Carte SIM physique"} />
+                )}
+                {demande.type === "NOUVELLE_SIM" && demande.formatSim !== "ESIM" && (
                   <InfoRow label="Achat de base" value="Nouvelle Carte SIM" />
                 )}
                 {offre.nom && (
-                  <InfoRow 
-                    label={demande.type === "NOUVELLE_SIM" && !offre.type?.includes("SIM_") ? "Option ajoutée" : "Offre choisie"} 
-                    value={offre.nom} 
+                  <InfoRow
+                    label={
+                      demande.formatSim === "ESIM" ? "Forfait eSIM"
+                      : demande.type === "NOUVELLE_SIM" && !offre.type?.includes("SIM_") ? "Option ajoutée"
+                      : "Offre choisie"
+                    }
+                    value={offre.nom}
                   />
                 )}
                 {offre.prix && (

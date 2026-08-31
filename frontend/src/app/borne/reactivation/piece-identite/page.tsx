@@ -242,7 +242,9 @@ export default function ReactivationPieceIdentite() {
                 <p className="text-sm text-text-muted mb-3">{t.docTypeSub}</p>
                 <div className="flex gap-3 flex-wrap">
                   {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
-                    <button key={type} onClick={() => handleDocTypeChange(type)}
+                    <button key={type}
+                      data-ai-action={type === "cni" ? "btn-cni" : type === "passeport" ? "btn-passeport" : "btn-electeur"}
+                      onClick={() => handleDocTypeChange(type)}
                       className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${docType === type ? "border-primary bg-primary/10 text-primary" : "border-border-light text-text-muted hover:border-primary/50"}`}>
                       {type === "cni" ? t.cni : type === "passeport" ? t.passeport : t.carteElecteur}
                     </button>

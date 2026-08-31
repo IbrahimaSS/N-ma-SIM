@@ -44,7 +44,7 @@ export default function Offres() {
       .then((data) => {
         const list: OffreDB[] = data.data || data || [];
         const filtered = list.filter(
-          (o) => o.type !== "SIM" && o.type !== "SIM_STANDARD" && !o.nom.toLowerCase().includes("sim standard")
+          (o) => o.type !== "SIM" && o.type !== "SIM_STANDARD" && !o.nom.toLowerCase().includes("sim standard") && !o.nom.toLowerCase().includes("esim")
         );
         setOffres(filtered);
         setSelectedOffer("");

@@ -45,4 +45,15 @@ export const KIOSK_STEP_REQUIREMENTS: Record<string, { key: string; fallback: st
   // ── Vérification de profil ──
   "/borne/verification/selfie": { key: "kiosk_verif_scan_ok", fallback: "/borne/verification/scan-piece" },
   "/borne/verification/resultat": { key: "kiosk_verif_selfie_ok", fallback: "/borne/verification/scan-piece" },
+
+  // ── eSIM ──
+  "/borne/nouvelle-sim/esim/compatibilite": { key: "kiosk_esim_forfait", fallback: "/borne/nouvelle-sim/esim/forfait" },
+  "/borne/nouvelle-sim/esim/scan-piece": { key: "kiosk_esim_compat_ok", fallback: "/borne/nouvelle-sim/esim/compatibilite" },
+  "/borne/nouvelle-sim/esim/confirmation-infos": { key: "kiosk_doc_type", fallback: "/borne/nouvelle-sim/esim/scan-piece" },
+  "/borne/nouvelle-sim/esim/selfie": { key: "kiosk_client_info", fallback: "/borne/nouvelle-sim/esim/scan-piece" },
+  "/borne/nouvelle-sim/esim/recapitulatif": { key: "kiosk_selfie_ok", fallback: "/borne/nouvelle-sim/esim/scan-piece" },
+  "/borne/nouvelle-sim/esim/paiement": { key: "kiosk_esim_recap_ok", fallback: "/borne/nouvelle-sim/esim/recapitulatif" },
+  "/borne/nouvelle-sim/esim/generation": { key: "kiosk_payment", fallback: "/borne/nouvelle-sim/esim/paiement" },
+  "/borne/nouvelle-sim/esim/qr-code": { key: "kiosk_esim_profile", fallback: "/borne/nouvelle-sim/esim/recapitulatif" },
 };
+

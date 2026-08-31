@@ -23,12 +23,18 @@ export default function NouvelleSIMLayout({ children }: { children: ReactNode })
   else if (pathname.includes("paiement")) currentStep = 5;
   else if (pathname.includes("recu")) currentStep = 6;
 
+  const isEsim = pathname.includes("/esim");
+  const isFormat = pathname.includes("/format");
+  const showStepper = !isEsim && !isFormat;
+
   return (
     <div className="w-full flex flex-col items-center w-full animate-in fade-in duration-500">
       {/* Le Stepper est affiché en haut de chaque page de ce parcours */}
-      <div className="w-full max-w-4xl mb-6 mt-2">
-        <Stepper steps={steps} currentStep={currentStep} />
-      </div>
+      {showStepper && (
+        <div className="w-full max-w-4xl mb-6 mt-2">
+          <Stepper steps={steps} currentStep={currentStep} />
+        </div>
+      )}
       
       <div className="w-full max-w-5xl">
         {children}

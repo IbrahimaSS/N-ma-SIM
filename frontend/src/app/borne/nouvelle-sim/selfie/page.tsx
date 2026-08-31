@@ -116,9 +116,10 @@ export default function Selfie() {
         return; // Ne pas naviguer vers les offres
       }
 
-      // Naviguer vers offres
+      // Naviguer vers offres ou recapitulatif selon le contexte
+      const isEsim = sessionStorage.getItem("kiosk_flow") === "esim";
       sessionStorage.setItem("kiosk_selfie_ok", "1");
-      router.push("/borne/nouvelle-sim/offres");
+      router.push(isEsim ? "/borne/nouvelle-sim/esim/recapitulatif" : "/borne/nouvelle-sim/offres");
     } catch (err) {
       const kycErr = err as KycError;
       setKycError(kycErr.message || (lang === "en" ? "Unknown error." : "Erreur inconnue."));

@@ -3,9 +3,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Bot, Mic, MicOff, VolumeX, Volume2 } from "lucide-react";
 import { jouerSoussou } from "@/lib/soussou-audio";
+import { enregistrerAudio, comprendreIntention, getVocalPage } from "@/lib/soussou-vocal";
 
 interface AgentIAProps {
-  language?: "fr" | "en" | "sus" | null;
+  language?: "fr" | "en" | "sus" | "pou" | null;
   profile?: "resident" | "etranger" | null;
   termsAccepted?: boolean;
   service?: "nouvelle-sim" | "reactivation" | null;
@@ -62,6 +63,17 @@ export function AgentIA({
     if (pathname === "/borne" || pathname === "/borne/")         currentStep = "choix-langue";
     else if (pathname.includes("/borne/accueil"))               currentStep = "accueil-conditions";
     else if (pathname.includes("/borne/services"))              { currentStep = "choix-service"; currentTerms = true; }
+    // eSIM (extension de Nouvelle SIM)
+    else if (pathname.includes("/nouvelle-sim/format"))              { currentStep = "esim-format"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/forfait"))        { currentStep = "esim-forfait"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/compatibilite"))  { currentStep = "esim-compatibilite"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/scan-piece"))     { currentStep = "scan-piece"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/confirmation"))   { currentStep = "confirmation-infos"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/selfie"))         { currentStep = "selfie"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/recapitulatif"))  { currentStep = "esim-recapitulatif"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/paiement"))       { currentStep = "paiement"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/generation"))     { currentStep = "esim-generation"; currentService = "nouvelle-sim"; }
+    else if (pathname.includes("/nouvelle-sim/esim/qr-code"))        { currentStep = isSuccess ? "felicitations" : "esim-qr-code"; currentService = "nouvelle-sim"; }
     // Nouvelle SIM
     else if (pathname.includes("/nouvelle-sim/scan-piece"))     { currentStep = "scan-piece"; currentService = "nouvelle-sim"; }
     else if (pathname.includes("/nouvelle-sim/confirmation"))   { currentStep = "confirmation-infos"; currentService = "nouvelle-sim"; }
@@ -87,12 +99,14 @@ export function AgentIA({
     else if (pathname.includes("/verification/selfie"))         { currentStep = "verification-selfie"; currentService = null; }
     else if (pathname.includes("/verification/scan-piece"))     { currentStep = "verification-scan-piece"; currentService = null; }
 
-    currentLang = (sessionLang as "fr" | "en" | "sus" | null) || currentLang || "fr";
+    currentLang = (sessionLang as "fr" | "en" | "sus" | "pou" | null) || currentLang || "fr";
     currentProfile = (sessionProfile as "resident" | "etranger" | null) || currentProfile || "resident";
 
     const postTermsSteps = ["choix-service", "scan-piece", "confirmation-infos", "selfie",
       "choix-offre", "paiement", "recu", "numero-reactivation", "motif-reactivation",
-      "numeros-frequents", "piece-identite", "verification", "recharge-numero", "recharge-montant"];
+      "numeros-frequents", "piece-identite", "verification", "recharge-numero", "recharge-montant",
+      "esim-format", "esim-forfait", "esim-compatibilite", "esim-recapitulatif",
+      "esim-generation", "esim-qr-code"];
     if (postTermsSteps.includes(currentStep)) {
       currentTerms = true;
       currentProfile = currentProfile || "resident";
@@ -171,10 +185,9 @@ export function AgentIA({
   // ─── Envoi du message au backend Groq ──────────────────────────────────────
   const sendMessage = useCallback(async (userText: string, isInitial = false) => {
 
-    // ══ SOUSSOU : pas de Groq, pas de bulle — juste le WAV ══
+    // ══ SOUSSOU : pas de Groq, pas de bulle ══
     if (currentLang === 'sus') {
-      jouerSoussou(currentStep, currentService);
-      return;
+      return; // La lecture audio est maintenant gérée dans les useEffects
     }
 
     setIsLoading(true);
@@ -218,26 +231,93 @@ export function AgentIA({
     }
   }, [currentLang, currentProfile, currentTerms, currentService, currentStep, speak, showBubble, executeAction]);
 
-  // ─── Déclenchement automatique au changement d'étape ───────────────────────
-  useEffect(() => {
-    if (prevStepRef.current !== currentStep) {
-      prevStepRef.current = currentStep;
-      sendMessage("", true);
-    }
-  }, [currentStep, sendMessage]);
+  // Signale au gardien de session qu'une interaction vocale est en cours
+  // (sinon un utilisateur qui n'utilise que la voix serait renvoyé à l'accueil).
+  const pingActivity = useCallback(() => {
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("kiosk-activity"));
+  }, []);
 
-  // ─── Message de bienvenue initial ──────────────────────────────────────────
-  useEffect(() => {
-    if (!hasTriggeredInitial.current) {
-      hasTriggeredInitial.current = true;
-      sendMessage("", true);
+  // ─── Reconnaissance vocale (SpeechRecognition ou API Soussou) ───────────────
+  const startListening = useCallback(async () => {
+    keepListeningRef.current = true;
+    setIsListening(true);
+    pingActivity();
+
+    // ══ BRANCHE SOUSSOU : Audio Custom + API FastAPI Keras ══
+    if (currentLang === "sus") {
+      const pageVocale = getVocalPage(currentStep);
+      if (!pageVocale) {
+        // Pas de modèle pour cette page, on lit juste l'instruction
+        jouerSoussou(currentStep, currentService);
+        setIsListening(false);
+        keepListeningRef.current = false;
+        return;
+      }
+
+      // Boucle d'écoute soussou
+      let essais = 0;
+      while (essais < 3 && keepListeningRef.current) {
+        try {
+          pingActivity(); // l'utilisateur est en pleine interaction vocale
+          const blob = await enregistrerAudio(4000); // enregistre 4 secondes
+          if (!keepListeningRef.current) break;
+
+          setIsLoading(true);
+          const resultat = await comprendreIntention(pageVocale, blob);
+          setIsLoading(false);
+          pingActivity();
+
+          if (resultat.intention) {
+            // Log détaillé des scores pour débogage
+            console.log(`[VOCAL] Intention: ${resultat.intention} | Raison: ${resultat.raison}`);
+            console.log(`[VOCAL] Scores:`, resultat.scores);
+            let action: AgentAction | null = null;
+            switch (resultat.intention) {
+              case "nouvelle_sim": action = { type: "navigate", target: "/borne/nouvelle-sim/format" }; break;
+              case "reactivation_sim": action = { type: "navigate", target: "/borne/reactivation/identification" }; break;
+              case "carte_nationale_identite": action = { type: "click", target: "btn-cni" }; break;
+              case "passeport": action = { type: "click", target: "btn-passeport" }; break;
+              case "carte_electeur": action = { type: "click", target: "btn-electeur" }; break;
+              case "blocage": action = { type: "fill", target: "select-reactivation-motif", value: "desactivee" }; break;
+              case "inactivite": action = { type: "fill", target: "select-reactivation-motif", value: "inactivite" }; break;
+              case "perte": action = { type: "fill", target: "select-reactivation-motif", value: "perte" }; break;
+            }
+
+            if (action) {
+              executeAction(action);
+              setIsListening(false);
+              keepListeningRef.current = false;
+              return; // Succès, on quitte la boucle
+            }
+          }
+
+          // Si on arrive ici, c'est qu'on a pas compris
+          essais++;
+          if (essais < 3 && keepListeningRef.current) {
+            await jouerSoussou("repeter", null);
+          }
+        } catch (e) {
+          console.error("Erreur de la boucle vocale soussou", e);
+          setIsLoading(false);
+          break;
+        }
+      }
+
+      // Après 3 échecs
+      if (essais >= 3 && keepListeningRef.current) {
+        await jouerSoussou("non-compris", null);
+      }
+      setIsListening(false);
+      keepListeningRef.current = false;
+      return;
     }
-  }, [sendMessage]);
-  // ─── Reconnaissance vocale (SpeechRecognition) ─────────────────────────────
-  const startListening = useCallback(() => {
+
+    // ══ BRANCHE FRANÇAIS / ANGLAIS : API native du navigateur ══
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
       alert("Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Safari.");
+      setIsListening(false);
+      keepListeningRef.current = false;
       return;
     }
 
@@ -280,13 +360,54 @@ export function AgentIA({
     try {
       recognition.start();
     } catch(e) {}
-  }, [currentLang, sendMessage]);
+  }, [currentLang, sendMessage, pingActivity]);
 
   const stopListening = useCallback(() => {
     keepListeningRef.current = false;
     recognitionRef.current?.stop();
     setIsListening(false);
   }, []);
+
+  // Battement d'activité pendant toute la durée d'une interaction vocale
+  // (enregistrement + traitement + relances), pour ne pas être renvoyé à l'accueil.
+  useEffect(() => {
+    if (!isListening && !isLoading) return;
+    pingActivity();
+    const id = setInterval(pingActivity, 8000);
+    return () => clearInterval(id);
+  }, [isListening, isLoading, pingActivity]);
+
+  // ─── Déclenchement automatique au changement d'étape ───────────────────────
+  useEffect(() => {
+    if (prevStepRef.current !== currentStep) {
+      prevStepRef.current = currentStep;
+      if (currentLang === 'sus') {
+        jouerSoussou(currentStep, currentService).then(() => {
+          if (getVocalPage(currentStep)) {
+            startListening();
+          }
+        });
+      } else {
+        sendMessage("", true);
+      }
+    }
+  }, [currentStep, currentLang, currentService, sendMessage, startListening]);
+
+  // ─── Message de bienvenue initial ──────────────────────────────────────────
+  useEffect(() => {
+    if (!hasTriggeredInitial.current) {
+      hasTriggeredInitial.current = true;
+      if (currentLang === 'sus') {
+        jouerSoussou(currentStep, currentService).then(() => {
+          if (getVocalPage(currentStep)) {
+            startListening();
+          }
+        });
+      } else {
+        sendMessage("", true);
+      }
+    }
+  }, [currentLang, currentStep, currentService, sendMessage, startListening]);
 
   const handleToggleMute = () => {
     if (!isMuted) window.speechSynthesis?.cancel();
