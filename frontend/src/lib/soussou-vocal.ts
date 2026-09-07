@@ -121,12 +121,13 @@ export async function enregistrerAudio(dureeMs: number): Promise<Blob> {
 /**
  * Envoie le fichier audio (WAV) à l'API vocale locale via le proxy Next.js.
  */
-export async function comprendreIntention(page: string, audioBlob: Blob): Promise<VocalResult> {
+export async function comprendreIntention(page: string, audioBlob: Blob, lang: string = "sus"): Promise<VocalResult> {
   const formData = new FormData();
   formData.append("page", page);
+  formData.append("lang", lang);
   formData.append("audio", audioBlob, "enregistrement.wav");
 
-  console.log(`[VOCAL] Envoi vers /api/vocal/comprendre — page=${page}, audio=${audioBlob.size} octets, type=${audioBlob.type}`);
+  console.log(`[VOCAL] Envoi vers /api/vocal/comprendre — page=${page}, lang=${lang}, audio=${audioBlob.size} octets`);
 
   try {
     const res = await fetch("/api/vocal/comprendre", {

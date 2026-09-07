@@ -214,12 +214,17 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
     case 'paiement':
       return isFr
         ? `ÉTAPE : Paiement (service: ${service || 'recharge'}).
-           Moyens acceptés : Orange Money (OTP) et Carte Visa (saisie manuelle ou scan).
-           BOUTON valider : data-ai-action="btn-confirmer-paiement"
-           COMMANDES : "confirmer" | "payer" | "valider le paiement" → click "btn-confirmer-paiement".`
+           Moyens acceptés : Orange Money et Carte Visa. Pour une recharge de crédit, l'utilisateur choisit d'abord le mode de paiement, puis valide.
+           BOUTONS : data-ai-action="btn-pay-om" (Orange Money) | "btn-pay-visa" (Carte Visa) | "btn-confirmer-paiement" (valider / payer).
+           COMMANDES :
+           - "Orange Money" | "OM" | "mobile money" → click "btn-pay-om"
+           - "Visa" | "carte" | "carte bancaire" → click "btn-pay-visa"
+           - "confirmer" | "payer" | "valider le paiement" → click "btn-confirmer-paiement"`
         : `STEP: Payment (service: ${service || 'recharge'}).
-           Accepted: Orange Money (OTP) and Visa Card.
-           BUTTON: btn-confirmer-paiement | COMMANDS: "confirm"|"pay"|"validate"→click btn-confirmer-paiement`;
+           Accepted: Orange Money and Visa Card. For a credit top-up, the user first picks the payment method, then confirms.
+           BUTTONS: data-ai-action="btn-pay-om" (Orange Money) | "btn-pay-visa" (Visa Card) | "btn-confirmer-paiement" (confirm / pay).
+           COMMANDS: "Orange Money"/"OM"/"mobile money"→click btn-pay-om | "Visa"/"card"/"bank card"→click btn-pay-visa
+           "confirm"/"pay"/"validate"→click btn-confirmer-paiement`;
 
     case 'recu':
       return isFr

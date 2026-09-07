@@ -135,6 +135,14 @@ export async function POST(request: NextRequest) {
 
       // ── PAGE PAIEMENT ─────────────────────────────────────────────────
       if (currentStep === 'paiement') {
+        // Choix du mode de paiement (recharge : Orange Money ou Carte Visa)
+        if (/orange money|\bom\b|mobile money/.test(msg))
+          return ok(isFr ? "J'ai sélectionné Orange Money." : "Selected Orange Money.",
+            { type: 'click', target: 'btn-pay-om' });
+        if (/visa|carte bancaire|carte visa|par carte|bank card/.test(msg))
+          return ok(isFr ? "J'ai sélectionné la Carte Visa." : "Selected Visa Card.",
+            { type: 'click', target: 'btn-pay-visa' });
+
         if (/confirmer|payer|valider|pay|confirm/.test(msg))
           return ok(isFr ? "Je confirme votre paiement." : "Confirming your payment.",
             { type: 'click', target: 'btn-confirmer-paiement' });

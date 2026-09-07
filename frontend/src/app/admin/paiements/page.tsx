@@ -44,6 +44,7 @@ function ModeBadge({ mode }: { mode: string }) {
     "ORANGE_MONEY": { bg: "#FF6600", color: "white", label: "OM" },
     "MTN_MOBILE_MONEY": { bg: "#FFCC00", color: "#111827", label: "MTN" },
     "VISA": { bg: "#1434CB", color: "white", label: "VISA" },
+    "CARTE_BANCAIRE": { bg: "#1434CB", color: "white", label: "VISA" },
     "ESPECES": { bg: "#059669", color: "white", label: "💵" },
     "WAVE": { bg: "#12B8FF", color: "white", label: "WAV" },
   };

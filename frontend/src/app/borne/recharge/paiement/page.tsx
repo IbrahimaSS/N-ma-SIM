@@ -5,13 +5,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { ArrowLeft, CheckCircle2, CreditCard, Loader2, Phone, Banknote, AlertCircle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, Loader2, Phone, Banknote, AlertCircle, ShieldCheck, Smartphone } from "lucide-react";
+
+type PayMethod = "orange-money" | "visa";
 
 export default function RechargePaiement() {
   const router = useRouter();
   const [lang, setLang] = useState("fr");
   const [numero, setNumero] = useState("—");
   const [montant, setMontant] = useState(0);
+  const [method, setMethod] = useState<PayMethod>("orange-money");
   
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -87,16 +90,18 @@ export default function RechargePaiement() {
     }
   };
 
+  const methodLabel = method === "visa" ? "Carte Visa" : "Orange Money";
+
   // Écouter le message de succès de l'Iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === "LENGO_PAY_SUCCESS") {
-        executeRecharge("Lengo Pay", event.data?.pay_id || "NMA-PAY-LENG-01");
+        executeRecharge(methodLabel, event.data?.pay_id || "NMA-PAY-LENG-01");
       }
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [numero, montant]); // Les dépendances pour s'assurer qu'executeRecharge a le bon état
+  }, [numero, montant, methodLabel]); // Les dépendances pour s'assurer qu'executeRecharge a le bon état
 
   const t = {
     title: lang === "en" ? "Step 3/3 — Payment" : "Étape 3/3 — Paiement",
@@ -108,6 +113,12 @@ export default function RechargePaiement() {
     success: lang === "en" ? "Recharge successful!" : "Recharge effectuée !",
     successMsg: lang === "en" ? "Your number has been topped up." : "Votre numéro a bien été rechargé.",
     home: lang === "en" ? "Back to home" : "Retour à l'accueil",
+    payMethod: lang === "en" ? "Payment method" : "Mode de paiement",
+    om: "Orange Money",
+    omDesc: lang === "en" ? "Fast mobile payment" : "Paiement mobile rapide",
+    visa: lang === "en" ? "Visa Card" : "Carte Visa",
+    visaDesc: lang === "en" ? "Pay by bank card" : "Paiement par carte bancaire",
+    paidWith: lang === "en" ? "Paid with" : "Payé via",
   };
 
   if (isDone) {
@@ -122,6 +133,9 @@ export default function RechargePaiement() {
             <p className="text-text-muted">{t.successMsg}</p>
             <p className="text-lg font-bold text-primary mt-2">
               +224 {numero} · {montant.toLocaleString("fr-FR")} GNF
+            </p>
+            <p className="text-sm text-text-muted mt-1">
+              {t.paidWith} <span className="font-semibold text-primary">{methodLabel}</span>
             </p>
           </div>
 
@@ -189,7 +203,7 @@ export default function RechargePaiement() {
                     <Button 
                       variant="secondary" 
                       size="lg"
-                      onClick={() => executeRecharge("Lengo Pay (Mode Démo)", "NMA-DEMO-2026")}
+                      onClick={() => executeRecharge(`${methodLabel} (Mode Démo)`, "NMA-DEMO-2026")}
                       className="w-full max-w-sm bg-orange-100 text-orange-700 hover:bg-orange-200 border border-orange-200 shadow-sm font-bold text-base h-14"
                     >
                       {lang === "en" ? "Bypass Payment (Demo Mode)" : "Bypass Paiement (Mode Démo)"}
@@ -197,16 +211,45 @@ export default function RechargePaiement() {
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center h-full">
+                <div className="flex flex-col items-center justify-center p-8 text-center h-full w-full">
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                     <CreditCard className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold text-primary mb-2">{lang === "en" ? "Secure Payment" : "Paiement Sécurisé"}</h3>
-                  <p className="text-text-muted mb-6 max-w-sm text-sm">
-                    {lang === "en" ? "You will be redirected to Lengo Pay to complete your top-up using Orange Money, Mobile Money, or Card." : "Vous allez être redirigé vers Lengo Pay pour finaliser votre recharge avec Orange Money, Mobile Money ou Carte."}
+                  <p className="text-text-muted mb-5 max-w-sm text-sm">
+                    {lang === "en" ? "Choose your payment method. The secure gateway completes the top-up." : "Choisissez votre mode de paiement. La passerelle sécurisée finalise la recharge."}
                   </p>
-                  <Button 
-                    size="lg" 
+
+                  {/* Choix du mode de paiement */}
+                  <p className="text-sm font-semibold text-text-main self-start mb-2">{t.payMethod}</p>
+                  <div className="grid grid-cols-2 gap-3 w-full max-w-md mb-6">
+                    {([
+                      { id: "orange-money" as PayMethod, icon: <Smartphone className="w-6 h-6" />, label: t.om, desc: t.omDesc, aiAction: "btn-pay-om" },
+                      { id: "visa" as PayMethod, icon: <CreditCard className="w-6 h-6" />, label: t.visa, desc: t.visaDesc, aiAction: "btn-pay-visa" },
+                    ]).map((opt) => {
+                      const active = method === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          data-ai-action={opt.aiAction}
+                          onClick={() => setMethod(opt.id)}
+                          className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 transition-colors ${
+                            active
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border-light bg-white text-text-muted hover:border-primary/50"
+                          }`}
+                        >
+                          <span className={active ? "text-primary" : "text-text-muted"}>{opt.icon}</span>
+                          <span className="text-sm font-bold text-text-main">{opt.label}</span>
+                          <span className="text-[11px] leading-tight">{opt.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    data-ai-action="btn-confirmer-paiement"
+                    size="lg"
                     className="px-8 py-5 text-lg w-full max-w-xs shadow-md"
                     onClick={initLengoPay}
                     disabled={isLoading || montant <= 0}
