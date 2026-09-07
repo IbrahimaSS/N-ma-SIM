@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Bot, Mic, MicOff, VolumeX, Volume2 } from "lucide-react";
-import { jouerSoussou } from "@/lib/soussou-audio";
+import { jouerAudioLocal } from "@/lib/soussou-audio";
 import { enregistrerAudio, comprendreIntention, getVocalPage } from "@/lib/soussou-vocal";
 
 interface AgentIAProps {
@@ -131,9 +131,9 @@ export function AgentIA({
   const speak = useCallback((text: string, lang: string) => {
     if (isMuted) return;
 
-    // ═ Soussou : jouer le fichier WAV correspondant à l'étape ═
-    if (lang === 'sus') {
-      jouerSoussou(currentStep, currentService);
+    // ═ Soussou / Poular : jouer le fichier audio local correspondant à l'étape ═
+    if (lang === 'sus' || lang === 'pou') {
+      jouerAudioLocal(lang, currentStep, currentService);
       return;
     }
 
@@ -185,8 +185,8 @@ export function AgentIA({
   // ─── Envoi du message au backend Groq ──────────────────────────────────────
   const sendMessage = useCallback(async (userText: string, isInitial = false) => {
 
-    // ══ SOUSSOU : pas de Groq, pas de bulle ══
-    if (currentLang === 'sus') {
+    // ══ SOUSSOU / POULAR : pas de Groq, pas de bulle ══
+    if (currentLang === 'sus' || currentLang === 'pou') {
       return; // La lecture audio est maintenant gérée dans les useEffects
     }
 
@@ -243,12 +243,12 @@ export function AgentIA({
     setIsListening(true);
     pingActivity();
 
-    // ══ BRANCHE SOUSSOU : Audio Custom + API FastAPI Keras ══
-    if (currentLang === "sus") {
+    // ══ BRANCHE LOCALE (Soussou / Poular) : Audio Custom + API FastAPI Keras ══
+    if (currentLang === "sus" || currentLang === "pou") {
       const pageVocale = getVocalPage(currentStep);
       if (!pageVocale) {
         // Pas de modèle pour cette page, on lit juste l'instruction
-        jouerSoussou(currentStep, currentService);
+        jouerAudioLocal(currentLang, currentStep, currentService);
         setIsListening(false);
         keepListeningRef.current = false;
         return;
@@ -263,7 +263,7 @@ export function AgentIA({
           if (!keepListeningRef.current) break;
 
           setIsLoading(true);
-          const resultat = await comprendreIntention(pageVocale, blob);
+          const resultat = await comprendreIntention(pageVocale, blob, currentLang);
           setIsLoading(false);
           pingActivity();
 
@@ -291,13 +291,19 @@ export function AgentIA({
             }
           }
 
-          // Si on arrive ici, c'est qu'on a pas compris
+          // Gestion de la catégorie "rien" (silence/bruit) -> on ignore
+          if (resultat.intention === null && (resultat.raison === "rien_detecte" || resultat.raison === "audio_vide")) {
+            console.log(`[VOCAL] Bruit/silence ignoré (${resultat.raison}), attente sans relance.`);
+            continue; // n'incrémente pas les essais
+          }
+
+          // Si on arrive ici, c'est qu'on a vraiment pas compris
           essais++;
           if (essais < 3 && keepListeningRef.current) {
-            await jouerSoussou("repeter", null);
+            await jouerAudioLocal(currentLang, "repeter", null);
           }
         } catch (e) {
-          console.error("Erreur de la boucle vocale soussou", e);
+          console.error("Erreur de la boucle vocale locale", e);
           setIsLoading(false);
           break;
         }
@@ -305,7 +311,7 @@ export function AgentIA({
 
       // Après 3 échecs
       if (essais >= 3 && keepListeningRef.current) {
-        await jouerSoussou("non-compris", null);
+        await jouerAudioLocal(currentLang, "non-compris", null);
       }
       setIsListening(false);
       keepListeningRef.current = false;
@@ -381,8 +387,8 @@ export function AgentIA({
   useEffect(() => {
     if (prevStepRef.current !== currentStep) {
       prevStepRef.current = currentStep;
-      if (currentLang === 'sus') {
-        jouerSoussou(currentStep, currentService).then(() => {
+      if (currentLang === 'sus' || currentLang === 'pou') {
+        jouerAudioLocal(currentLang, currentStep, currentService).then(() => {
           if (getVocalPage(currentStep)) {
             startListening();
           }
@@ -397,8 +403,8 @@ export function AgentIA({
   useEffect(() => {
     if (!hasTriggeredInitial.current) {
       hasTriggeredInitial.current = true;
-      if (currentLang === 'sus') {
-        jouerSoussou(currentStep, currentService).then(() => {
+      if (currentLang === 'sus' || currentLang === 'pou') {
+        jouerAudioLocal(currentLang, currentStep, currentService).then(() => {
           if (getVocalPage(currentStep)) {
             startListening();
           }

@@ -4,13 +4,24 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     
-    // Le backend FastAPI tourne sur le port 8100
-    const vocalApiUrl = process.env.VOCAL_API_URL || "http://127.0.0.1:8100";
+    // Récupérer la langue depuis le FormData (sus par défaut)
+    const lang = formData.get("lang") as string || "sus";
+    
+    // Nettoyer le formData pour ne pas envoyer 'lang' à FastAPI (qui ne l'attend pas forcément)
+    const apiFormData = new FormData();
+    apiFormData.append("page", formData.get("page") as string);
+    apiFormData.append("audio", formData.get("audio") as Blob);
+    
+    // Déterminer l'URL du backend selon la langue
+    let vocalApiUrl = process.env.VOCAL_API_URL || "http://127.0.0.1:8100";
+    if (lang === "pou") {
+      vocalApiUrl = process.env.VOCAL_API_URL_POULAR || "http://127.0.0.1:8200";
+    }
     
     // Proxy de la requête vers FastAPI
     const response = await fetch(`${vocalApiUrl}/comprendre`, {
       method: "POST",
-      body: formData,
+      body: apiFormData,
     });
 
     if (!response.ok) {

@@ -81,11 +81,20 @@ export async function POST(request: Request) {
       "MTN_MOBILE_MONEY": "MTN_MOBILE_MONEY",
       "wave": "WAVE",
       "WAVE": "WAVE",
+      "visa": "CARTE_BANCAIRE",
+      "carte visa": "CARTE_BANCAIRE",
+      "carte-visa": "CARTE_BANCAIRE",
+      "carte bancaire": "CARTE_BANCAIRE",
+      "CARTE_BANCAIRE": "CARTE_BANCAIRE",
       "espèces": "ESPECES",
       "especes": "ESPECES",
       "ESPECES": "ESPECES",
     };
-    const rawMethode = (methode || "ESPECES").toString();
+    // On retire un éventuel suffixe " (Mode Démo)" / " (Demo Mode)" avant de mapper
+    const rawMethode = (methode || "ESPECES")
+      .toString()
+      .replace(/\s*\((mode démo|demo mode)\)\s*$/i, "")
+      .trim();
     const methodePaiement = methodMap[rawMethode] || methodMap[rawMethode.toLowerCase()] || "ESPECES";
 
     // ─── 4. Enregistrer le paiement ──────────────────────────────────────

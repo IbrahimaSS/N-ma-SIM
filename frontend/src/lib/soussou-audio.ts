@@ -26,14 +26,14 @@ type SousouKey =
   | 'piece-identite-recto'
   | 'piece-identite-verso';
 
-// ─── Table de mapping ────────────────────────────────────────────────────────
-const AUDIO_MAP: Record<string, string> = {
-  // ── Commun ────────────────────────────────────────────────────────────────
+// ─── Table de mapping Soussou ──────────────────────────────────────────────────
+const SOUSSOU_MAP: Record<string, string> = {
+  // ── Commun
   'choix-service': `${BASE}/commun/Choix_Service.wav`,
   'repeter': `${BASE}/commun/Veuillez_repeter.wav`,
   'non-compris': `${BASE}/commun/Je_nai_pas_compris.wav`,
 
-  // ── Nouvelle SIM ──────────────────────────────────────────────────────────
+  // ── Nouvelle SIM
   'nouvelle-sim:scan-piece':            `${BASE}/nouvelle_sim/Etape_1_Type_piece.wav`,
   'nouvelle-sim:scan-recto':            `${BASE}/nouvelle_sim/Etape_2_1_Scan_piece_recto.wav`,
   'nouvelle-sim:scan-verso':            `${BASE}/nouvelle_sim/Etape_2_2_Scan_piece_Verso_si_piece_n_est_pas_electeur.wav`,
@@ -46,7 +46,7 @@ const AUDIO_MAP: Record<string, string> = {
   'nouvelle-sim:recu':                  `${BASE}/nouvelle_sim/Etape_7_Recuperation_de_recu.wav`,
   'nouvelle-sim:felicitations':         `${BASE}/nouvelle_sim/Etape_8_Final_SIM_recupere_SIM.wav`,
 
-  // ── Réactivation ──────────────────────────────────────────────────────────
+  // ── Réactivation
   'reactivation:numero-reactivation':        `${BASE}/reactivation/Etape_1_1_mettre_le_numero_a_reactiver.wav`,
   'reactivation:numero-reactivation-numero': `${BASE}/reactivation/Etape_1_1_mettre_le_numero_a_reactiver.wav`,
   'reactivation:numero-reactivation-motif':  `${BASE}/reactivation/Etape_1_2_motif_reactivation.wav`,
@@ -62,36 +62,73 @@ const AUDIO_MAP: Record<string, string> = {
   'reactivation:felicitations':              `${BASE}/reactivation/Etape_7_Final_SIM_recupere_SIM.wav`,
 };
 
+// ─── Table de mapping Poular ─────────────────────────────────────────────────
+const BASE_POU = '/audio/pou';
+
+const POULAR_MAP: Record<string, string> = {
+  // ── Commun
+  'choix-service': `${BASE_POU}/Les_1eres_etapes_apres_choix_langue/Etape_1_Choix_Service.mp3`,
+  'repeter': `${BASE}/commun/Veuillez_repeter.wav`, // Fallback Soussou temporaire si manquant
+  'non-compris': `${BASE}/commun/Je_nai_pas_compris.wav`, // Fallback
+
+  // ── Nouvelle SIM
+  'nouvelle-sim:scan-piece':            `${BASE_POU}/Nouvelle_SIM/Etape_1_1_Type_piece.mp3`,
+  'nouvelle-sim:scan-recto':            `${BASE_POU}/Nouvelle_SIM/Etape_1_2_Scan_piece.mp3`,
+  'nouvelle-sim:scan-verso':            `${BASE_POU}/Nouvelle_SIM/Etape_1_2_Scan_piece.mp3`,
+  'nouvelle-sim:selfie':                `${BASE_POU}/Nouvelle_SIM/Etape_2_selfie.mp3`,
+  'nouvelle-sim:selfie-erreur':         `${BASE_POU}/Nouvelle_SIM/Echec_de_Verification_Visage/Etape_3_2_erreur_lors_verification_visage.mp3`,
+  'nouvelle-sim:choix-offre':           `${BASE_POU}/Nouvelle_SIM/Etape_3_recharge_facultatif_.mp3`,
+  'nouvelle-sim:choix-montant':         `${BASE_POU}/Nouvelle_SIM/Etape_3_Interne_recharge/Etape_4_1_choix_montant_recharge.mp3`,
+  'nouvelle-sim:paiement':              `${BASE_POU}/Nouvelle_SIM/Etape_4_choix_type_paiement.mp3`,
+  'nouvelle-sim:paiement-om-confirm':   `${BASE_POU}/Nouvelle_SIM/Etape_6_Confirmation_de_paiement_OM.m4a`,
+  'nouvelle-sim:recu':                  `${BASE_POU}/Nouvelle_SIM/Etape_7_ticket_reçu.m4a`,
+  'nouvelle-sim:felicitations':         `${BASE_POU}/Nouvelle_SIM/Etape_8_FIN_recupere_SIM.m4a`,
+
+  // ── Réactivation
+  'reactivation:numero-reactivation':        `${BASE_POU}/Reactivation/Etape_1_1_entrer_le_numero_a_reactiver_V1.mp3`,
+  'reactivation:numero-reactivation-numero': `${BASE_POU}/Reactivation/Etape_1_1_entrer_le_numero_a_reactiver_V1.mp3`,
+  'reactivation:numero-reactivation-motif':  `${BASE_POU}/Reactivation/Etape_1_2_Motifs.mp3`,
+  'reactivation:numero-reactivation-freq':   `${BASE_POU}/Reactivation/Etape_1_3_numero_frequements_appelés.mp3`,
+  'reactivation:piece-identite':             `${BASE_POU}/Reactivation/Etape_2_1_Type_Piece.mp3`,
+  'reactivation:piece-identite-recto':       `${BASE_POU}/Reactivation/Etape_2_2_Scan_Piece.mp3`,
+  'reactivation:piece-identite-verso':       `${BASE_POU}/Reactivation/Etape_2_2_Scan_Piece.mp3`,
+  'reactivation:selfie':                     `${BASE_POU}/Reactivation/Etape_3_Selfie.mp3`,
+  'reactivation:selfie-erreur':              `${BASE_POU}/Reactivation/Echec_de_Verification_Visage/Etape_3_2_erreur_lors_verification_visage.mp3`,
+  'reactivation:paiement':                   `${BASE_POU}/Reactivation/Etape_4_choix_type_paiement.mp3`,
+  'reactivation:paiement-om-confirm':        `${BASE_POU}/Reactivation/Etape_6_Confirmation_de_paiement_OM.mp3`,
+  'reactivation:recu':                       `${BASE_POU}/Reactivation/Etape_7_ticket_reçu.mp3`,
+  'reactivation:felicitations':              `${BASE_POU}/Reactivation/Etape_8_FIN_recupere_SIM.mp3`,
+};
+
 /**
- * Retourne l'URL du fichier WAV Soussou correspondant à l'étape et au service.
- * @param step       currentStep (ex: "scan-piece", "selfie", "paiement"...)
- * @param service    "nouvelle-sim" | "reactivation" | null
- * @param extraKey   clé optionnelle pour sous-étapes (ex: "motif", "freq", "recto", "verso")
- * @returns URL absolue du WAV, ou null si pas de fichier pour cette étape
+ * Retourne l'URL du fichier audio correspondant à l'étape, au service et à la langue.
  */
-export function getSoussouAudioUrl(
+export function getAudioUrl(
+  lang: string,
   step: string,
   service: string | null,
   extraKey?: string
 ): string | null {
-  // Clé composée : "service:step-extraKey" ou "service:step" ou "step" seul
   const suffix = extraKey ? `${step}-${extraKey}` : step;
   const composedKey = service ? `${service}:${suffix}` : suffix;
 
-  return AUDIO_MAP[composedKey] ?? AUDIO_MAP[step] ?? null;
+  if (lang === 'pou') {
+    return POULAR_MAP[composedKey] ?? POULAR_MAP[step] ?? null;
+  }
+  return SOUSSOU_MAP[composedKey] ?? SOUSSOU_MAP[step] ?? null;
 }
 
 /**
- * Joue un fichier WAV Soussou directement dans le navigateur.
- * Retourne une Promise qui se résout quand l'audio est terminé.
+ * Joue un fichier audio local (Soussou ou Poular) directement dans le navigateur.
  */
-export function jouerSoussou(
+export function jouerAudioLocal(
+  lang: string,
   step: string,
   service: string | null,
   extraKey?: string
 ): Promise<void> {
   return new Promise((resolve) => {
-    const url = getSoussouAudioUrl(step, service, extraKey);
+    const url = getAudioUrl(lang, step, service, extraKey);
     if (!url) { resolve(); return; }
 
     const audio = new Audio(url);
@@ -99,4 +136,13 @@ export function jouerSoussou(
     audio.onerror = () => resolve(); // En cas d'erreur, on continue quand même
     audio.play().catch(() => resolve());
   });
+}
+
+// Rétrocompatibilité (à remplacer progressivement par jouerAudioLocal)
+export function jouerSoussou(
+  step: string,
+  service: string | null,
+  extraKey?: string
+): Promise<void> {
+  return jouerAudioLocal("sus", step, service, extraKey);
 }
