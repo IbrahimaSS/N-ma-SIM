@@ -10,7 +10,7 @@ import { CameraCapture } from "@/components/borne/CameraCapture";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
 
-type DocType = "cni" | "passeport" | "carte_electeur" | null;
+type DocType = "cni" | "passeport" | "carte_electeur" | "permis" | null;
 type CameraTarget = "recto" | "verso";
 
 export default function VerificationScanPiece() {
@@ -176,10 +176,10 @@ export default function VerificationScanPiece() {
             <p className="font-bold text-text-main mb-1">{t.docTypeLabel}</p>
             <p className="text-xs text-text-muted mb-3">{t.docTypeSub}</p>
             <div className="flex gap-3 flex-wrap">
-              {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
+              {(["cni", "passeport", "carte_electeur", "permis"] as DocType[]).map((type) => (
                 <button key={type} onClick={() => handleDocTypeChange(type)}
                   className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${docType === type ? "bg-primary text-white border-primary" : "bg-white text-text-main border-border-light hover:border-primary hover:text-primary"}`}>
-                  {type === "cni" ? "CNI" : type === "passeport" ? (lang === "en" ? "Passport" : "Passeport") : (lang === "en" ? "Voter ID" : "Carte d'électeur")}
+                  {type === "cni" ? "CNI" : type === "passeport" ? (lang === "en" ? "Passport" : "Passeport") : type === "carte_electeur" ? (lang === "en" ? "Voter ID" : "Carte d'électeur") : (lang === "en" ? "Biometric Licence" : "Permis Biométrique")}
                 </button>
               ))}
             </div>

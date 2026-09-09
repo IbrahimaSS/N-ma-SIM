@@ -19,7 +19,7 @@ function direInstructions(lang: string, type: "recto" | "verso", service: "nouve
   }
 }
 
-type DocType = "cni" | "passeport" | "carte_electeur" | null;
+type DocType = "cni" | "passeport" | "carte_electeur" | "permis" | null;
 type CameraTarget = "recto" | "verso";
 
 export default function ReactivationPieceIdentite() {
@@ -66,6 +66,7 @@ export default function ReactivationPieceIdentite() {
     cni: "CNI",
     passeport: lang === "en" ? "Passport" : "Passeport",
     carteElecteur: lang === "en" ? "Voter ID" : "Carte d'électeur",
+    permis: lang === "en" ? "Biometric Licence" : "Permis Biométrique",
     importImg: lang === "en" ? "Import an image" : "Importer une image",
     importSub: lang === "en" ? "Upload a file (JPG, PNG)" : "Téléchargez un fichier (JPG, PNG)",
     takePhoto: lang === "en" ? "Take a photo" : "Prendre une photo",
@@ -241,12 +242,12 @@ export default function ReactivationPieceIdentite() {
                 <p className="font-semibold text-text-main mb-1">{t.docTypeLabel}</p>
                 <p className="text-sm text-text-muted mb-3">{t.docTypeSub}</p>
                 <div className="flex gap-3 flex-wrap">
-                  {(["cni", "passeport", "carte_electeur"] as DocType[]).map((type) => (
+                  {(["cni", "passeport", "carte_electeur", "permis"] as DocType[]).map((type) => (
                     <button key={type}
-                      data-ai-action={type === "cni" ? "btn-cni" : type === "passeport" ? "btn-passeport" : "btn-electeur"}
+                      data-ai-action={type === "cni" ? "btn-cni" : type === "passeport" ? "btn-passeport" : type === "carte_electeur" ? "btn-electeur" : "btn-permis"}
                       onClick={() => handleDocTypeChange(type)}
                       className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${docType === type ? "border-primary bg-primary/10 text-primary" : "border-border-light text-text-muted hover:border-primary/50"}`}>
-                      {type === "cni" ? t.cni : type === "passeport" ? t.passeport : t.carteElecteur}
+                      {type === "cni" ? t.cni : type === "passeport" ? t.passeport : type === "carte_electeur" ? t.carteElecteur : t.permis}
                     </button>
                   ))}
                 </div>
