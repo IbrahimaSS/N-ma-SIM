@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { SuccessScreen } from "@/components/borne/SuccessScreen";
 import { getKycResult } from "@/lib/kyc.storage";
 import type { Offer } from "@/types";
@@ -41,6 +41,7 @@ function RecuContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isTerminating, setIsTerminating] = useState(false);
+  const [dispenserError, setDispenserError] = useState<string | null>(null);
 
   // ✅ Anti-double-submit : on utilise une ref persistante entre les re-renders (imperméable au StrictMode)
   const hasSubmitted = useRef(false);
@@ -150,6 +151,7 @@ function RecuContent() {
   const handleTerminer = async () => {
     if (isTerminating) return;
     setIsTerminating(true);
+    setDispenserError(null);
 
     // Mettre à jour le statut VALIDEE dans le back-office
     if (demandeId) {
@@ -163,6 +165,24 @@ function RecuContent() {
         console.error("[TERMINER]", e);
         // Ne pas bloquer — on navigue quand même
       }
+    }
+
+    // Déclencher la sortie physique de la puce sur l'équipement de la borne
+    try {
+      const res = await fetch("/api/materiel/ejecter-puce", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Équipement indisponible.");
+      }
+    } catch (e: any) {
+      console.error("[EJECTER-PUCE]", e);
+      setDispenserError(
+        e?.message
+          ? `${e.message} — veuillez contacter un technicien.`
+          : "La puce n'a pas pu être délivrée — veuillez contacter un technicien."
+      );
+      setIsTerminating(false);
+      return;
     }
 
     // Naviguer vers l'écran de succès
@@ -312,6 +332,17 @@ function RecuContent() {
 
         </Card>
       </div>
+
+      {/* Erreur équipement - caché à l'impression */}
+      {dispenserError && (
+        <div className="print:hidden mb-4 bg-error/10 border border-error/20 rounded-xl p-4 flex items-start gap-3 text-left">
+          <AlertTriangle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-error mb-1">La puce n&apos;a pas pu être délivrée</p>
+            <p className="text-sm text-error/80">{dispenserError}</p>
+          </div>
+        </div>
+      )}
 
       {/* Footer Actions - caché à l'impression */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:hidden">
