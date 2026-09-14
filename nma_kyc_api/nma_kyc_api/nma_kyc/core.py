@@ -1025,7 +1025,14 @@ def evaluer_risque(qualite, champs, type_piece, face, problemes_electeur=None, m
 
     if face["verifie"] is False:                          # visages différents
         return 100, "❌ REJETÉ", ["Visage non concordant. Selfie et pièce d'identité ne correspondent pas."]
-    elif face["verifie"] is None:                         # visage non vérifiable
+    elif face["verifie"] is None:
+        erreur_face = (face.get("erreur") or "").lower()
+        # ⚠️ Distinct de "Aucun selfie" (aucun selfie envoyé — normal à l'étape OCR seule,
+        # scan-piece appelle l'API sans selfie). Ici : un selfie A été envoyé mais aucun
+        # visage n'y a été détecté (ex: caméra auto-déclenchée sur un fond vide) -> rejet dur.
+        if "aucun visage sur le selfie" in erreur_face:
+            return 100, "❌ REJETÉ", ["Aucun visage détecté sur le selfie. Veuillez reprendre la photo en vous positionnant face à la caméra."]
+        # Autres cas (visage illisible sur la pièce, ONNX en échec technique, etc.) : on tolère.
         risque += 10; details.append("Vérification faciale ignorée (Mode Dégradé).")
 
     # Décision — INCONNU ne peut JAMAIS être accepté automatiquement
