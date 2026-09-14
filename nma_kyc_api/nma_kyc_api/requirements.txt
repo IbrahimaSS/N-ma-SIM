@@ -12,7 +12,9 @@ opencv-python==4.10.0.84
 numpy<2.0
 
 # --- Vérification faciale (InsightFace / ArcFace) ---
-insightface==0.7.3
+# 0.7.3 n'a pas de wheel précompilé pour Windows (build source -> nécessite MS C++ Build Tools,
+# et entraîne albumentations/stringzilla en dépendance). 1.0.1 a un wheel prêt à l'emploi.
+insightface==1.0.1
 onnxruntime==1.19.2
 
 # --- Utilitaires ---
