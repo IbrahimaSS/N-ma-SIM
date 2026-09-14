@@ -72,6 +72,30 @@ export default function ReactivationSelfie() {
       const result = await verifierKYC(recto, selfieFile, verso ?? undefined, docType);
       setKycResult(result);
       await saveKycResult(result);
+
+      // Vérifier si rejet facial (non concordant OU aucun visage détecté) → BLOCAGE sur cette page
+      const isFaceRejected = result.decision?.includes("REJETÉ") &&
+        result.details?.some((d: string) => {
+          const dl = d.toLowerCase();
+          return dl.includes("visage non concordant") || dl.includes("aucun visage détecté");
+        });
+
+      if (isFaceRejected) {
+        const noFace = result.details?.some((d: string) => d.toLowerCase().includes("aucun visage détecté"));
+        setKycError(
+          noFace
+            ? "Aucun visage détecté sur le selfie. Positionnez-vous face à la caméra."
+            : "Visage non concordant. Le selfie ne correspond pas à la photo sur votre pièce d'identité. Veuillez reprendre votre selfie."
+        );
+        setSelfieFile(null);
+        setSelfiePreviewUrl(null);
+        setIsAnalyzing(false);
+        // Aucun visage détecté : on reste bloqué sur la capture caméra (relance immédiate),
+        // pas de retour à l'écran de choix — tant qu'un vrai selfie n'a pas été pris.
+        if (noFace) setCameraMode(true);
+        return; // Ne pas naviguer vers la vérification
+      }
+
       // → Aller à la page de vérification réactivation
       sessionStorage.setItem("kiosk_selfie_ok_reactivation", "1");
       router.push("/borne/reactivation/verification");
