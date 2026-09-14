@@ -241,8 +241,10 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
            ${service === 'nouvelle-sim' ? "La carte SIM est prête, à récupérer en bas de la borne." : ""}
            ${service === 'reactivation' ? "La puce est réactivée, le réseau sera actif dans quelques minutes." : ""}
            ${service === 'recharge' ? "La recharge a été effectuée avec succès." : ""}
+           ${service === 'nouvelle-sim' || service === 'reactivation' ? "Un QR code pour télécharger l'application Max-it (Orange Money) va s'afficher juste après, invite le client à le scanner." : ""}
            Remercier chaleureusement. Proposer de terminer.`
         : `STEP: Congratulations — operation successful (service: ${service}).
+           ${service === 'nouvelle-sim' || service === 'reactivation' ? "A QR code to download the Max-it app (Orange Money) will appear next — invite the user to scan it." : ""}
            Thank the user warmly. Invite them to collect receipt/SIM.`;
 
     // ── RÉACTIVATION ──────────────────────────────────────────────────────────
