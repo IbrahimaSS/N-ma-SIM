@@ -60,6 +60,7 @@ export default function Selfie() {
     back: lang === "en" ? "Back" : "Retour",
     continue: lang === "en" ? "Continue" : "Continuer",
     changeSelfie: lang === "en" ? "Change photo" : "Changer la photo",
+    autoLaunch: lang === "en" ? "Starting analysis automatically..." : "Lancement automatique de l'analyse...",
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,6 +130,15 @@ export default function Selfie() {
   };
 
   const hasSelfie = !!selfieFile;
+
+  // Dès qu'un selfie est prêt (capture ou import), on lance nous-même la comparaison —
+  // le client n'a pas besoin d'appuyer sur "Continuer". Le court délai laisse le temps
+  // de voir la photo avant l'envoi. Se redéclenche si le client reprend une photo après un rejet.
+  useEffect(() => {
+    if (!selfieFile) return;
+    const timer = setTimeout(() => { handleContinue(); }, 1500);
+    return () => clearTimeout(timer);
+  }, [selfieFile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card className="w-full p-2">
@@ -260,6 +270,9 @@ export default function Selfie() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-text-main font-medium">
                   <CheckCircle2 className="w-5 h-5 text-success" /> {t.accepted}
+                </div>
+                <div className="flex items-center gap-3 text-xs text-primary font-medium animate-pulse">
+                  <Loader2 className="w-4 h-4 animate-spin" /> {t.autoLaunch}
                 </div>
               </div>
             ) : (
