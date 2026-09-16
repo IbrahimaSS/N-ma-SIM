@@ -57,12 +57,36 @@ function ModeBadge({ mode }: { mode: string }) {
   );
 }
 
-const repartition = [
-  { label: "Orange Money", pct: 45.2, n: 564, color: "#FF6600" },
-  { label: "Visa", pct: 24.8, n: 309, color: "#1434CB" },
-  { label: "Retrait numéro", pct: 16.1, n: 201, color: "#7C3AED" },
-  { label: "Espèces", pct: 13.9, n: 174, color: "#059669" },
-];
+const MODE_INFO: Record<string, { label: string; color: string }> = {
+  ORANGE_MONEY: { label: "Orange Money", color: "#FF6600" },
+  MTN_MOBILE_MONEY: { label: "MTN Mobile Money", color: "#FFCC00" },
+  VISA: { label: "Visa", color: "#1434CB" },
+  CARTE_BANCAIRE: { label: "Carte bancaire", color: "#1434CB" },
+  ESPECES: { label: "Espèces", color: "#059669" },
+  WAVE: { label: "Wave", color: "#12B8FF" },
+};
+const MODE_COLOR_FALLBACK = "#6B7280";
+
+/** Calcule la répartition réelle des modes de paiement à partir des paiements chargés. */
+function calculerRepartition(paiements: any[]) {
+  const total = paiements.length;
+  if (total === 0) return [];
+
+  const counts = new Map<string, number>();
+  for (const p of paiements) {
+    const mode = p.methodePaiement || "INCONNU";
+    counts.set(mode, (counts.get(mode) || 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .map(([mode, n]) => ({
+      label: MODE_INFO[mode]?.label || mode,
+      color: MODE_INFO[mode]?.color || MODE_COLOR_FALLBACK,
+      n,
+      pct: Math.round((n / total) * 1000) / 10,
+    }))
+    .sort((a, b) => b.n - a.n);
+}
 
 // Composant générique pour les Modals
 function Modal({ isOpen, onClose, title, customUI, children }: any) {
@@ -107,6 +131,8 @@ export default function Paiements() {
   useEffect(() => {
     fetchPaiements();
   }, [fetchPaiements]);
+
+  const repartition = calculerRepartition(paiements);
 
   const filtered = paiements.filter(p => {
     const clientNom = p.demande?.client?.nom || "";
@@ -270,12 +296,11 @@ export default function Paiements() {
             </tbody>
           </table>
           <div className="print:hidden" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #F3F4F6" }}>
-            <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {filtered.length} sur 1 248 transactions</span>
-            <div style={{ display: "flex", gap: 6 }}>
-              {[1, 2, 3, "...", 125].map((p, i) => (
-                <button key={i} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: p === 1 ? "#1F0270" : "white", color: p === 1 ? "white" : "#374151", fontSize: 13, cursor: "pointer", padding: "0 8px" }}>{p}</button>
-              ))}
-            </div>
+            <span style={{ fontSize: 13, color: "#6B7280" }}>
+              {filtered.length === paiements.length
+                ? `${paiements.length} transaction${paiements.length > 1 ? "s" : ""}`
+                : `${filtered.length} résultat${filtered.length > 1 ? "s" : ""} sur ${paiements.length} transaction${paiements.length > 1 ? "s" : ""}`}
+            </span>
           </div>
         </div>
 
@@ -285,14 +310,34 @@ export default function Paiements() {
             <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px" }}>Répartition des modes</h3>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <svg width={120} height={120} viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="45" fill="none" stroke="#FF6600" strokeWidth="20" strokeDasharray="127 200" strokeDashoffset="0" transform="rotate(-90 60 60)" />
-                <circle cx="60" cy="60" r="45" fill="none" stroke="#1434CB" strokeWidth="20" strokeDasharray="70 257" strokeDashoffset="-127" transform="rotate(-90 60 60)" />
-                <circle cx="60" cy="60" r="45" fill="none" stroke="#7C3AED" strokeWidth="20" strokeDasharray="45 282" strokeDashoffset="-197" transform="rotate(-90 60 60)" />
-                <circle cx="60" cy="60" r="45" fill="none" stroke="#059669" strokeWidth="20" strokeDasharray="39 288" strokeDashoffset="-242" transform="rotate(-90 60 60)" />
-                <text x="60" y="57" textAnchor="middle" fontSize="14" fontWeight="800" fill="#1F0270">1 248</text>
+                {repartition.length === 0 ? (
+                  <circle cx="60" cy="60" r="45" fill="none" stroke="#E5E7EB" strokeWidth="20" />
+                ) : (() => {
+                  const circumference = 2 * Math.PI * 45;
+                  let cumulativePct = 0;
+                  return repartition.map((r) => {
+                    const dash = (r.pct / 100) * circumference;
+                    const offset = (cumulativePct / 100) * circumference;
+                    cumulativePct += r.pct;
+                    return (
+                      <circle
+                        key={r.label}
+                        cx="60" cy="60" r="45" fill="none"
+                        stroke={r.color} strokeWidth="20"
+                        strokeDasharray={`${dash} ${circumference}`}
+                        strokeDashoffset={-offset}
+                        transform="rotate(-90 60 60)"
+                      />
+                    );
+                  });
+                })()}
+                <text x="60" y="57" textAnchor="middle" fontSize="14" fontWeight="800" fill="#1F0270">{paiements.length}</text>
                 <text x="60" y="70" textAnchor="middle" fontSize="9" fill="#6B7280">Total</text>
               </svg>
             </div>
+            {repartition.length === 0 && (
+              <p style={{ fontSize: 12, color: "#9CA3AF", textAlign: "center" }}>Aucun paiement pour l'instant.</p>
+            )}
             {repartition.map(r => (
               <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: r.color, flexShrink: 0 }} />

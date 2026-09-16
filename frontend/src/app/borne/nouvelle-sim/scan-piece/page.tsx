@@ -96,6 +96,9 @@ export default function ScanPiece() {
     extract: lang === "en" ? "Extract information" : "Extraire les informations",
     saving: lang === "en" ? "Saving..." : "Sauvegarde...",
     errorSave: lang === "en" ? "Error saving document. Please try again." : "Erreur lors de la sauvegarde. Veuillez réessayer.",
+    errorMaxSim: lang === "en"
+      ? "This ID document has already reached the maximum of 5 SIM cards allowed."
+      : "Cette pièce d'identité a déjà atteint le nombre maximal de 5 cartes SIM autorisées.",
     changeDoc: lang === "en" ? "Change" : "Changer",
     cameraError: lang === "en" ? "Camera not accessible. Please check permissions." : "Caméra inaccessible. Vérifiez les autorisations.",
     capturingRecto: lang === "en" ? "Capturing: Front (recto)" : "Capture : Recto",
@@ -218,6 +221,25 @@ export default function ScanPiece() {
       // Appel de l'API pour extraire les informations (sans selfie)
       const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       await saveKycResult(result);
+
+      // Limite anti-abus : max 5 SIM (physique + eSIM) achetées avec la même pièce d'identité.
+      const champs = result.champs || {};
+      const numeroPiece = champs.numero_identite || champs.numero_carte || champs.nin;
+      if (numeroPiece) {
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+          const res = await fetch(`${backendUrl}/api/clients/count-sim?numeroPiece=${encodeURIComponent(numeroPiece)}`);
+          const data = await res.json();
+          if (res.ok && (data?.data?.count ?? 0) >= 5) {
+            setSaveError(t.errorMaxSim);
+            setIsSaving(false);
+            return;
+          }
+        } catch {
+          // Vérification anti-abus indisponible (backend hors ligne) : on ne bloque pas
+          // l'utilisateur pour un souci réseau, la limite reste appliquée côté serveur ailleurs.
+        }
+      }
 
       const isEsim = sessionStorage.getItem("kiosk_flow") === "esim";
       router.push(isEsim ? "/borne/nouvelle-sim/esim/confirmation-infos" : "/borne/nouvelle-sim/confirmation-infos");

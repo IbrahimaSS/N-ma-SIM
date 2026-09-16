@@ -154,6 +154,28 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data
 
+    // Réutiliser le client existant si ce numéro de pièce est déjà enregistré — évite de créer
+    // un doublon à chaque nouvel achat de la même personne (nom/téléphone mis à jour au passage).
+    if (data.numeroPiece) {
+      const existant = await prisma.client.findFirst({ where: { numeroPiece: data.numeroPiece } })
+      if (existant) {
+        const client = await prisma.client.update({
+          where: { id: existant.id },
+          data: {
+            nom: data.nom,
+            prenom: data.prenom,
+            dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : existant.dateNaissance,
+            lieuNaissance: data.lieuNaissance ?? existant.lieuNaissance,
+            telephone: data.telephone ?? existant.telephone,
+            email: data.email ?? existant.email,
+            photoPiece: data.photoPiece ?? existant.photoPiece,
+            photoSelfie: data.photoSelfie ?? existant.photoSelfie,
+          }
+        })
+        return apiSuccess(client, 'Client existant réutilisé', 200)
+      }
+    }
+
     const client = await prisma.client.create({
       data: {
         ...data,
