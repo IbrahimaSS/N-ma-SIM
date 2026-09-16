@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getAuthUser, apiSuccess, apiError } from '@/lib/auth'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
+import { compterSimValideesParPiece, MAX_SIM_PAR_PIECE } from '@/lib/sim-limit'
 
 const createDemandeSchema = z.object({
   clientId: z.string(),
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
       prisma.demandeSIM.findMany({
         where,
         include: {
-          client: { select: { id: true, nom: true, prenom: true, telephone: true } },
+          client: { select: { id: true, nom: true, prenom: true, telephone: true, numeroPiece: true } },
           offre: { select: { id: true, nom: true, prix: true } },
           paiement: { select: { id: true, statut: true, montant: true, methodePaiement: true } },
         },
@@ -142,6 +143,15 @@ export async function POST(request: NextRequest) {
     // Vérifier que le client existe
     const client = await prisma.client.findUnique({ where: { id: clientId } })
     if (!client) return apiError('Client introuvable', 404)
+
+    // Anti-abus : max 5 SIM (physique + eSIM) achetées avec la même pièce d'identité.
+    // Garde-fou serveur en complément de la vérification faite côté borne au moment du scan.
+    if (type === 'NOUVELLE_SIM' && client.numeroPiece) {
+      const dejaValidees = await compterSimValideesParPiece(client.numeroPiece)
+      if (dejaValidees >= MAX_SIM_PAR_PIECE) {
+        return apiError(`Cette pièce d'identité a déjà atteint le nombre maximal de ${MAX_SIM_PAR_PIECE} cartes SIM autorisées.`, 409)
+      }
+    }
 
     // Vérifier l'offre si NOUVELLE_SIM
     if (type === 'NOUVELLE_SIM' && offreId) {

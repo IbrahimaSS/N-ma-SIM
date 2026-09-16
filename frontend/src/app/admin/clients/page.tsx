@@ -193,7 +193,7 @@ export default function Clients() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F3F4F6" }}>
-                    {["Client", "Type", "Type de pièce", "Numéro de pièce", "Téléphone", "Statut", "Inscrit le"].map(h => (
+                    {["Client", "Type", "Type de pièce", "Numéro de pièce", "Puces achetées", "Téléphone", "Statut", "Inscrit le"].map(h => (
                       <th key={h} style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                     <th className="print:hidden" style={{ textAlign: "left", padding: "14px 12px", fontSize: 12, color: "#6B7280", fontWeight: 600, whiteSpace: "nowrap" }}>Action</th>
@@ -218,6 +218,17 @@ export default function Clients() {
                       </td>
                       <td style={{ padding: "13px 12px", fontSize: 13, color: "#374151" }}>{formatTypePiece(c.typePiece)}</td>
                       <td style={{ padding: "13px 12px", fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>{!c.numeroPiece || c.numeroPiece === "-" ? "—" : c.numeroPiece}</td>
+                      <td style={{ padding: "13px 12px" }}>
+                        {(() => {
+                          const n = (c.demandes || []).filter((d: any) => d.type === "NOUVELLE_SIM" && d.statut === "VALIDEE").length;
+                          const atteint = n >= 5;
+                          return (
+                            <span style={{ background: atteint ? "#FEE2E2" : "#F3F4F6", color: atteint ? "#991B1B" : "#374151", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>
+                              {n} / 5{atteint ? " — max" : ""}
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td style={{ padding: "13px 12px", fontSize: 13, color: "#374151" }}>{!c.telephone || c.telephone === "-" ? "—" : c.telephone}</td>
                       <td style={{ padding: "13px 12px" }}>
                         <span style={{ background: c.statut === "VALIDE" || c.statut === "VALIDEE" ? "#DCFCE7" : c.statut === "REJETE" ? "#FEE2E2" : "#FEF3C7", color: c.statut === "VALIDE" || c.statut === "VALIDEE" ? "#166534" : c.statut === "REJETE" ? "#991B1B" : "#92400E", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>
