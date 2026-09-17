@@ -26,6 +26,12 @@ export default function Selfie() {
   const [cameraMode, setCameraMode] = useState(false);
 
   const selfieInputRef = useRef<HTMLInputElement>(null);
+  // Anti-double-appel : le bouton "Continuer" reste cliquable pendant les 1.5s de lancement
+  // auto (isAnalyzing ne passe à true qu'au tout début de handleContinue), donc un clic
+  // pendant cette fenêtre pouvait déclencher 2 vérifications KYC concurrentes sur la même
+  // photo — et selon laquelle des deux réponses arrivait en dernier, le rejet de l'une
+  // pouvait être écrasé par le succès (apparent) de l'autre, sans message d'erreur visible.
+  const isVerifyingRef = useRef(false);
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
@@ -75,7 +81,8 @@ export default function Selfie() {
 
   /** Lance la vérification KYC complète depuis cet écran */
   const handleContinue = async () => {
-    if (!selfieFile) return;
+    if (!selfieFile || isVerifyingRef.current) return;
+    isVerifyingRef.current = true;
 
     setIsAnalyzing(true);
     setKycError(null);
@@ -142,6 +149,7 @@ export default function Selfie() {
       setKycError(kycErr.message || (lang === "en" ? "Unknown error." : "Erreur inconnue."));
     } finally {
       setIsAnalyzing(false);
+      isVerifyingRef.current = false;
     }
   };
 
