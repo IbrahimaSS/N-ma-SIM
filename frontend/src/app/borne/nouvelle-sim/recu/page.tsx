@@ -42,6 +42,7 @@ function RecuContent() {
   const [isPrinting, setIsPrinting] = useState(false);
   const [isTerminating, setIsTerminating] = useState(false);
   const [dispenserError, setDispenserError] = useState<string | null>(null);
+  const [kycRejete, setKycRejete] = useState(false);
 
   // ✅ Anti-double-submit : on utilise une ref persistante entre les re-renders (imperméable au StrictMode)
   const hasSubmitted = useRef(false);
@@ -81,7 +82,10 @@ function RecuContent() {
 
     getKycResult().then(async (kycResult) => {
       const champs = kycResult?.champs || {};
-      
+      // Garde-fou : même si le blocage de l'étape selfie a été contourné, on n'éjecte
+      // jamais une puce (bouton "Terminer") pour une identité REJETÉE par le KYC.
+      setKycRejete(!!kycResult?.decision?.includes("REJETÉ"));
+
       // Récupérer les infos éditées par l'utilisateur (nom, prenom, adresse, tel, etc)
       let finalClientInfo: any = {};
       try {
@@ -117,6 +121,7 @@ function RecuContent() {
               methode: parsedPayment?.method === "Orange Money" ? "ORANGE_MONEY" : "LENGO_PAY",
               reference: parsedPayment?.reference || undefined,
             },
+            kyc_result: kycResult ? { decision: kycResult.decision, details: kycResult.details } : undefined,
           }),
         });
 
@@ -150,6 +155,12 @@ function RecuContent() {
 
   const handleTerminer = async () => {
     if (isTerminating) return;
+    // Garde-fou final avant délivrance physique : une identité REJETÉE par le KYC ne doit
+    // jamais aboutir à l'éjection d'une puce SIM, quel que soit l'état atteint en amont.
+    if (kycRejete) {
+      setDispenserError("Vérification d'identité refusée par le contrôle KYC — la puce ne peut pas être délivrée. Veuillez contacter un agent.");
+      return;
+    }
     setIsTerminating(true);
     setDispenserError(null);
 
@@ -358,7 +369,7 @@ function RecuContent() {
            <Button variant="outline" className="flex-1 bg-white h-12" onClick={handlePrintPDF}>
              <Printer className="w-5 h-5 mr-2" /> Imprimer
            </Button>
-           <Button variant="primary" className="flex-1 h-12" onClick={handleTerminer} disabled={isTerminating}>
+           <Button variant="primary" className="flex-1 h-12" onClick={handleTerminer} disabled={isTerminating || kycRejete}>
              {isTerminating
                ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Validation...</>
                : <><CheckCircle2 className="w-5 h-5 mr-2" /> Terminer</>

@@ -40,6 +40,16 @@ export default function EsimGeneration() {
         const nomClient =
           `${clientInfo.prenom || champs.prenom || ""} ${clientInfo.nom || champs.nom || ""}`.trim() || "Client";
 
+        // Garde-fou final avant délivrance : une identité REJETÉE par le KYC ne doit jamais
+        // aboutir à la génération d'un profil eSIM réel, même si un blocage en amont (page
+        // selfie) aurait été contourné. Contrairement au flux physique (où la puce n'est
+        // éjectée qu'au clic "Terminer"), ici la génération EST le moment de délivrance.
+        if (kyc?.decision?.includes("REJETÉ")) {
+          console.error("[ESIM] Génération bloquée — KYC rejeté:", kyc.decision, kyc.details);
+          setStatus("error");
+          return;
+        }
+
         // 1. Enregistrer la demande dans le back-office (Client + DemandeSIM + Paiement, statut VALIDEE)
         let numeroDossier: string | undefined;
         let demandeId: string | undefined;
@@ -71,6 +81,7 @@ export default function EsimGeneration() {
                 methode: payment.method === "Orange Money" ? "ORANGE_MONEY" : "LENGO_PAY",
                 reference: payment.reference || undefined,
               },
+              kyc_result: kyc ? { decision: kyc.decision, details: kyc.details } : undefined,
             }),
           });
           if (res.ok) {

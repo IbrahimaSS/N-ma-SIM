@@ -35,7 +35,12 @@ function parseOcrDate(dateStr: string | undefined): string | undefined {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { client_info, offre_id, format_sim, paiement } = body;
+    const { client_info, offre_id, format_sim, paiement, kyc_result } = body;
+    // Défense en profondeur : si la décision KYC est un REJET (visage, mineur, document
+    // expiré, anti-spoofing...), on ne force PAS la validation automatique plus bas, même
+    // si le paiement a été confirmé côté borne. Filet de sécurité au cas où le blocage
+    // frontend (page selfie) aurait été contourné (flux bypass, vieux build, etc.).
+    const kycRejete = typeof kyc_result?.decision === "string" && kyc_result.decision.includes("REJETÉ");
 
     // ─── 1. Créer le client ───────────────────────────────────────────────
     const clientRes = await fetch(`${BACKEND_URL}/api/clients`, {
@@ -133,14 +138,18 @@ export async function POST(request: Request) {
     }
 
     // ─── 4. Auto-validation : paiement confirmé = demande validée ────────
-    await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "x-internal-service": "kiosk-borne",
-      },
-      body: JSON.stringify({ statut: "VALIDEE" }),
-    });
+    // Sauf si le KYC a été REJETÉ : la demande reste EN_ATTENTE_VALIDATION pour
+    // qu'un agent tranche manuellement (voir kycRejete ci-dessus).
+    if (!kycRejete) {
+      await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-internal-service": "kiosk-borne",
+        },
+        body: JSON.stringify({ statut: "VALIDEE" }),
+      });
+    }
 
     // ─── 5. Retourner le numéro de ticket ─────────────────────────────────
     return NextResponse.json({
@@ -148,6 +157,7 @@ export async function POST(request: Request) {
       numeroDossier: numeroDossier || "NMA-2026-0001",
       clientId,
       demandeId,
+      kycRejete,
     });
 
   } catch (error) {
