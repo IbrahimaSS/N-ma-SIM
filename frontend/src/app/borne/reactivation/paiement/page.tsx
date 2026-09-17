@@ -9,6 +9,7 @@ import {
   ShieldCheck, Lock, Receipt, RefreshCcw, ArrowLeft, ChevronRight,
   AlertCircle, Phone, CreditCard, Loader2
 } from "lucide-react";
+import { getKycResult } from "@/lib/kyc.storage";
 
 // Prix par défaut si le backend ne répond pas
 const PRIX_DEFAUT = 10000;
@@ -80,6 +81,14 @@ export default function PaiementReactivation() {
       const docType = sessionStorage.getItem("kiosk_doc_type") || "";
       const numeroAReactiver = sessionStorage.getItem("reactivation_numero") || "";
       const motifReactivation = sessionStorage.getItem("reactivation_motif") || "";
+      const kycResult = await getKycResult();
+
+      // Garde-fou final avant délivrance : une identité REJETÉE par le KYC ne doit jamais
+      // aboutir à une réactivation validée, même si le blocage en amont (page selfie) a été
+      // contourné (retour arrière, session restée ouverte, etc.).
+      if (kycResult?.decision?.includes("REJETÉ")) {
+        throw new Error("Vérification d'identité refusée par le contrôle KYC. Veuillez contacter un agent.");
+      }
 
       const res = await fetch("/api/soumettre-reactivation", {
         method: "POST",
@@ -98,6 +107,7 @@ export default function PaiementReactivation() {
             methode: paymentInfo.method,
             reference: paymentInfo.reference,
           },
+          kyc_result: kycResult || undefined,
         }),
       });
 
@@ -115,9 +125,14 @@ export default function PaiementReactivation() {
       router.push("/borne/reactivation/recu");
     } catch (err: unknown) {
       console.error("[REACTIVATION]", err);
-      setError(lang === "en"
-        ? "An error occurred during validation. Please try again."
-        : "Une erreur est survenue lors de la validation. Veuillez réessayer.");
+      const msg = err instanceof Error ? err.message : "";
+      setError(
+        msg.includes("KYC")
+          ? msg
+          : lang === "en"
+          ? "An error occurred during validation. Please try again."
+          : "Une erreur est survenue lors de la validation. Veuillez réessayer."
+      );
       setPaymentUrl(null); // Permet de réessayer
     } finally {
       setIsLoading(false);

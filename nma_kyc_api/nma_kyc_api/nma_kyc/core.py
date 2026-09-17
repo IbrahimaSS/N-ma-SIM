@@ -1030,7 +1030,10 @@ def evaluer_risque(qualite, champs, type_piece, face, problemes_electeur=None, m
         # ⚠️ Distinct de "Aucun selfie" (aucun selfie envoyé — normal à l'étape OCR seule,
         # scan-piece appelle l'API sans selfie). Ici : un selfie A été envoyé mais aucun
         # visage n'y a été détecté (ex: caméra auto-déclenchée sur un fond vide) -> rejet dur.
-        if "aucun visage sur le selfie" in erreur_face:
+        # Couvre les deux formulations possibles : InsightFace ("Aucun visage sur le selfie")
+        # ET le repli OpenCV Mode Dégradé ("Aucun visage détecté sur le selfie (Mode Dégradé)")
+        # — ce 2e cas ne matchait pas la chaîne exacte avant ce fix et passait à tort en tolérance.
+        if "aucun visage" in erreur_face and "selfie" in erreur_face:
             return 100, "❌ REJETÉ", ["Aucun visage détecté sur le selfie. Veuillez reprendre la photo en vous positionnant face à la caméra."]
         # Autres cas (visage illisible sur la pièce, ONNX en échec technique, etc.) : on tolère.
         risque += 10; details.append("Vérification faciale ignorée (Mode Dégradé).")

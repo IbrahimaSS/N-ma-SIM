@@ -105,26 +105,31 @@ export default function Selfie() {
       // Sauvegarder le résultat pour la page suivante
       await saveKycResult(result);
 
-      // Vérifier si rejet facial (non concordant OU aucun visage détecté) → BLOCAGE sur cette page
-      const isFaceRejected = result.decision?.includes("REJETÉ") &&
-        result.details?.some((d: string) => {
-          const dl = d.toLowerCase();
-          return dl.includes("visage non concordant") || dl.includes("aucun visage détecté");
-        });
+      // Vérifier si REJET (quelle qu'en soit la cause : visage, mineur, document expiré,
+      // anti-spoofing...) → BLOCAGE sur cette page. Avant ce fix, seuls les 2 cas faciaux
+      // étaient détectés ici : un REJET pour âge/expiration/liveness passait silencieusement
+      // vers les offres/récapitulatif malgré la décision "❌ REJETÉ" du moteur KYC.
+      const isRejected = result.decision?.includes("REJETÉ");
 
-      if (isFaceRejected) {
-        const noFace = result.details?.some((d: string) => d.toLowerCase().includes("aucun visage détecté"));
+      if (isRejected) {
+        const details = result.details || [];
+        const noFace = details.some((d: string) => d.toLowerCase().includes("aucun visage"));
+        const mismatch = details.some((d: string) => d.toLowerCase().includes("visage non concordant"));
         setKycError(
           noFace
             ? "Aucun visage détecté sur le selfie. Positionnez-vous face à la caméra."
-            : "Visage non concordant. Le selfie ne correspond pas à la photo sur votre pièce d'identité. Veuillez reprendre votre selfie."
+            : mismatch
+            ? "Visage non concordant. Le selfie ne correspond pas à la photo sur votre pièce d'identité. Veuillez reprendre votre selfie."
+            : `Vérification refusée : ${details[0] || "veuillez contacter un agent."}`
         );
         setSelfieFile(null);
         setSelfiePreviewUrl(null);
         setIsAnalyzing(false);
-        // Aucun visage détecté : on reste bloqué sur la capture caméra (relance immédiate),
-        // pas de retour à l'écran de choix — tant qu'un vrai selfie n'a pas été pris.
-        if (noFace) setCameraMode(true);
+        // Aucun visage / non-concordance : on reste bloqué sur la capture caméra (relance
+        // immédiate), pas de retour à l'écran de choix — tant qu'un vrai selfie n'a pas été
+        // pris. Les autres motifs (mineur, document expiré...) ne se règlent pas en reprenant
+        // une photo : on laisse le message affiché sans rouvrir la caméra automatiquement.
+        if (noFace || mismatch) setCameraMode(true);
         return; // Ne pas naviguer vers les offres
       }
 
