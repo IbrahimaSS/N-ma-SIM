@@ -6,7 +6,7 @@ import { jouerAudioLocal } from "@/lib/soussou-audio";
 import { enregistrerAudio, comprendreIntention, getVocalPage } from "@/lib/soussou-vocal";
 
 interface AgentIAProps {
-  language?: "fr" | "en" | "sus" | "pou" | null;
+  language?: "fr" | "en" | "sus" | "pou" | "mal" | null;
   profile?: "resident" | "etranger" | null;
   termsAccepted?: boolean;
   service?: "nouvelle-sim" | "reactivation" | null;
@@ -99,7 +99,7 @@ export function AgentIA({
     else if (pathname.includes("/verification/selfie"))         { currentStep = "verification-selfie"; currentService = null; }
     else if (pathname.includes("/verification/scan-piece"))     { currentStep = "verification-scan-piece"; currentService = null; }
 
-    currentLang = (sessionLang as "fr" | "en" | "sus" | "pou" | null) || currentLang || "fr";
+    currentLang = (sessionLang as "fr" | "en" | "sus" | "pou" | "mal" | null) || currentLang || "fr";
     currentProfile = (sessionProfile as "resident" | "etranger" | null) || currentProfile || "resident";
 
     const postTermsSteps = ["choix-service", "scan-piece", "confirmation-infos", "selfie",
@@ -131,8 +131,8 @@ export function AgentIA({
   const speak = useCallback((text: string, lang: string) => {
     if (isMuted) return;
 
-    // ═ Soussou / Poular : jouer le fichier audio local correspondant à l'étape ═
-    if (lang === 'sus' || lang === 'pou') {
+    // ═ Soussou / Poular / Malinké : jouer le fichier audio local correspondant à l'étape ═
+    if (lang === 'sus' || lang === 'pou' || lang === 'mal') {
       jouerAudioLocal(lang, currentStep, currentService);
       return;
     }
@@ -185,8 +185,8 @@ export function AgentIA({
   // ─── Envoi du message au backend Groq ──────────────────────────────────────
   const sendMessage = useCallback(async (userText: string, isInitial = false) => {
 
-    // ══ SOUSSOU / POULAR : pas de Groq, pas de bulle ══
-    if (currentLang === 'sus' || currentLang === 'pou') {
+    // ══ SOUSSOU / POULAR / MALINKÉ : pas de Groq, pas de bulle ══
+    if (currentLang === 'sus' || currentLang === 'pou' || currentLang === 'mal') {
       return; // La lecture audio est maintenant gérée dans les useEffects
     }
 
@@ -387,9 +387,10 @@ export function AgentIA({
   useEffect(() => {
     if (prevStepRef.current !== currentStep) {
       prevStepRef.current = currentStep;
-      if (currentLang === 'sus' || currentLang === 'pou') {
+      if (currentLang === 'sus' || currentLang === 'pou' || currentLang === 'mal') {
         jouerAudioLocal(currentLang, currentStep, currentService).then(() => {
-          if (getVocalPage(currentStep)) {
+          // Reconnaissance vocale (API FastAPI) : pas encore disponible pour le Malinké
+          if (currentLang !== 'mal' && getVocalPage(currentStep)) {
             startListening();
           }
         });
@@ -403,9 +404,9 @@ export function AgentIA({
   useEffect(() => {
     if (!hasTriggeredInitial.current) {
       hasTriggeredInitial.current = true;
-      if (currentLang === 'sus' || currentLang === 'pou') {
+      if (currentLang === 'sus' || currentLang === 'pou' || currentLang === 'mal') {
         jouerAudioLocal(currentLang, currentStep, currentService).then(() => {
-          if (getVocalPage(currentStep)) {
+          if (currentLang !== 'mal' && getVocalPage(currentStep)) {
             startListening();
           }
         });
@@ -444,37 +445,7 @@ export function AgentIA({
     : "IA Active";
 
   return (
-    <div style={{ position: "fixed", bottom: 32, right: 32, zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10 }}>
-
-      {/* ─── Bulle de dialogue ─────────────────────────────────────────── */}
-      {bubble && (
-        <div style={{
-          background: "white",
-          borderRadius: 16,
-          boxShadow: "0 8px 32px rgba(31,2,112,0.15)",
-          padding: "14px 18px",
-          maxWidth: 280,
-          border: "1px solid #E5E7EB",
-          animation: "fadeInUp 0.3s ease-out",
-        }}>
-          {bubble.user && (
-            <div style={{ marginBottom: 8 }}>
-              <span style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 600 }}>VOUS</span>
-              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#374151", fontStyle: "italic" }}>
-                &ldquo;{bubble.user}&rdquo;
-              </p>
-            </div>
-          )}
-          {bubble.ai && (
-            <div>
-              <span style={{ fontSize: 10, color: "#1F0270", fontWeight: 700 }}>N&apos;MA IA</span>
-              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#1F0270", fontWeight: 500, lineHeight: 1.5 }}>
-                {bubble.ai}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+    <div style={{ position: "fixed", bottom: "clamp(140px, 18vh, 210px)", right: 32, zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10 }}>
 
       {/* ─── Contrôles (Micro + Muet) ──────────────────────────────────── */}
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

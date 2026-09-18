@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Phone, ChevronRight, ArrowLeft, User as UserIcon, Info, AlertCircle } from "lucide-react";
-import { jouerSoussou } from "@/lib/soussou-audio";
+import { jouerAudioLocal } from "@/lib/soussou-audio";
 
 function isValidGuineanNumber(num: string) {
   return /^\d{9}$/.test(num.replace(/\s/g, ""));
@@ -142,8 +142,8 @@ export default function Identification() {
                 placeholder={t.numberPlaceholder}
                 value={numero}
                 onFocus={() => {
-                  if (lang === "sus" && !audioPlayed.numero) {
-                    jouerSoussou("numero-reactivation-numero", "reactivation");
+                  if ((lang === "sus" || lang === "mal") && !audioPlayed.numero) {
+                    jouerAudioLocal(lang, "numero-reactivation-numero", "reactivation");
                     setAudioPlayed(p => ({ ...p, numero: true }));
                   }
                 }}
@@ -165,8 +165,8 @@ export default function Identification() {
                 label={t.reasonLabel}
                 value={motif}
                 onFocus={() => {
-                  if (lang === "sus" && !audioPlayed.motif) {
-                    jouerSoussou("numero-reactivation-motif", "reactivation");
+                  if ((lang === "sus" || lang === "mal") && !audioPlayed.motif) {
+                    jouerAudioLocal(lang, "numero-reactivation-motif", "reactivation");
                     setAudioPlayed(p => ({ ...p, motif: true }));
                   }
                 }}
@@ -207,8 +207,8 @@ export default function Identification() {
                   className={`bg-white ${errors.freq1 ? "border-red-400" : ""}`}
                   value={freq1}
                   onFocus={() => {
-                    if (lang === "sus" && !audioPlayed.freq) {
-                      jouerSoussou("numero-reactivation-freq", "reactivation");
+                    if ((lang === "sus" || lang === "mal") && !audioPlayed.freq) {
+                      jouerAudioLocal(lang, "numero-reactivation-freq", "reactivation");
                       setAudioPlayed(p => ({ ...p, freq: true }));
                     }
                   }}

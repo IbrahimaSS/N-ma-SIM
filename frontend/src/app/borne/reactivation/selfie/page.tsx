@@ -7,6 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
+import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
+import { SuccessOverlay } from "@/components/borne/SuccessOverlay";
 import { verifierKYC } from "@/lib/kyc.client";
 import { getKycImage, saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import type { KycReponse, KycError } from "@/types/kyc";
@@ -20,6 +22,7 @@ export default function ReactivationSelfie() {
   const [kycResult, setKycResult] = useState<KycReponse | null>(null);
   const [kycError, setKycError] = useState<string | null>(null);
   const [cameraMode, setCameraMode] = useState(false);
+  const [successTarget, setSuccessTarget] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
   // Anti-double-appel : le bouton "Continuer" reste cliquable pendant les 1.5s de lancement
   // auto, donc un clic dans cette fenêtre pouvait déclencher 2 vérifications KYC concurrentes
@@ -107,9 +110,9 @@ export default function ReactivationSelfie() {
         return; // Ne pas naviguer vers la vérification
       }
 
-      // → Aller à la page de vérification réactivation
+      // Visage validé : afficher le message de succès, la navigation suit dans 4s (SuccessOverlay)
       sessionStorage.setItem("kiosk_selfie_ok_reactivation", "1");
-      router.push("/borne/reactivation/verification");
+      setSuccessTarget("/borne/reactivation/verification");
     } catch (err) {
       const kycErr = err as KycError;
       setKycError(kycErr.message || (lang === "en" ? "Unknown error." : "Erreur inconnue."));
@@ -133,6 +136,17 @@ export default function ReactivationSelfie() {
 
   return (
     <Card className="w-full p-2">
+      <ExtractionOverlay
+        visible={isAnalyzing}
+        lang={lang}
+        title={lang === "en" ? "Verifying your identity..." : "Vérification de votre identité..."}
+        subtitle={lang === "en" ? "Please wait, AI is comparing your selfie with your ID." : "Merci de patienter, l'IA compare votre selfie avec votre pièce d'identité."}
+      />
+      <SuccessOverlay
+        visible={!!successTarget}
+        lang={lang}
+        onComplete={() => { if (successTarget) router.push(successTarget); }}
+      />
       <input ref={selfieInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="hidden" onChange={handleFileSelect} />
       <CardHeader className="pb-6">
         <CardTitle className="text-2xl text-center">{t.title}</CardTitle>

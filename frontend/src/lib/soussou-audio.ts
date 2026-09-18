@@ -100,6 +100,50 @@ const POULAR_MAP: Record<string, string> = {
   'reactivation:felicitations':              `${BASE_POU}/Reactivation/Etape_8_FIN_recupere_SIM.mp3`,
 };
 
+// ─── Table de mapping Malinké ────────────────────────────────────────────────
+// Fichiers fournis nommés par thème (pas par "Etape_X") — mapping déduit du nom
+// de fichier faute de pouvoir écouter le contenu : à vérifier/corriger si un
+// audio ne correspond pas à l'étape attendue.
+const BASE_MAL = '/audio/mal';
+
+const MALINKE_MAP: Record<string, string> = {
+  // ── Commun
+  'choix-service': `${BASE_MAL}/nouvelle_sim/1-quelle_service.m4a`,
+
+  // ── Nouvelle SIM
+  'nouvelle-sim:scan-piece':            `${BASE_MAL}/nouvelle_sim/2-quelle_piece.m4a`,
+  'nouvelle-sim:scan-recto':            `${BASE_MAL}/nouvelle_sim/3-mettrepapier_scanner.m4a`,
+  'nouvelle-sim:scan-verso':            `${BASE_MAL}/nouvelle_sim/4-scanner_carteIdentite.m4a`,
+  'nouvelle-sim:selfie':                `${BASE_MAL}/nouvelle_sim/5-regarde_camera.m4a`,
+  'nouvelle-sim:selfie-erreur':         `${BASE_MAL}/nouvelle_sim/6-echec_authentification.m4a`,
+  'nouvelle-sim:choix-offre':           `${BASE_MAL}/nouvelle_sim/7-choix_credit.m4a`,
+  'nouvelle-sim:choix-montant':         `${BASE_MAL}/nouvelle_sim/8-montant_credit.m4a`,
+  'nouvelle-sim:paiement':              `${BASE_MAL}/nouvelle_sim/9-mode_paiement.m4a`,
+  'nouvelle-sim:paiement-om-confirm':   `${BASE_MAL}/nouvelle_sim/10-lenumero_quidoitpayer.m4a`,
+  'nouvelle-sim:paiement-erreur':       `${BASE_MAL}/nouvelle_sim/11-echec_depot.m4a`,
+  'nouvelle-sim:recu':                  `${BASE_MAL}/nouvelle_sim/12-recuperer_reçu.m4a`,
+  'nouvelle-sim:felicitations':         `${BASE_MAL}/nouvelle_sim/13-recuperer_puce.m4a`,
+
+  // ── Réactivation
+  'reactivation:numero-reactivation':        `${BASE_MAL}/reactivation/2-numero_reactiver.m4a`,
+  'reactivation:numero-reactivation-numero': `${BASE_MAL}/reactivation/2-numero_reactiver.m4a`,
+  'reactivation:numero-reactivation-motif':  `${BASE_MAL}/reactivation/3-motif_reactiver.m4a`,
+  'reactivation:numero-reactivation-freq':   `${BASE_MAL}/reactivation/4-deux_numero.m4a`,
+  'reactivation:piece-identite':             `${BASE_MAL}/reactivation/6-quelle_piece.m4a`,
+  'reactivation:piece-identite-recto':       `${BASE_MAL}/reactivation/7-mettrepapier_scanner.m4a`,
+  'reactivation:piece-identite-verso':       `${BASE_MAL}/reactivation/8-scanner_carteIdentite.m4a`,
+  'reactivation:selfie':                     `${BASE_MAL}/reactivation/9-regarde_camera.m4a`,
+  'reactivation:selfie-erreur':              `${BASE_MAL}/reactivation/10-echec_authentification.m4a`,
+  'reactivation:choix-offre':                `${BASE_MAL}/reactivation/11-choix_credit.m4a`,
+  'reactivation:choix-montant':              `${BASE_MAL}/reactivation/12-montant_credit.m4a`,
+  'reactivation:paiement':                   `${BASE_MAL}/reactivation/13-mode_paiement.m4a`,
+  'reactivation:paiement-om-confirm':        `${BASE_MAL}/reactivation/14-lenumero_quidoitpayer.m4a`,
+  'reactivation:paiement-erreur':            `${BASE_MAL}/reactivation/15-echec_depot.m4a`,
+  'reactivation:recu':                       `${BASE_MAL}/reactivation/16-recuperer_reçu.m4a`,
+  'reactivation:felicitations':              `${BASE_MAL}/reactivation/17-recuperer_puce.m4a`,
+  // Non mappé faute d'étape équivalente dans l'app : reactivation/5-unNumero_fonctionpas.m4a
+};
+
 /**
  * Retourne l'URL du fichier audio correspondant à l'étape, au service et à la langue.
  */
@@ -114,6 +158,9 @@ export function getAudioUrl(
 
   if (lang === 'pou') {
     return POULAR_MAP[composedKey] ?? POULAR_MAP[step] ?? null;
+  }
+  if (lang === 'mal') {
+    return MALINKE_MAP[composedKey] ?? MALINKE_MAP[step] ?? null;
   }
   return SOUSSOU_MAP[composedKey] ?? SOUSSOU_MAP[step] ?? null;
 }
@@ -136,13 +183,4 @@ export function jouerAudioLocal(
     audio.onerror = () => resolve(); // En cas d'erreur, on continue quand même
     audio.play().catch(() => resolve());
   });
-}
-
-// Rétrocompatibilité (à remplacer progressivement par jouerAudioLocal)
-export function jouerSoussou(
-  step: string,
-  service: string | null,
-  extraKey?: string
-): Promise<void> {
-  return jouerAudioLocal("sus", step, service, extraKey);
 }

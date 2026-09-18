@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Microchip, Smartphone, Banknote, ChevronRight, ArrowLeft, CheckCircle2, Loader2, AlertCircle, ShoppingCart } from "lucide-react";
-import { jouerSoussou } from "@/lib/soussou-audio";
+import { jouerAudioLocal } from "@/lib/soussou-audio";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
 const PRIX_NOUVELLE_SIM = 10000; // Prix fixe de la carte SIM
@@ -189,8 +189,8 @@ export default function Offres() {
                     if (offer.type !== "RECHARGE") {
                       setRechargeMontant(null);
                       setCustomMontant("");
-                    } else if (lang === "sus") {
-                      jouerSoussou("choix-montant", "nouvelle-sim");
+                    } else if (lang === "sus" || lang === "mal") {
+                      jouerAudioLocal(lang, "choix-montant", "nouvelle-sim");
                     }
                   }
                 }}

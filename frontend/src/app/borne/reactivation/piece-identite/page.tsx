@@ -7,15 +7,16 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2 } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
+import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
-import { jouerSoussou } from "@/lib/soussou-audio";
+import { jouerAudioLocal } from "@/lib/soussou-audio";
 
-// Helper pour déclencher l'audio Soussou uniquement
+// Helper pour déclencher l'audio local (Soussou / Malinké) des instructions recto/verso
 function direInstructions(lang: string, type: "recto" | "verso", service: "nouvelle-sim" | "reactivation") {
-  if (lang === "sus") {
+  if (lang === "sus" || lang === "mal") {
     // Dans le dossier, la réactivation utilise "piece-identite-recto"
-    jouerSoussou(type === "recto" ? "piece-identite-recto" : "piece-identite-verso", service);
+    jouerAudioLocal(lang, type === "recto" ? "piece-identite-recto" : "piece-identite-verso", service);
   }
 }
 
@@ -210,6 +211,7 @@ export default function ReactivationPieceIdentite() {
 
   return (
     <Card className="w-full p-2">
+      <ExtractionOverlay visible={isSaving} lang={lang} />
       <CardHeader className="pb-4">
         <CardTitle className="text-2xl">{t.title}</CardTitle>
         <p className="text-text-muted mt-2">{t.subtitle}</p>
