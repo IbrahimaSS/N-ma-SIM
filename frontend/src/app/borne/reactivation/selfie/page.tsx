@@ -21,6 +21,11 @@ export default function ReactivationSelfie() {
   const [kycError, setKycError] = useState<string | null>(null);
   const [cameraMode, setCameraMode] = useState(false);
   const selfieInputRef = useRef<HTMLInputElement>(null);
+  // Anti-double-appel : le bouton "Continuer" reste cliquable pendant les 1.5s de lancement
+  // auto, donc un clic dans cette fenêtre pouvait déclencher 2 vérifications KYC concurrentes
+  // sur la même photo, avec un risque que le rejet de l'une soit écrasé par l'autre sans
+  // message d'erreur visible.
+  const isVerifyingRef = useRef(false);
 
   useEffect(() => { setLang(sessionStorage.getItem("kiosk_lang") || "fr"); }, []);
   useEffect(() => { return () => { if (selfiePreviewUrl) URL.revokeObjectURL(selfiePreviewUrl); }; }, [selfiePreviewUrl]);
@@ -59,7 +64,8 @@ export default function ReactivationSelfie() {
   };
 
   const handleContinue = async () => {
-    if (!selfieFile) return;
+    if (!selfieFile || isVerifyingRef.current) return;
+    isVerifyingRef.current = true;
     setIsAnalyzing(true); setKycError(null);
     try {
       const recto = await getKycImage("kyc_recto");
@@ -70,6 +76,7 @@ export default function ReactivationSelfie() {
       const docType = sessionStorage.getItem("kiosk_doc_type") || undefined;
       // Appel KYC complet avec selfie → comparaison visage/document
       const result = await verifierKYC(recto, selfieFile, verso ?? undefined, docType);
+      console.log("[KYC selfie]", { decision: result.decision, details: result.details, face: result.face ?? result.visage });
       setKycResult(result);
       await saveKycResult(result);
 
@@ -108,6 +115,7 @@ export default function ReactivationSelfie() {
       setKycError(kycErr.message || (lang === "en" ? "Unknown error." : "Erreur inconnue."));
     } finally {
       setIsAnalyzing(false);
+      isVerifyingRef.current = false;
     }
   };
 
