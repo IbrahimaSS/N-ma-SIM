@@ -8,3 +8,10 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+venv/
+
+# Poids de modèles ML (trop volumineux pour Git — wav2vec2 : ~360 Mo/fichier,
+# largement au-dessus de la limite de 100 Mo par fichier de GitHub). À héberger
+# ailleurs (stockage objet, Git LFS, serveur de modèles...) et à télécharger au
+# déploiement du service nma_vocal_malinké.
+nma_vocal_malinké/modeles_par_page/**/*.safetensors

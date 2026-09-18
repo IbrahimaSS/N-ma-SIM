@@ -1,0 +1,15 @@
+{
+  "id2label": {
+    "0": "abarabou",
+    "1": "abaralouwai",
+    "2": "ebarahabloquer",
+    "3": "rien"
+  },
+  "label2id": {
+    "abarabou": 0,
+    "abaralouwai": 1,
+    "ebarahabloquer": 2,
+    "rien": 3
+  },
+  "num_labels": 4
+}
