@@ -76,6 +76,7 @@ export default function ReactivationSelfie() {
       const docType = sessionStorage.getItem("kiosk_doc_type") || undefined;
       // Appel KYC complet avec selfie → comparaison visage/document
       const result = await verifierKYC(recto, selfieFile, verso ?? undefined, docType);
+      console.log("[KYC selfie]", { decision: result.decision, details: result.details, face: result.face ?? result.visage });
       setKycResult(result);
       await saveKycResult(result);
 

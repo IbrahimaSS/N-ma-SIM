@@ -107,6 +107,7 @@ export default function Selfie() {
 
       // Appeler l'API KYC
       const result = await verifierKYC(recto, selfieFile, verso ?? undefined, docType);
+      console.log("[KYC selfie]", { decision: result.decision, details: result.details, face: result.face ?? result.visage });
       setKycResult(result);
 
       // Sauvegarder le résultat pour la page suivante
