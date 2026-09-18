@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, XCircle, HelpCircle, Zap, ChevronRight, Check } from "lucide-react";
 
 const COMPATIBLE_BRANDS = [
   "iPhone XS / XR", "iPhone 11/12/13", "iPhone 14/15/16",
@@ -68,7 +68,8 @@ export default function EsimCompatibilite() {
   const options = [
     {
       value: "oui" as const,
-      emoji: "✅",
+      Icon: CheckCircle2,
+      iconColor: "#16A34A",
       label: lang === "en" ? "Yes, compatible" : "Oui, il est compatible",
       selectedBg: "linear-gradient(135deg, #DCFCE7, #BBF7D0)",
       selectedBorder: "#22C55E",
@@ -76,7 +77,8 @@ export default function EsimCompatibilite() {
     },
     {
       value: "non" as const,
-      emoji: "✖",
+      Icon: XCircle,
+      iconColor: "#DC2626",
       label: lang === "en" ? "No, not compatible" : "Non, pas compatible",
       selectedBg: "linear-gradient(135deg, #FEF2F2, #FECACA)",
       selectedBorder: "#EF4444",
@@ -84,7 +86,8 @@ export default function EsimCompatibilite() {
     },
     {
       value: "sais-pas" as const,
-      emoji: "❓",
+      Icon: HelpCircle,
+      iconColor: "#D97706",
       label: lang === "en" ? "I don't know" : "Je ne sais pas",
       selectedBg: "linear-gradient(135deg, #FFFBEB, #FDE68A)",
       selectedBorder: "#FBBF24",
@@ -159,7 +162,7 @@ export default function EsimCompatibilite() {
                   gap: 10,
                 }}
               >
-                <span style={{ fontSize: 28 }}>{opt.emoji}</span>
+                <opt.Icon size={28} color={isSelected ? opt.selectedColor : opt.iconColor} strokeWidth={1.8} />
                 <p style={{ fontSize: 13, fontWeight: 700, color: isSelected ? opt.selectedColor : "#374151", margin: 0, lineHeight: 1.4 }}>
                   {opt.label}
                 </p>
@@ -181,7 +184,7 @@ export default function EsimCompatibilite() {
             alignItems: "flex-start",
           }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, background: "#FEE2E2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <span style={{ fontSize: 20 }}>📵</span>
+              <XCircle size={20} color="#DC2626" strokeWidth={1.8} />
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontWeight: 800, color: "#991B1B", margin: "0 0 6px", fontSize: 15 }}>
@@ -232,7 +235,7 @@ export default function EsimCompatibilite() {
               gap: 12,
               alignItems: "flex-start",
             }}>
-              <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1 }}>⚡</span>
+              <Zap size={20} color="#1F0270" strokeWidth={1.8} style={{ flexShrink: 0 }} />
               <div>
                 <p style={{ fontWeight: 800, fontSize: 13, color: "#1F0270", margin: "0 0 3px" }}>
                   {lang === "en" ? "Quick method" : "Méthode rapide"}
@@ -281,7 +284,7 @@ export default function EsimCompatibilite() {
               onClick={() => setShowBrands(!showBrands)}
               style={{ background: "none", border: "none", fontSize: 13, fontWeight: 700, color: "#1F0270", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: 0, marginBottom: showBrands ? 10 : 0 }}
             >
-              <span style={{ transition: "transform 0.2s", display: "inline-block", transform: showBrands ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
+              <ChevronRight size={14} style={{ transition: "transform 0.2s", transform: showBrands ? "rotate(90deg)" : "rotate(0deg)" }} />
               {lang === "en" ? "See compatible phones" : "Voir les téléphones compatibles"}
             </button>
             {showBrands && (
@@ -306,7 +309,8 @@ export default function EsimCompatibilite() {
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               }}
             >
-              ✓ {lang === "en" ? "Yes, my phone is compatible — Continue" : "Oui, mon téléphone est compatible — Continuer"}
+              <Check size={16} strokeWidth={2.5} />
+              {lang === "en" ? "Yes, my phone is compatible — Continue" : "Oui, mon téléphone est compatible — Continuer"}
             </button>
           </div>
         )}

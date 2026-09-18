@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2 } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
+import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
 
@@ -150,6 +151,7 @@ export default function VerificationScanPiece() {
 
   return (
     <Card className="w-full max-w-4xl mx-auto p-4">
+      <ExtractionOverlay visible={isSaving} lang={lang} />
       <CardHeader><CardTitle className="text-2xl">{t.title}</CardTitle><p className="text-text-muted mt-2">{t.subtitle}</p></CardHeader>
       <CardContent>
         {/* Type de document */}

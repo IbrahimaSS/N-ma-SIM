@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Camera, Upload, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
+import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { verifierKYC } from "@/lib/kyc.client";
 import { getKycImage, saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import type { KycReponse, KycError } from "@/types/kyc";
@@ -76,6 +77,12 @@ export default function VerificationSelfie() {
 
   return (
     <Card className="w-full max-w-4xl mx-auto p-4">
+      <ExtractionOverlay
+        visible={isAnalyzing}
+        lang={lang}
+        title={lang === "en" ? "Verifying your identity..." : "Vérification de votre identité..."}
+        subtitle={lang === "en" ? "Please wait, AI is comparing your selfie with your ID." : "Merci de patienter, l'IA compare votre selfie avec votre pièce d'identité."}
+      />
       <input ref={selfieInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="hidden" onChange={handleFileSelect} />
       <CardHeader className="pb-6">
         <CardTitle className="text-2xl text-center">{t.title}</CardTitle>

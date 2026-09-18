@@ -7,14 +7,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2 } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
+import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
-import { jouerSoussou } from "@/lib/soussou-audio";
+import { jouerAudioLocal } from "@/lib/soussou-audio";
 
-// Helper pour déclencher l'audio Soussou uniquement
+// Helper pour déclencher l'audio local (Soussou / Malinké) des instructions recto/verso
 function direInstructions(lang: string, type: "recto" | "verso", service: "nouvelle-sim" | "reactivation") {
-  if (lang === "sus") {
-    jouerSoussou(`scan-${type}`, service);
+  if (lang === "sus" || lang === "mal") {
+    jouerAudioLocal(lang, `scan-${type}`, service);
   }
 }
 
@@ -99,6 +100,10 @@ export default function ScanPiece() {
     errorMaxSim: lang === "en"
       ? "This ID document has already reached the maximum of 5 SIM cards allowed."
       : "Cette pièce d'identité a déjà atteint le nombre maximal de 5 cartes SIM autorisées.",
+    errorMaxSimHelp: lang === "en"
+      ? "Please use another valid ID document to continue, or visit an Orange store for assistance."
+      : "Veuillez utiliser une autre pièce d'identité valide pour continuer, ou rendez-vous dans une agence Orange pour être accompagné.",
+    errorMaxSimAction: lang === "en" ? "Use another ID document" : "Utiliser une autre pièce d'identité",
     changeDoc: lang === "en" ? "Change" : "Changer",
     cameraError: lang === "en" ? "Camera not accessible. Please check permissions." : "Caméra inaccessible. Vérifiez les autorisations.",
     capturingRecto: lang === "en" ? "Capturing: Front (recto)" : "Capture : Recto",
@@ -337,6 +342,7 @@ export default function ScanPiece() {
 
   return (
     <Card className="w-full p-2">
+      <ExtractionOverlay visible={isSaving} lang={lang} />
       <CardHeader className="flex flex-row items-center justify-between pb-6">
         <div>
           <CardTitle className="text-2xl">{t.title}</CardTitle>
@@ -474,12 +480,28 @@ export default function ScanPiece() {
         )}
 
         {/* Message d'erreur */}
-        {saveError && (
+        {saveError && saveError === t.errorMaxSim ? (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+              <XCircle className="w-5 h-5 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-red-700 text-sm mb-1">{saveError}</p>
+              <p className="text-red-600 text-xs mb-3">{t.errorMaxSimHelp}</p>
+              <button
+                onClick={() => handleDocTypeChange(profile === "etranger" ? "passeport" : null)}
+                className="inline-flex items-center gap-2 bg-white border border-red-300 text-red-700 text-xs font-bold px-3 py-2 rounded-lg hover:bg-red-100 transition-colors"
+              >
+                {t.errorMaxSimAction}
+              </button>
+            </div>
+          </div>
+        ) : saveError ? (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
             <XCircle className="w-4 h-4 flex-shrink-0" />
             {saveError}
           </div>
-        )}
+        ) : null}
 
         {/* Navigation */}
         <div className="flex justify-between items-center pt-4 border-t border-border-light">
