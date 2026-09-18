@@ -1,0 +1,15 @@
+{
+  "id2label": {
+    "0": "bloquer",
+    "1": "durer",
+    "2": "rien",
+    "3": "voler"
+  },
+  "label2id": {
+    "bloquer": 0,
+    "durer": 1,
+    "rien": 2,
+    "voler": 3
+  },
+  "num_labels": 4
+}

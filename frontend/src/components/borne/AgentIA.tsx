@@ -243,8 +243,8 @@ export function AgentIA({
     setIsListening(true);
     pingActivity();
 
-    // ══ BRANCHE LOCALE (Soussou / Poular) : Audio Custom + API FastAPI Keras ══
-    if (currentLang === "sus" || currentLang === "pou") {
+    // ══ BRANCHE LOCALE (Soussou / Poular / Malinké) : Audio Custom + API FastAPI ══
+    if (currentLang === "sus" || currentLang === "pou" || currentLang === "mal") {
       const pageVocale = getVocalPage(currentStep);
       if (!pageVocale) {
         // Pas de modèle pour cette page, on lit juste l'instruction
@@ -389,8 +389,7 @@ export function AgentIA({
       prevStepRef.current = currentStep;
       if (currentLang === 'sus' || currentLang === 'pou' || currentLang === 'mal') {
         jouerAudioLocal(currentLang, currentStep, currentService).then(() => {
-          // Reconnaissance vocale (API FastAPI) : pas encore disponible pour le Malinké
-          if (currentLang !== 'mal' && getVocalPage(currentStep)) {
+          if (getVocalPage(currentStep)) {
             startListening();
           }
         });
@@ -406,7 +405,7 @@ export function AgentIA({
       hasTriggeredInitial.current = true;
       if (currentLang === 'sus' || currentLang === 'pou' || currentLang === 'mal') {
         jouerAudioLocal(currentLang, currentStep, currentService).then(() => {
-          if (currentLang !== 'mal' && getVocalPage(currentStep)) {
+          if (getVocalPage(currentStep)) {
             startListening();
           }
         });

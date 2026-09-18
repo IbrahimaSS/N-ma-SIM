@@ -1,0 +1,13 @@
+{
+  "id2label": {
+    "0": "nouvelleSIM",
+    "1": "reactivation",
+    "2": "rien"
+  },
+  "label2id": {
+    "nouvelleSIM": 0,
+    "reactivation": 1,
+    "rien": 2
+  },
+  "num_labels": 3
+}

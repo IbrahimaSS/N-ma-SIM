@@ -1,0 +1,17 @@
+# API N'ma SIM Voice — dépendances
+fastapi>=0.104,<1.0
+uvicorn[standard]>=0.24
+python-multipart>=0.0.6
+
+# Modèle et inférence
+transformers>=4.35,<5.0
+torch>=2.0
+numpy>=1.24
+
+# Décodage audio
+librosa>=0.10
+soundfile>=0.12
+pydub>=0.25
+# Note : pydub requiert ffmpeg installé sur le système
+#   Ubuntu/Debian : sudo apt install ffmpeg
+#   Windows       : télécharger ffmpeg.exe et l'ajouter au PATH

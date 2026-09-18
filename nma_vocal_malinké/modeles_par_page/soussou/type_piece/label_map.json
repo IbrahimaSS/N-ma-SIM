@@ -1,0 +1,15 @@
+{
+  "id2label": {
+    "0": "carte_didentite",
+    "1": "electeur",
+    "2": "passport",
+    "3": "rien"
+  },
+  "label2id": {
+    "carte_didentite": 0,
+    "electeur": 1,
+    "passport": 2,
+    "rien": 3
+  },
+  "num_labels": 4
+}
