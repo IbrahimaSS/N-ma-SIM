@@ -5,11 +5,12 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2 } from "lucide-react";
+import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, ScanLine } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
 import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
+import { scannerViaImprimante } from "@/lib/materiel/scanner.client";
 import { jouerAudioLocal } from "@/lib/soussou-audio";
 
 // Helper pour déclencher l'audio local (Soussou / Malinké) des instructions recto/verso
@@ -37,6 +38,10 @@ export default function ScanPiece() {
   const [versoPreviewUrl, setVersoPreviewUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Scan via l'imprimante-scanner physique
+  const [scanningTarget, setScanningTarget] = useState<CameraTarget | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   // Caméra
   const [cameraMode, setCameraMode] = useState(false);
@@ -82,6 +87,9 @@ export default function ScanPiece() {
     importSub: lang === "en" ? "Upload a file (JPG, PNG)" : "Téléchargez un fichier (JPG, PNG)",
     takePhoto: lang === "en" ? "Take a photo" : "Prendre une photo",
     takeSub: lang === "en" ? "Use your camera" : "Utilisez votre caméra",
+    scanPrinter: lang === "en" ? "Scan (printer)" : "Scanner (imprimante)",
+    scanning: lang === "en" ? "Scanning..." : "Scan en cours...",
+    scanErrorPrefix: lang === "en" ? "Scan error" : "Erreur de scan",
     capture: lang === "en" ? "Capture" : "Capturer",
     cancelCamera: lang === "en" ? "Cancel" : "Annuler",
     previewRecto: lang === "en" ? "Front (recto)" : "Recto (face avant)",
@@ -137,6 +145,29 @@ export default function ScanPiece() {
     setVersoPreviewUrl(URL.createObjectURL(file));
     setSaveError(null);
     e.target.value = "";
+  };
+
+  /** Scanner via l'imprimante-scanner physique (le document doit déjà être posé sur la vitre) */
+  const handleScan = async (target: CameraTarget) => {
+    setScanError(null);
+    setScanningTarget(target);
+    try {
+      const file = await scannerViaImprimante(`${target}_scan.jpg`);
+      if (target === "recto") {
+        if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
+        setRectoFile(file);
+        setRectoPreviewUrl(URL.createObjectURL(file));
+      } else {
+        if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
+        setVersoFile(file);
+        setVersoPreviewUrl(URL.createObjectURL(file));
+      }
+      setSaveError(null);
+    } catch (err) {
+      setScanError(err instanceof Error ? err.message : "Erreur de scan.");
+    } finally {
+      setScanningTarget(null);
+    }
   };
 
   /** Ouvrir la caméra pour recto ou verso */
@@ -261,6 +292,8 @@ export default function ScanPiece() {
     previewUrl,
     onImport,
     onCamera,
+    onScan,
+    isScanning,
     inputRef,
     onSelect,
   }: {
@@ -268,6 +301,8 @@ export default function ScanPiece() {
     previewUrl: string | null;
     onImport: () => void;
     onCamera: () => void;
+    onScan: () => void;
+    isScanning: boolean;
     inputRef: React.RefObject<HTMLInputElement | null>;
     onSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   }) => (
@@ -307,9 +342,9 @@ export default function ScanPiece() {
         )}
       </div>
 
-      {/* Boutons Import / Caméra */}
+      {/* Boutons Import / Caméra / Scanner */}
       {!previewUrl ? (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             onClick={onImport}
             className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group"
@@ -323,6 +358,18 @@ export default function ScanPiece() {
           >
             <Camera className="w-5 h-5 text-primary mb-1 group-hover:scale-110 transition-transform" />
             <span className="text-xs font-bold text-primary">{t.takePhoto}</span>
+          </button>
+          <button
+            onClick={onScan}
+            disabled={isScanning}
+            className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group disabled:opacity-60 disabled:cursor-wait"
+          >
+            {isScanning ? (
+              <Loader2 className="w-5 h-5 text-primary mb-1 animate-spin" />
+            ) : (
+              <ScanLine className="w-5 h-5 text-primary mb-1 group-hover:scale-110 transition-transform" />
+            )}
+            <span className="text-xs font-bold text-primary">{isScanning ? t.scanning : t.scanPrinter}</span>
           </button>
         </div>
       ) : (
@@ -431,6 +478,8 @@ export default function ScanPiece() {
                   previewUrl={rectoPreviewUrl}
                   onImport={() => rectoInputRef.current?.click()}
                   onCamera={() => openCamera("recto")}
+                  onScan={() => handleScan("recto")}
+                  isScanning={scanningTarget === "recto"}
                   inputRef={rectoInputRef}
                   onSelect={handleRectoSelect}
                 />
@@ -440,10 +489,20 @@ export default function ScanPiece() {
                     previewUrl={versoPreviewUrl}
                     onImport={() => versoInputRef.current?.click()}
                     onCamera={() => openCamera("verso")}
+                    onScan={() => handleScan("verso")}
+                    isScanning={scanningTarget === "verso"}
                     inputRef={versoInputRef}
                     onSelect={handleVersoSelect}
                   />
                 )}
+              </div>
+            )}
+
+            {/* Erreur de scan matériel */}
+            {scanError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                <XCircle className="w-4 h-4 flex-shrink-0" />
+                <span><strong>{t.scanErrorPrefix} :</strong> {scanError}</span>
               </div>
             )}
 

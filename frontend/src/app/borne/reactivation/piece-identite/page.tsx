@@ -5,11 +5,12 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2 } from "lucide-react";
+import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, ScanLine } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
 import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
+import { scannerViaImprimante } from "@/lib/materiel/scanner.client";
 import { jouerAudioLocal } from "@/lib/soussou-audio";
 
 // Helper pour déclencher l'audio local (Soussou / Malinké) des instructions recto/verso
@@ -34,6 +35,8 @@ export default function ReactivationPieceIdentite() {
   const [versoPreviewUrl, setVersoPreviewUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [scanningTarget, setScanningTarget] = useState<CameraTarget | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
   const [cameraMode, setCameraMode] = useState(false);
   const [cameraTarget, setCameraTarget] = useState<CameraTarget>("recto");
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -72,6 +75,10 @@ export default function ReactivationPieceIdentite() {
     importSub: lang === "en" ? "Upload a file (JPG, PNG)" : "Téléchargez un fichier (JPG, PNG)",
     takePhoto: lang === "en" ? "Take a photo" : "Prendre une photo",
     takeSub: lang === "en" ? "Use your camera" : "Utilisez votre caméra",
+    scanPrinter: lang === "en" ? "Scan (printer)" : "Scanner (imprimante)",
+    scanSub: lang === "en" ? "Document on the glass" : "Pièce posée sur la vitre",
+    scanning: lang === "en" ? "Scanning..." : "Scan en cours...",
+    scanErrorPrefix: lang === "en" ? "Scan error" : "Erreur de scan",
     capture: lang === "en" ? "Capture" : "Capturer",
     cancelCamera: lang === "en" ? "Cancel" : "Annuler",
     previewRecto: lang === "en" ? "Front (recto)" : "Recto (face avant)",
@@ -110,6 +117,25 @@ export default function ReactivationPieceIdentite() {
     if (!file) return;
     if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
     setVersoFile(file); setVersoPreviewUrl(URL.createObjectURL(file)); setSaveError(null); e.target.value = "";
+  };
+
+  const handleScan = async (target: CameraTarget) => {
+    setScanError(null); setScanningTarget(target);
+    try {
+      const file = await scannerViaImprimante(`${target}_scan.jpg`);
+      if (target === "recto") {
+        if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
+        setRectoFile(file); setRectoPreviewUrl(URL.createObjectURL(file));
+      } else {
+        if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
+        setVersoFile(file); setVersoPreviewUrl(URL.createObjectURL(file));
+      }
+      setSaveError(null);
+    } catch (err) {
+      setScanError(err instanceof Error ? err.message : "Erreur de scan.");
+    } finally {
+      setScanningTarget(null);
+    }
   };
 
   const openCamera = async (target: CameraTarget) => {
@@ -183,8 +209,9 @@ export default function ReactivationPieceIdentite() {
     }
   };
 
-  const CaptureZone = ({ label, previewUrl, onImport, onCamera, inputRef, onSelect }: {
+  const CaptureZone = ({ label, previewUrl, onImport, onCamera, onScan, isScanning, inputRef, onSelect }: {
     label: string; previewUrl: string | null; onImport: () => void; onCamera: () => void;
+    onScan: () => void; isScanning: boolean;
     inputRef: React.RefObject<HTMLInputElement | null>; onSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   }) => (
     <div className="border border-border-light rounded-xl p-4 bg-gray-50 flex flex-col gap-3">
@@ -203,6 +230,11 @@ export default function ReactivationPieceIdentite() {
           </button>
           <button onClick={onCamera} className="flex-1 flex flex-col items-center gap-2 p-4 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
             <Camera className="w-6 h-6 text-primary" /><span className="text-sm font-semibold text-text-main">{t.takePhoto}</span><span className="text-xs text-text-muted">{t.takeSub}</span>
+          </button>
+          <button onClick={onScan} disabled={isScanning} className="flex-1 flex flex-col items-center gap-2 p-4 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait">
+            {isScanning ? <Loader2 className="w-6 h-6 text-primary animate-spin" /> : <ScanLine className="w-6 h-6 text-primary" />}
+            <span className="text-sm font-semibold text-text-main">{isScanning ? t.scanning : t.scanPrinter}</span>
+            <span className="text-xs text-text-muted">{t.scanSub}</span>
           </button>
         </div>
       )}
@@ -260,10 +292,12 @@ export default function ReactivationPieceIdentite() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <CaptureZone label={t.previewRecto} previewUrl={rectoPreviewUrl}
                   onImport={() => rectoInputRef.current?.click()} onCamera={() => openCamera("recto")}
+                  onScan={() => handleScan("recto")} isScanning={scanningTarget === "recto"}
                   inputRef={rectoInputRef} onSelect={handleRectoSelect} />
                 {needsVerso && (
                   <CaptureZone label={t.previewVerso} previewUrl={versoPreviewUrl}
                     onImport={() => versoInputRef.current?.click()} onCamera={() => openCamera("verso")}
+                    onScan={() => handleScan("verso")} isScanning={scanningTarget === "verso"}
                     inputRef={versoInputRef} onSelect={handleVersoSelect} />
                 )}
               </div>
@@ -285,6 +319,12 @@ export default function ReactivationPieceIdentite() {
                 </div>
               </div>
             </div>
+
+            {scanError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-sm">
+                <XCircle className="w-4 h-4 flex-shrink-0" /><span><strong>{t.scanErrorPrefix} :</strong> {scanError}</span>
+              </div>
+            )}
 
             {saveError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-sm">
