@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, ScanLine } from "lucide-react";
+import { Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, ScanLine } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
 import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
@@ -225,9 +225,6 @@ export default function ReactivationPieceIdentite() {
         </div>
       ) : (
         <div className="flex flex-col sm:flex-row gap-3">
-          <button onClick={onImport} className="flex-1 flex flex-col items-center gap-2 p-4 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
-            <Upload className="w-6 h-6 text-primary" /><span className="text-sm font-semibold text-text-main">{t.importImg}</span><span className="text-xs text-text-muted">{t.importSub}</span>
-          </button>
           <button onClick={onCamera} className="flex-1 flex flex-col items-center gap-2 p-4 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
             <Camera className="w-6 h-6 text-primary" /><span className="text-sm font-semibold text-text-main">{t.takePhoto}</span><span className="text-xs text-text-muted">{t.takeSub}</span>
           </button>

@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, ScanLine } from "lucide-react";
+import { Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, ScanLine } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
 import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
@@ -344,14 +344,7 @@ export default function ScanPiece() {
 
       {/* Boutons Import / Caméra / Scanner */}
       {!previewUrl ? (
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            onClick={onImport}
-            className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group"
-          >
-            <Upload className="w-5 h-5 text-primary mb-1 group-hover:-translate-y-0.5 transition-transform" />
-            <span className="text-xs font-bold text-primary">{t.importImg}</span>
-          </button>
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={onCamera}
             className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group"
