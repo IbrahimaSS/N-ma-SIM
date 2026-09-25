@@ -85,6 +85,9 @@ export function AgentIA({
     else if (pathname.includes("/reactivation/identification")) { currentStep = "numero-reactivation"; currentService = "reactivation"; }
     else if (pathname.includes("/reactivation/motif"))          { currentStep = "motif-reactivation"; currentService = "reactivation"; }
     else if (pathname.includes("/reactivation/numeros-frequents")) { currentStep = "numeros-frequents"; currentService = "reactivation"; }
+    else if (pathname.includes("/reactivation/format"))         { currentStep = "reactivation-format"; currentService = "reactivation"; }
+    else if (pathname.includes("/reactivation/esim/compatibilite")) { currentStep = "reactivation-esim-compatibilite"; currentService = "reactivation"; }
+    else if (pathname.includes("/reactivation/esim/qr-code"))   { currentStep = isSuccess ? "felicitations" : "reactivation-esim-qr-code"; currentService = "reactivation"; }
     else if (pathname.includes("/reactivation/piece-identite")) { currentStep = "piece-identite"; currentService = "reactivation"; }
     else if (pathname.includes("/reactivation/selfie"))         { currentStep = "selfie"; currentService = "reactivation"; }
     else if (pathname.includes("/reactivation/verification"))   { currentStep = "verification"; currentService = "reactivation"; }
@@ -106,7 +109,8 @@ export function AgentIA({
       "choix-offre", "paiement", "recu", "numero-reactivation", "motif-reactivation",
       "numeros-frequents", "piece-identite", "verification", "recharge-numero", "recharge-montant",
       "esim-format", "esim-forfait", "esim-compatibilite", "esim-recapitulatif",
-      "esim-generation", "esim-qr-code"];
+      "esim-generation", "esim-qr-code",
+      "reactivation-format", "reactivation-esim-compatibilite", "reactivation-esim-qr-code"];
     if (postTermsSteps.includes(currentStep)) {
       currentTerms = true;
       currentProfile = currentProfile || "resident";

@@ -5,22 +5,24 @@ import { Stepper, Step } from "@/components/ui/Stepper";
 
 const steps: Step[] = [
   { id: 1, label: "Identification" },
-  { id: 2, label: "Pièce d'identité" },
-  { id: 3, label: "Selfie" },
-  { id: 4, label: "Vérification" },
-  { id: 5, label: "Paiement" },
-  { id: 6, label: "Confirmation" },
+  { id: 2, label: "Format" },
+  { id: 3, label: "Pièce d'identité" },
+  { id: 4, label: "Selfie" },
+  { id: 5, label: "Vérification" },
+  { id: 6, label: "Paiement" },
+  { id: 7, label: "Confirmation" },
 ];
 
 export default function ReactivationLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  
+
   let currentStep = 1;
-  if (pathname.includes("piece-identite")) currentStep = 2;
-  else if (pathname.includes("selfie")) currentStep = 3;
-  else if (pathname.includes("verification")) currentStep = 4;
-  else if (pathname.includes("paiement")) currentStep = 5;
-  else if (pathname.includes("recu")) currentStep = 6;
+  if (pathname.includes("/format") || pathname.includes("esim/compatibilite")) currentStep = 2;
+  else if (pathname.includes("piece-identite")) currentStep = 3;
+  else if (pathname.includes("selfie")) currentStep = 4;
+  else if (pathname.includes("verification")) currentStep = 5;
+  else if (pathname.includes("paiement")) currentStep = 6;
+  else if (pathname.includes("recu") || pathname.includes("esim/qr-code")) currentStep = 7;
 
   return (
     <div className="w-full flex flex-col items-center w-full animate-in fade-in duration-500">
