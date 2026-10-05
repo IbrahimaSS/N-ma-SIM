@@ -269,6 +269,12 @@ export default function DetailDemande() {
                 {(demande.type === "NOUVELLE_SIM" || demande.type === "REACTIVATION") && (
                   <InfoRow label="Format de SIM" value={demande.formatSim === "ESIM" ? "eSIM (profil numérique)" : "Carte SIM physique"} />
                 )}
+                {demande.compteOrangeMoney !== null && demande.compteOrangeMoney !== undefined && (
+                  <InfoRow
+                    label="Compte Orange Money souhaité"
+                    value={demande.compteOrangeMoney ? "Oui — à activer" : "Non"}
+                  />
+                )}
                 {demande.type === "NOUVELLE_SIM" && demande.formatSim !== "ESIM" && (
                   <InfoRow label="Achat de base" value="Nouvelle Carte SIM" />
                 )}

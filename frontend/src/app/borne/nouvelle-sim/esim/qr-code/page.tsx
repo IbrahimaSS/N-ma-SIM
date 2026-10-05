@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Home, Mail, Printer, ShieldCheck, CheckCircle2, Smartphone, Loader2 } from "lucide-react";
 import { resetKioskSession } from "@/lib/kiosk-guard";
+import { OrangeMoneyChoice } from "@/components/borne/OrangeMoneyChoice";
 
 export default function EsimQrCode() {
   const router = useRouter();
@@ -205,6 +206,9 @@ export default function EsimQrCode() {
           </Card>
 
         </div>
+
+        {/* Choix Orange Money */}
+        <OrangeMoneyChoice demandeId={profile.demandeId ?? null} />
 
         {/* Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:hidden">
