@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
+import { prisma } from '@/lib/prisma'
 import { apiSuccess, apiError } from '@/lib/auth'
-import { compterSimValideesParPiece } from '@/lib/sim-limit'
+import { compterSimValideesParPiece, MAX_SIM_PAR_PIECE } from '@/lib/sim-limit'
 
 /**
  * @swagger
@@ -29,6 +30,19 @@ export async function GET(request: NextRequest) {
     if (!numeroPiece) return apiError('Le numéro de pièce est requis', 400)
 
     const count = await compterSimValideesParPiece(numeroPiece)
+
+    // Alerte admin : la pièce a atteint la limite. On n'empêche pas la réponse (la borne
+    // bloque déjà l'utilisateur côté UI) — on se contente de prévenir l'admin via les logs,
+    // sans créer de client pour cette tentative refusée.
+    if (count >= MAX_SIM_PAR_PIECE) {
+      await prisma.log.create({
+        data: {
+          type: 'Rejet — Limite SIM atteinte',
+          description: `Tentative d'achat bloquée : la pièce ${numeroPiece} a déjà ${count} SIM validées (limite : ${MAX_SIM_PAR_PIECE}).`,
+          entiteType: 'Client',
+        },
+      }).catch((e) => console.error('[CLIENTS COUNT-SIM] Log alerte échoué', e))
+    }
 
     return apiSuccess({ numeroPiece, count })
 

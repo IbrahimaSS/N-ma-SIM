@@ -42,6 +42,31 @@ export async function POST(request: Request) {
     // frontend (page selfie) aurait été contourné (flux bypass, vieux build, etc.).
     const kycRejete = typeof kyc_result?.decision === "string" && kyc_result.decision.includes("REJETÉ");
 
+    // ─── 0. Anti-abus : pièce déjà au maximum de SIM autorisées ───────────
+    // Filet de sécurité en plus du pré-check fait côté borne juste après le scan
+    // (scan-piece/page.tsx) : s'il est contourné (navigation directe, course entre
+    // deux bornes...), on vérifie ici AVANT de créer/toucher un client, pour ne
+    // jamais créer de client pour une tentative refusée. L'alerte admin est déjà
+    // déclenchée par /api/clients/count-sim lui-même.
+    const numeroPieceCheck = client_info?.numero_piece;
+    if (numeroPieceCheck) {
+      try {
+        const countRes = await fetch(`${BACKEND_URL}/api/clients/count-sim?numeroPiece=${encodeURIComponent(numeroPieceCheck)}`);
+        const countData = await countRes.json().catch(() => null);
+        const count = countData?.data?.count ?? 0;
+        if (countRes.ok && count >= 5) {
+          return NextResponse.json(
+            { error: "Cette pièce d'identité a déjà atteint le nombre maximal de 5 cartes SIM autorisées." },
+            { status: 409 }
+          );
+        }
+      } catch (e) {
+        // Vérification indisponible (backend hors ligne) : on ne bloque pas pour un souci
+        // réseau — la limite reste de toute façon vérifiée à nouveau à l'étape 2 ci-dessous.
+        console.error("[SOUMISSION] Vérification limite SIM indisponible", e);
+      }
+    }
+
     // ─── 1. Créer le client ───────────────────────────────────────────────
     const clientRes = await fetch(`${BACKEND_URL}/api/clients`, {
       method: "POST",
