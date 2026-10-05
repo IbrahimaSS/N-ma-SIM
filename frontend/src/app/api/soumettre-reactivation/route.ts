@@ -23,7 +23,7 @@ function parseOcrDate(dateStr: string | undefined): string | undefined {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { client_info, numero_a_reactiver, motif_reactivation, paiement, kyc_result } = body;
+    const { client_info, numero_a_reactiver, motif_reactivation, format_sim, paiement, kyc_result } = body;
     // Défense en profondeur : si la décision KYC est un REJET (visage, mineur, document
     // expiré, anti-spoofing...), on ne force PAS la validation automatique plus bas, même
     // si le paiement a été confirmé côté borne. Filet de sécurité au cas où le blocage
@@ -68,6 +68,7 @@ export async function POST(request: Request) {
         type: "REACTIVATION",
         numeroAReactiver: numero_a_reactiver || undefined,
         motifReactivation: motif_reactivation || "Non précisé",
+        formatSim: format_sim === "ESIM" ? "ESIM" : "PHYSIQUE",
       }),
     });
 

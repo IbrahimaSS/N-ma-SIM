@@ -266,8 +266,14 @@ export default function DetailDemande() {
                 <CreditCard size={18} style={{ color: "#4F46E5" }} /> Offre & Paiement
               </h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                {demande.type === "NOUVELLE_SIM" && (
+                {(demande.type === "NOUVELLE_SIM" || demande.type === "REACTIVATION") && (
                   <InfoRow label="Format de SIM" value={demande.formatSim === "ESIM" ? "eSIM (profil numérique)" : "Carte SIM physique"} />
+                )}
+                {demande.compteOrangeMoney !== null && demande.compteOrangeMoney !== undefined && (
+                  <InfoRow
+                    label="Compte Orange Money souhaité"
+                    value={demande.compteOrangeMoney ? "Oui — à activer" : "Non"}
+                  />
                 )}
                 {demande.type === "NOUVELLE_SIM" && demande.formatSim !== "ESIM" && (
                   <InfoRow label="Achat de base" value="Nouvelle Carte SIM" />

@@ -145,6 +145,12 @@ model DemandeSIM {
   // Format de la SIM (pour NOUVELLE_SIM : carte physique ou eSIM)
   formatSim       FormatSim       @default(PHYSIQUE)
 
+  // Choix du client (fait sur l'écran de confirmation finale) d'activer un
+  // compte Orange Money sur ce numéro. null = pas encore demandé / non
+  // applicable (ex: RECHARGE). La création réelle du compte se fait côté
+  // Orange — ce champ capture juste l'intention du client pour le back-office.
+  compteOrangeMoney Boolean?
+
   // Réactivation
   numeroAReactiver  String?
   motifReactivation String?

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { SuccessScreen } from "@/components/borne/SuccessScreen";
+import { OrangeMoneyChoice } from "@/components/borne/OrangeMoneyChoice";
 import { getKycResult } from "@/lib/kyc.storage";
 import type { Offer } from "@/types";
 
@@ -343,6 +344,9 @@ function RecuContent() {
 
         </Card>
       </div>
+
+      {/* Choix Orange Money - caché à l'impression */}
+      <OrangeMoneyChoice demandeId={demandeId} />
 
       {/* Erreur équipement - caché à l'impression */}
       {dispenserError && (

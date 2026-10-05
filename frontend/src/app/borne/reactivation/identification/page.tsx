@@ -116,7 +116,7 @@ export default function Identification() {
     sessionStorage.setItem("reactivation_freq1", freq1.replace(/\s/g, ""));
     sessionStorage.setItem("reactivation_freq2", freq2.replace(/\s/g, ""));
 
-    router.push("/borne/reactivation/piece-identite");
+    router.push("/borne/reactivation/format");
   };
 
   const hasErrors = Object.keys(errors).some((k) => !!errors[k]);

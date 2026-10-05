@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import {
-  ShieldCheck, Lock, Receipt, RefreshCcw, ArrowLeft, ChevronRight,
-  AlertCircle, Phone, CreditCard, Loader2
+  ShieldCheck, Lock, Receipt, RefreshCcw, ArrowLeft,
+  AlertCircle, Phone, CreditCard, Loader2, Smartphone
 } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
 
@@ -27,6 +27,7 @@ export default function PaiementReactivation() {
   const [isLoadingPrice, setIsLoadingPrice] = useState(true);
   const [numero, setNumero] = useState("—");
   const [motif, setMotif] = useState("—");
+  const [isEsimFlow, setIsEsimFlow] = useState(false);
 
   // Écouter le message de succès de l'Iframe Lengo Pay
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function PaiementReactivation() {
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
     setNumero(sessionStorage.getItem("reactivation_numero") || "—");
+    setIsEsimFlow(sessionStorage.getItem("kiosk_flow") === "esim");
 
     const motifKey = sessionStorage.getItem("reactivation_motif") || "";
     const motifLabels: Record<string, string> = {
@@ -90,6 +92,8 @@ export default function PaiementReactivation() {
         throw new Error("Vérification d'identité refusée par le contrôle KYC. Veuillez contacter un agent.");
       }
 
+      const isEsim = sessionStorage.getItem("kiosk_flow") === "esim";
+
       const res = await fetch("/api/soumettre-reactivation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,6 +106,7 @@ export default function PaiementReactivation() {
           },
           numero_a_reactiver: numeroAReactiver,
           motif_reactivation: motifReactivation,
+          format_sim: isEsim ? "ESIM" : "PHYSIQUE",
           paiement: {
             montant: prix,
             methode: paymentInfo.method,
@@ -117,12 +122,26 @@ export default function PaiementReactivation() {
       sessionStorage.setItem("ticket_ref", data.numeroDossier);
       sessionStorage.setItem("demande_id", data.demandeId);
       sessionStorage.setItem("reactivation_montant_paye", prix.toString());
-      
+
       // Nettoyage
       sessionStorage.removeItem("kiosk_client_info");
       sessionStorage.removeItem("kyc_champs");
-      
-      router.push("/borne/reactivation/recu");
+
+      if (isEsim) {
+        // Génération du profil eSIM (simulation RSP/SM-DP+, même endpoint que Nouvelle SIM)
+        const nomClient = `${kycInfo.prenom || kycChamps.prenom || ""} ${kycInfo.nom || kycChamps.nom || ""}`.trim() || "Client";
+        const esimRes = await fetch("/api/esim/generer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ numeroDossier: data.numeroDossier, nomClient }),
+        });
+        if (!esimRes.ok) throw new Error("Erreur génération eSIM");
+        const profile = await esimRes.json();
+        sessionStorage.setItem("kiosk_esim_profile", JSON.stringify({ ...profile, demandeId: data.demandeId }));
+        router.push("/borne/reactivation/esim/qr-code");
+      } else {
+        router.push("/borne/reactivation/recu");
+      }
     } catch (err: unknown) {
       console.error("[REACTIVATION]", err);
       const msg = err instanceof Error ? err.message : "";
@@ -171,6 +190,7 @@ export default function PaiementReactivation() {
     service: lang === "en" ? "Service" : "Service",
     serviceVal: lang === "en" ? "SIM Reactivation" : "Réactivation puce",
     number: lang === "en" ? "Number" : "Numéro",
+    format: lang === "en" ? "Format" : "Format",
     reason: lang === "en" ? "Reason" : "Motif",
     amount: lang === "en" ? "Amount" : "Montant",
     total: lang === "en" ? "Total to pay" : "Total à payer",
@@ -213,6 +233,17 @@ export default function PaiementReactivation() {
             <div>
               <p className="text-sm text-text-muted">{t.number}</p>
               <p className="font-bold text-primary">{numero}</p>
+            </div>
+          </div>
+
+          {/* Format */}
+          <div className="flex items-start gap-4 mb-4">
+            <div className="p-3 bg-gray-50 rounded-lg border border-border-light">
+              <Smartphone className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-text-muted">{t.format}</p>
+              <p className="font-bold text-primary">{isEsimFlow ? "eSIM" : (lang === "en" ? "Physical SIM" : "SIM Physique")}</p>
             </div>
           </div>
 

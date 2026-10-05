@@ -9,6 +9,7 @@ const updateDemandeSchema = z.object({
   scoreVerification: z.number().optional(),
   verificationOCR: z.boolean().optional(),
   verificationSelfie: z.boolean().optional(),
+  compteOrangeMoney: z.boolean().optional(),
 })
 
 /**

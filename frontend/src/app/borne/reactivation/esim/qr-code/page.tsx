@@ -7,9 +7,8 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Home, Mail, Printer, ShieldCheck, CheckCircle2, Smartphone, Loader2 } from "lucide-react";
 import { resetKioskSession } from "@/lib/kiosk-guard";
-import { OrangeMoneyChoice } from "@/components/borne/OrangeMoneyChoice";
 
-export default function EsimQrCode() {
+export default function EsimQrCodeReactivation() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [isSendingMail, setIsSendingMail] = useState(false);
@@ -24,12 +23,11 @@ export default function EsimQrCode() {
     } catch {}
 
     if (!sessionStorage.getItem("kiosk_esim_profile")) {
-      router.replace("/borne/nouvelle-sim/esim/recapitulatif");
+      router.replace("/borne/reactivation/paiement");
     }
   }, [router]);
 
   const handleTerminer = async () => {
-    // Confirme la validation côté back-office (comme le parcours physique), sans bloquer si indisponible
     if (profile?.demandeId) {
       try {
         await fetch("/api/terminer-demande", {
@@ -38,7 +36,7 @@ export default function EsimQrCode() {
           body: JSON.stringify({ demandeId: profile.demandeId }),
         });
       } catch (e) {
-        console.error("[ESIM] terminer-demande", e);
+        console.error("[ESIM REACTIVATION] terminer-demande", e);
       }
     }
     await resetKioskSession();
@@ -93,23 +91,23 @@ export default function EsimQrCode() {
         }
       `}} />
       <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          
+
           {/* Instructions d'installation */}
           <Card className="p-6 print:hidden">
             <div className="flex items-center gap-3 mb-6 bg-success/10 p-4 rounded-xl border border-success/20">
               <CheckCircle2 className="w-8 h-8 text-success" />
               <div>
-                <h2 className="text-lg font-bold text-success">eSIM Prête !</h2>
-                <p className="text-sm text-success/80">Votre profil a été généré avec succès.</p>
+                <h2 className="text-lg font-bold text-success">Ligne réactivée !</h2>
+                <p className="text-sm text-success/80">Votre profil eSIM a été généré avec succès.</p>
               </div>
             </div>
 
             <h3 className="font-bold text-primary mb-4 flex items-center gap-2">
               <Smartphone className="w-5 h-5" /> Comment l&apos;installer ?
             </h3>
-            
+
             <div className="space-y-4">
               <div className="flex gap-3 bg-gray-50 p-3 rounded-lg">
                 <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0">1</div>
@@ -164,7 +162,7 @@ export default function EsimQrCode() {
           <Card id="esim-receipt" className="overflow-hidden p-0 print:shadow-none print:border-none flex flex-col">
             <div style={{background: 'linear-gradient(135deg, #1a1464 0%, #2d27a0 60%, #f5a800 100%)'}} className="p-6 flex items-center justify-between">
               <div>
-                <p className="text-white/70 text-xs uppercase tracking-widest mb-0.5">Activation</p>
+                <p className="text-white/70 text-xs uppercase tracking-widest mb-0.5">Réactivation</p>
                 <h3 className="text-white font-extrabold text-2xl tracking-wide">eSIM N&apos;ma SIM</h3>
               </div>
               <div className="text-right">
@@ -175,8 +173,8 @@ export default function EsimQrCode() {
 
             <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50/50">
               <div className="bg-white p-4 rounded-3xl shadow-lg border-2 border-primary/10 mb-6">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(profile.qrString)}`} 
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(profile.qrString)}`}
                   alt="eSIM QR Code"
                   className="w-48 h-48 md:w-56 md:h-56 object-contain"
                 />
@@ -197,7 +195,7 @@ export default function EsimQrCode() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white border-t border-border-light p-4 text-center">
               <p className="text-xs text-text-muted flex items-center justify-center gap-1">
                 <ShieldCheck className="w-4 h-4" /> Ce QR code est unique et à usage unique.
@@ -206,9 +204,6 @@ export default function EsimQrCode() {
           </Card>
 
         </div>
-
-        {/* Choix Orange Money */}
-        <OrangeMoneyChoice demandeId={profile.demandeId ?? null} />
 
         {/* Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:hidden">

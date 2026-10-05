@@ -26,13 +26,13 @@ async function apiFetch(path: string) {
 
 // ─── Badges ─────────────────────────────────────────────────────────────────
 function TypeBadge({ type, formatSim }: { type: string; formatSim?: string }) {
-  const isEsim = type === "NOUVELLE_SIM" && formatSim === "ESIM";
-  const bg = type === "NOUVELLE_SIM" ? (isEsim ? "#EEF2FF" : "#F0FDF4") : type === "RECHARGE" ? "#FFFBEB" : "#EEF2FF";
-  const color = type === "NOUVELLE_SIM" ? (isEsim ? "#3730A3" : "#166534") : type === "RECHARGE" ? "#B45309" : "#4338CA";
-  const border = type === "NOUVELLE_SIM" ? (isEsim ? "#C7D2FE" : "#BBF7D0") : type === "RECHARGE" ? "#FDE68A" : "#C7D2FE";
-  const label = type === "NOUVELLE_SIM"
-    ? (isEsim ? "Nouvelle SIM · eSIM" : "Nouvelle SIM · Physique")
-    : type === "REACTIVATION" ? "Réactivation" : "Recharge";
+  // formatSim (PHYSIQUE/ESIM) s'applique aussi bien à NOUVELLE_SIM qu'à REACTIVATION.
+  const isEsim = formatSim === "ESIM";
+  const bg = isEsim ? "#EEF2FF" : type === "NOUVELLE_SIM" ? "#F0FDF4" : type === "RECHARGE" ? "#FFFBEB" : "#EEF2FF";
+  const color = isEsim ? "#3730A3" : type === "NOUVELLE_SIM" ? "#166534" : type === "RECHARGE" ? "#B45309" : "#4338CA";
+  const border = isEsim ? "#C7D2FE" : type === "NOUVELLE_SIM" ? "#BBF7D0" : type === "RECHARGE" ? "#FDE68A" : "#C7D2FE";
+  const typeLabel = type === "NOUVELLE_SIM" ? "Nouvelle SIM" : type === "REACTIVATION" ? "Réactivation" : "Recharge";
+  const label = type === "RECHARGE" ? typeLabel : `${typeLabel} · ${isEsim ? "eSIM" : "Physique"}`;
   return (
     <span style={{
       background: bg, color, border: `1px solid ${border}`,
@@ -260,8 +260,8 @@ function DemandesContent() {
 
     const tableData = filtered.map((d: any) => [
       d.numeroDossier,
-      d.type === "NOUVELLE_SIM"
-        ? (d.formatSim === "ESIM" ? "Nouvelle SIM eSIM" : "Nouvelle SIM Physique")
+      d.type === "NOUVELLE_SIM" || d.type === "REACTIVATION"
+        ? `${d.type === "NOUVELLE_SIM" ? "Nouvelle SIM" : "Réactivation"} ${d.formatSim === "ESIM" ? "eSIM" : "Physique"}`
         : d.type.replace(/_/g, ' '),
       d.client ? `${d.client.prenom} ${d.client.nom}` : "—",
       d.offre?.nom || (d.type === "RECHARGE" ? "Recharge" : "—"),
