@@ -94,9 +94,9 @@ export function AboutCtaFooter() {
               <X size={20} />
             </button>
             <h3 className="text-lg font-bold text-primary mb-1" style={{ fontFamily: "var(--font-headline)" }}>
-              Recevoir le lien
+              Nous contacter
             </h3>
-            <p className="text-text-muted text-sm mb-5">Choisissez comment recevoir le lien vers N&apos;ma SIM.</p>
+            <p className="text-text-muted text-sm mb-5">Choisissez comment nous contacter.</p>
 
             <div className="flex flex-col gap-2">
               <a
