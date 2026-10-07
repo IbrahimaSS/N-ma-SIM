@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Loader2, Wifi, Smartphone, CheckCircle2 } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
+import { identiteValidee } from "@/lib/kyc.decision";
 
 export default function EsimGeneration() {
   const router = useRouter();
@@ -44,8 +45,8 @@ export default function EsimGeneration() {
         // aboutir à la génération d'un profil eSIM réel, même si un blocage en amont (page
         // selfie) aurait été contourné. Contrairement au flux physique (où la puce n'est
         // éjectée qu'au clic "Terminer"), ici la génération EST le moment de délivrance.
-        if (kyc?.decision?.includes("REJETÉ")) {
-          console.error("[ESIM] Génération bloquée — KYC rejeté:", kyc.decision, kyc.details);
+        if (!identiteValidee(kyc)) {
+          console.error("[ESIM] Génération bloquée — KYC non validé:", kyc?.decision, kyc?.details);
           setStatus("error");
           return;
         }

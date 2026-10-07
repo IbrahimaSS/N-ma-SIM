@@ -130,6 +130,14 @@ export default function ConfirmationInfos() {
     back: lang === "en" ? "Back" : "Retour",
     confirm: lang === "en" ? "Confirm and continue" : "Confirmer et continuer",
     // Décisions IA
+    decisionPendingSelfie: lang === "en" ? "ID document read successfully" : "Pièce d'identité lue avec succès",
+    decisionPendingSelfieDetail: lang === "en"
+      ? "Check your information, then take your selfie to complete the verification."
+      : "Vérifiez vos informations, puis prenez votre selfie pour terminer la vérification.",
+    decisionRetakePhoto: lang === "en" ? "ID document photo not readable" : "Photo de la pièce illisible",
+    decisionRetakePhotoDetail: lang === "en"
+      ? "Go back and scan your ID again (front and back for an ID card or passport), flat and well lit."
+      : "Revenez en arrière et scannez à nouveau votre pièce (recto et verso pour une CNI ou un passeport), bien à plat et éclairée.",
     decisionAccepted: lang === "en" ? "✅ Identity validated by the System" : "✅ Identité validée par le Système",
     decisionManual: lang === "en" ? "⚠️ Human verification required" : "⚠️ Vérification humaine requise",
     decisionRejected: lang === "en" ? "❌ Identity rejected" : "❌ Identité rejetée",
@@ -154,6 +162,30 @@ export default function ConfirmationInfos() {
     // L'API renvoie des chaînes comme "✅ ACCEPTÉ", "⚠️ VÉRIFICATION MANUELLE", "❌ REJETÉ"
     const decisionUpper = decision.toUpperCase();
     const simPct = faceResult?.similarite != null ? Math.round(faceResult.similarite * 100) : null;
+
+    if (decisionUpper.includes("REPRENDRE_PHOTO")) {
+      return (
+        <div className="mb-5 p-4 bg-warning/10 border border-warning/30 rounded-xl flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-warning">{t.decisionRetakePhoto}</p>
+            <p className="text-sm text-warning/80 mt-1">{t.decisionRetakePhotoDetail}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (decisionUpper.includes("ATTENTE DU SELFIE")) {
+      return (
+        <div className="mb-5 p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-primary">{t.decisionPendingSelfie}</p>
+            <p className="text-sm text-text-muted mt-1">{t.decisionPendingSelfieDetail}</p>
+          </div>
+        </div>
+      );
+    }
 
     if (decisionUpper.includes("ACCEPT")) {
       return (
@@ -210,7 +242,9 @@ export default function ConfirmationInfos() {
     );
   };
 
-  const isRejected = kycResult?.decision.toUpperCase().includes("REJET") ?? false;
+  const decisionUp = kycResult?.decision.toUpperCase() ?? "";
+  // Pièce rejetée ou illisible : inutile d'aller au selfie, il faut rescanner la pièce.
+  const isRejected = decisionUp.includes("REJET") || decisionUp.includes("REPRENDRE_PHOTO");
   // Verrouille tout le formulaire dès qu'une extraction KYC existe
   const isLocked = kycResult !== null;
 

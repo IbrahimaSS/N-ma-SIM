@@ -10,6 +10,7 @@ import { CameraCapture } from "@/components/borne/CameraCapture";
 import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { SuccessOverlay } from "@/components/borne/SuccessOverlay";
 import { verifierKYC } from "@/lib/kyc.client";
+import { interpreterDecisionSelfie } from "@/lib/kyc.decision";
 import { getKycImage, saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import type { KycReponse, KycError } from "@/types/kyc";
 
@@ -116,31 +117,15 @@ export default function Selfie() {
       // Sauvegarder le résultat pour la page suivante
       await saveKycResult(result);
 
-      // Vérifier si REJET (quelle qu'en soit la cause : visage, mineur, document expiré,
-      // anti-spoofing...) → BLOCAGE sur cette page. Avant ce fix, seuls les 2 cas faciaux
-      // étaient détectés ici : un REJET pour âge/expiration/liveness passait silencieusement
-      // vers les offres/récapitulatif malgré la décision "❌ REJETÉ" du moteur KYC.
-      const isRejected = result.decision?.includes("REJETÉ");
-
-      if (isRejected) {
-        const details = result.details || [];
-        const noFace = details.some((d: string) => d.toLowerCase().includes("aucun visage"));
-        const mismatch = details.some((d: string) => d.toLowerCase().includes("visage non concordant"));
-        setKycError(
-          noFace
-            ? "Aucun visage détecté sur le selfie. Positionnez-vous face à la caméra."
-            : mismatch
-            ? "Visage non concordant. Le selfie ne correspond pas à la photo sur votre pièce d'identité. Veuillez reprendre votre selfie."
-            : `Vérification refusée : ${details[0] || "veuillez contacter un agent."}`
-        );
+      const verdict = interpreterDecisionSelfie(result);
+      if (!verdict.valide) {
+        setKycError(verdict.message);
         setSelfieFile(null);
         setSelfiePreviewUrl(null);
         setIsAnalyzing(false);
-        // Aucun visage / non-concordance : on reste bloqué sur la capture caméra (relance
-        // immédiate), pas de retour à l'écran de choix — tant qu'un vrai selfie n'a pas été
-        // pris. Les autres motifs (mineur, document expiré...) ne se règlent pas en reprenant
-        // une photo : on laisse le message affiché sans rouvrir la caméra automatiquement.
-        if (noFace || mismatch) setCameraMode(true);
+        // Problème de visage : on rouvre la caméra. Les autres motifs (pièce illisible,
+        // mineur, document expiré...) ne se règlent pas en reprenant un selfie.
+        if (verdict.relancerCamera) setCameraMode(true);
         return; // Ne pas naviguer vers les offres
       }
 
