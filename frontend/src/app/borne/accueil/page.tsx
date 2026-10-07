@@ -152,18 +152,7 @@ export default function Accueil() {
               borderBottom: lang === "sus" ? "3px solid #1F6B2D" : "3px solid transparent",
               cursor: "pointer", transition: "all 0.2s",
             }}>
-              {/* Icône Soussou — drapeau Guinée + badge SUS */}
-              <span style={{
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                width: 28, height: 28, borderRadius: "50%",
-                background: "linear-gradient(135deg, #CE1126 33%, #FCD116 33% 66%, #009A44 66%)",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
-                fontSize: 9, fontWeight: 900, color: "white",
-                letterSpacing: 0, flexShrink: 0,
-                textShadow: "0 1px 2px rgba(0,0,0,0.5)"
-              }}>
-                SUS
-              </span>
+              <span style={{ fontSize: 20 }}>🇬🇳</span>
               Soussou
             </button>
 
@@ -179,17 +168,7 @@ export default function Accueil() {
               borderBottom: lang === "pou" ? "3px solid #1F6B2D" : "3px solid transparent",
               cursor: "pointer", transition: "all 0.2s",
             }}>
-              <span style={{
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                width: 28, height: 28, borderRadius: "50%",
-                background: "linear-gradient(135deg, #CE1126 33%, #FCD116 33% 66%, #009A44 66%)",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
-                fontSize: 9, fontWeight: 900, color: "white",
-                letterSpacing: 0, flexShrink: 0,
-                textShadow: "0 1px 2px rgba(0,0,0,0.5)"
-              }}>
-                POU
-              </span>
+              <span style={{ fontSize: 20 }}>🇬🇳</span>
               Poular
             </button>
 
@@ -205,17 +184,7 @@ export default function Accueil() {
               borderBottom: lang === "mal" ? "3px solid #1F6B2D" : "3px solid transparent",
               cursor: "pointer", transition: "all 0.2s",
             }}>
-              <span style={{
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                width: 28, height: 28, borderRadius: "50%",
-                background: "linear-gradient(135deg, #CE1126 33%, #FCD116 33% 66%, #009A44 66%)",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
-                fontSize: 9, fontWeight: 900, color: "white",
-                letterSpacing: 0, flexShrink: 0,
-                textShadow: "0 1px 2px rgba(0,0,0,0.5)"
-              }}>
-                MAL
-              </span>
+              <span style={{ fontSize: 20 }}>🇬🇳</span>
               Malinké
             </button>
           </div>
