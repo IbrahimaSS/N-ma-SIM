@@ -67,7 +67,7 @@ export function AdminSidebar() {
     <aside style={{
       width: 220,
       minWidth: 220,
-      background: "#1F0270",
+      background: "#2656A2",
       minHeight: "100vh",
       display: "flex",
       flexDirection: "column",
@@ -98,7 +98,7 @@ export function AdminSidebar() {
             {logoUrl ? (
               <img src={logoUrl} alt={orgName} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             ) : (
-              <img src="/logo-transparent.png" alt={orgName} style={{ width: "160%", transform: "scale(1.3)" }} />
+              <img src="/logo-icon.png" alt={orgName} style={{ width: "78%", height: "78%", objectFit: "contain" }} />
             )}
           </div>
           <div>

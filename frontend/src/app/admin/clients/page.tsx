@@ -29,7 +29,7 @@ function Modal({ isOpen, onClose, title, customUI, children }: any) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
       <div style={{ background: customUI ? "transparent" : "white", borderRadius: customUI ? 24 : 16, width: "100%", maxWidth: 480, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: customUI ? "none" : "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }} onClick={e => e.stopPropagation()}>
         {!customUI && (
-          <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1F0270", position: "relative", overflow: "hidden" }}>
+          <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#2656A2", position: "relative", overflow: "hidden" }}>
             <h3 style={{ fontWeight: 700, color: "white", margin: 0, fontSize: 18, position: "relative", zIndex: 1 }}>{title}</h3>
             <button onClick={onClose} style={{ background: "rgba(255,255,255,0.12)", border: "none", cursor: "pointer", color: "white", display: "flex", padding: 7, borderRadius: 8, position: "relative", zIndex: 1 }}><X size={18} /></button>
           </div>
@@ -135,7 +135,7 @@ export default function Clients() {
     <div>
       <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Clients</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>Clients</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Base clients et profils</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
@@ -151,7 +151,7 @@ export default function Clients() {
           <button onClick={fetchClients} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
              <RefreshCcw size={16} className={isLoading ? "animate-spin" : ""} /> Actualiser
           </button>
-          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#2656A2", fontWeight: 600 }}>
              <Download size={16} /> Export PDF
           </button>
           <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
@@ -170,7 +170,7 @@ export default function Clients() {
         ].map(k => (
           <div key={k.label} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 160, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 8, fontWeight: 500 }}>{k.label}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#2656A2" }}>{k.value}</div>
           </div>
         ))}
       </div>
@@ -258,7 +258,7 @@ export default function Clients() {
         {selectedModalClient && (
           <div style={{ background: "#F8F9FC", width: "100%", overflow: "hidden", position: "relative" }}>
             {/* Header Section */}
-            <div style={{ background: "#1F0270", padding: "24px 24px 48px", position: "relative", overflow: "hidden" }}>
+            <div style={{ background: "#2656A2", padding: "24px 24px 48px", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: -30, right: -30, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,184,0,0.10)" }} />
               <div style={{ position: "absolute", top: 20, right: 20, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,184,0,0.07)" }} />
               <div style={{ position: "absolute", bottom: -10, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
@@ -285,7 +285,7 @@ export default function Clients() {
                   {selectedModalClient.nom.substring(0, 2).toUpperCase()}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#1F0270" }}>{selectedModalClient.prenom} {selectedModalClient.nom}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#2656A2" }}>{selectedModalClient.prenom} {selectedModalClient.nom}</div>
                   <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>{selectedModalClient.telephone || '-'}</div>
                   <div style={{ fontSize: 13, color: "#6B7280" }}>{selectedModalClient.nationalite || 'Guinéenne'}</div>
                 </div>
@@ -304,19 +304,19 @@ export default function Clients() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Type de pièce</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{formatTypePiece(selectedModalClient.typePiece)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>{formatTypePiece(selectedModalClient.typePiece)}</div>
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Numéro de pièce</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{!selectedModalClient.numeroPiece || selectedModalClient.numeroPiece === "-" ? "—" : selectedModalClient.numeroPiece}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>{!selectedModalClient.numeroPiece || selectedModalClient.numeroPiece === "-" ? "—" : selectedModalClient.numeroPiece}</div>
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Date de naissance</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{selectedModalClient.dateNaissance ? new Date(selectedModalClient.dateNaissance).toLocaleDateString('fr-FR') : '-'}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>{selectedModalClient.dateNaissance ? new Date(selectedModalClient.dateNaissance).toLocaleDateString('fr-FR') : '-'}</div>
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Enregistré le</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{new Date(selectedModalClient.createdAt).toLocaleDateString('fr-FR')}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>{new Date(selectedModalClient.createdAt).toLocaleDateString('fr-FR')}</div>
                   </div>
                 </div>
               </div>
@@ -334,7 +334,7 @@ export default function Clients() {
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           <div style={{ width: 8, height: 8, borderRadius: "50%", background: h.statut === "VALIDEE" ? "#10B981" : "#F59E0B" }} />
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 800, color: "#1F0270" }}>{h.id.substring(0, 10)}...</div>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: "#2656A2" }}>{h.id.substring(0, 10)}...</div>
                             <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>{h.type}</div>
                           </div>
                         </div>
@@ -359,7 +359,7 @@ export default function Clients() {
                 <button onClick={() => setSelectedModalClient(null)} style={{ flex: 1, background: "#FFB800", color: "#111827", padding: "14px", borderRadius: 12, border: "none", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   <X size={16} /> Fermer
                 </button>
-                <button style={{ flex: 1, background: "white", color: "#1F0270", padding: "14px", borderRadius: 12, border: "1px solid #E5E7EB", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <button style={{ flex: 1, background: "white", color: "#2656A2", padding: "14px", borderRadius: 12, border: "1px solid #E5E7EB", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   <Download size={16} /> Télécharger la fiche
                 </button>
               </div>

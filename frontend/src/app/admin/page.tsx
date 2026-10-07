@@ -37,13 +37,13 @@ function KpiCard({ icon: Icon, label, value, sub, subColor, badge, iconBg, loadi
     <div className="dash-kpi-card" style={{ background: "white", borderRadius: 16, padding: "20px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
         <div style={{ background: iconBg || "#F0EEFF", borderRadius: 10, padding: 10, display: "flex" }}>
-          <Icon size={20} style={{ color: "#1F0270" }} />
+          <Icon size={20} style={{ color: "#2656A2" }} />
         </div>
         <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>{label}</span>
       </div>
       {loading
-        ? <div style={{ height: 30, display: "flex", alignItems: "center" }}><Loader2 size={20} style={{ color: "#1F0270", animation: "spin 1s linear infinite" }} /></div>
-        : <div style={{ fontSize: 30, fontWeight: 800, color: "#1F0270", lineHeight: 1 }}>{value}</div>
+        ? <div style={{ height: 30, display: "flex", alignItems: "center" }}><Loader2 size={20} style={{ color: "#2656A2", animation: "spin 1s linear infinite" }} /></div>
+        : <div style={{ fontSize: 30, fontWeight: 800, color: "#2656A2", lineHeight: 1 }}>{value}</div>
       }
       {sub && <div style={{ fontSize: 12, color: subColor || "#6B7280", marginTop: 6 }}>{sub}</div>}
       {badge && <div style={{ marginTop: 8, display: "inline-block", background: "#FFF3CD", color: "#92400E", borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 600 }}>{badge}</div>}
@@ -154,7 +154,7 @@ function DashboardContent() {
       {/* En-tête */}
       <div className="dash-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 16, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>
             {activeTab === "apercu" && "Tableau de bord"}
             {activeTab === "profil" && "Mon profil"}
           </h1>
@@ -172,7 +172,7 @@ function DashboardContent() {
           ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <button key={tab.id} onClick={() => handleTabChange(tab.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 10, fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s", background: isActive ? "#FFBA08" : "transparent", color: isActive ? "#1F0270" : "#6B7280" }}>
+              <button key={tab.id} onClick={() => handleTabChange(tab.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 10, fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s", background: isActive ? "#F5BB02" : "transparent", color: isActive ? "#2656A2" : "#6B7280" }}>
                 <tab.icon size={16} /><span>{tab.label}</span>
               </button>
             );
@@ -211,11 +211,11 @@ function DashboardContent() {
             {/* Demandes récentes */}
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0 }}>Dernières demandes</h3>
+                <h3 style={{ fontWeight: 700, color: "#2656A2", margin: 0 }}>Dernières demandes</h3>
                 <button onClick={() => router.push("/admin/demandes-sim")} style={{ fontSize: 13, color: "#4F46E5", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Voir tout</button>
               </div>
               {loading ? (
-                <div style={{ display: "flex", justifyContent: "center", padding: 32 }}><Loader2 size={28} style={{ color: "#1F0270", animation: "spin 1s linear infinite" }} /></div>
+                <div style={{ display: "flex", justifyContent: "center", padding: 32 }}><Loader2 size={28} style={{ color: "#2656A2", animation: "spin 1s linear infinite" }} /></div>
               ) : recentDemandes.length === 0 ? (
                 <p style={{ color: "#9CA3AF", fontSize: 14, textAlign: "center", padding: 24 }}>Aucune demande pour le moment.</p>
               ) : (
@@ -246,7 +246,7 @@ function DashboardContent() {
 
             {/* Alertes */}
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", marginBottom: 16, margin: "0 0 16px" }}>Alertes système</h3>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", marginBottom: 16, margin: "0 0 16px" }}>Alertes système</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {stats?.demandes?.enAttente > 0 && (
                   <div style={{ display: "flex", gap: 12, padding: "10px 12px", borderRadius: 10, border: "1px solid #FEF3C7", background: "#FFFBEB" }}>
@@ -254,7 +254,7 @@ function DashboardContent() {
                       <Clock size={16} style={{ color: "#D97706" }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 13, color: "#1F0270" }}>Demandes en attente</div>
+                      <div style={{ fontWeight: 600, fontSize: 13, color: "#2656A2" }}>Demandes en attente</div>
                       <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{stats.demandes.enAttente} demandes à valider.</div>
                     </div>
                     <button onClick={() => router.push("/admin/demandes-sim")} style={{ fontSize: 11, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>Voir</button>
@@ -266,7 +266,7 @@ function DashboardContent() {
                       <CheckCircle2 size={16} style={{ color: "#059669" }} />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 13, color: "#1F0270" }}>Système opérationnel</div>
+                      <div style={{ fontWeight: 600, fontSize: 13, color: "#2656A2" }}>Système opérationnel</div>
                       <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>Backend et base de données connectés.</div>
                     </div>
                   </div>
@@ -293,25 +293,25 @@ function DashboardContent() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.8fr", gap: 24, alignItems: "start" }} className="dash-grid">
           {/* Carte identité */}
           <div style={{ background: "white", borderRadius: 20, padding: 32, border: "1px solid #EAECF5", boxShadow: "0 1px 6px rgba(31,2,112,0.06)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-            <div style={{ width: 100, height: 100, borderRadius: "50%", background: "linear-gradient(135deg, #1F0270, #3B0CB8)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 800, marginBottom: 16, border: "4px solid #FFBA08", overflow: "hidden" }}>
+            <div style={{ width: 100, height: 100, borderRadius: "50%", background: "linear-gradient(135deg, #2656A2, #3B0CB8)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 800, marginBottom: 16, border: "4px solid #F5BB02", overflow: "hidden" }}>
               {admin.photoProfil
                 ? <img src={admin.photoProfil} alt={admin.name || admin.nom} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : (admin.name || admin.nom)?.split(" ").map((n: string) => n[0]).join("")
               }
             </div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1F0270", margin: 0 }}>{admin.name}</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: "#2656A2", margin: 0 }}>{admin.name}</h2>
             <div style={{ display: "inline-block", background: "#FFEAA7", color: "#B27A00", borderRadius: 20, padding: "4px 14px", fontSize: 12, fontWeight: 700, marginTop: 8 }}>{admin.role}</div>
             <div style={{ width: "100%", height: "1px", background: "#E5E7EB", margin: "24px 0" }} />
             <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16, textAlign: "left" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ background: "#F5F6FA", borderRadius: 10, padding: 8, color: "#1F0270" }}><Mail size={18} /></div>
+                <div style={{ background: "#F5F6FA", borderRadius: 10, padding: 8, color: "#2656A2" }}><Mail size={18} /></div>
                 <div>
                   <span style={{ fontSize: 11, color: "#9CA3AF", display: "block" }}>Adresse Email</span>
                   <span style={{ fontSize: 14, color: "#374151", fontWeight: 600 }}>{admin.email}</span>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ background: "#F5F6FA", borderRadius: 10, padding: 8, color: "#1F0270" }}><Calendar size={18} /></div>
+                <div style={{ background: "#F5F6FA", borderRadius: 10, padding: 8, color: "#2656A2" }}><Calendar size={18} /></div>
                 <div>
                   <span style={{ fontSize: 11, color: "#9CA3AF", display: "block" }}>Dernière connexion</span>
                   <span style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>{admin.loginAt}</span>
@@ -328,8 +328,8 @@ function DashboardContent() {
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <div style={{ background: "white", borderRadius: 20, padding: 28, border: "1px solid #EAECF5", boxShadow: "0 1px 6px rgba(31,2,112,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                <div style={{ background: "#FFF8E6", borderRadius: 10, padding: 10, color: "#FFBA08" }}><Shield size={20} /></div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#1F0270", margin: 0 }}>Rôle & Permissions</h3>
+                <div style={{ background: "#FFF8E6", borderRadius: 10, padding: 10, color: "#F5BB02" }}><Shield size={20} /></div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#2656A2", margin: 0 }}>Rôle & Permissions</h3>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="dash-grid">
                 {["Validation des demandes SIM", "Gestion des stocks", "Supervision des transactions", "Configuration des offres SIM", "Gestion des comptes utilisateurs", "Accès complet aux logs"].map((p, i) => (
@@ -346,7 +346,7 @@ function DashboardContent() {
             <div style={{ background: "white", borderRadius: 20, padding: 28, border: "1px solid #EAECF5", boxShadow: "0 1px 6px rgba(31,2,112,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
                 <div style={{ background: "#EEF2FF", borderRadius: 10, padding: 10, color: "#4F46E5" }}><Key size={20} /></div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#1F0270", margin: 0 }}>Sécurité de la session</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#2656A2", margin: 0 }}>Sécurité de la session</h3>
               </div>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <tbody>

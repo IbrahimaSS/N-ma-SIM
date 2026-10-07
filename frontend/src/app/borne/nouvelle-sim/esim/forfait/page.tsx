@@ -24,7 +24,7 @@ function mapOffre(o: {
     appels: o.appels || "—",
     sms: o.sms || "—",
     duree: o.duree || "30 jours",
-    couleur: o.couleur || "#1F0270",
+    couleur: o.couleur || "#2656A2",
     populaire: index === 1, // met en avant le 2e forfait
   };
 }
@@ -61,7 +61,7 @@ export default function EsimForfait() {
     <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
       {/* Titre */}
       <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <h2 style={{ fontSize: "clamp(20px, 2.5vw, 30px)", fontWeight: 900, color: "#1F0270", margin: "0 0 8px 0" }}>
+        <h2 style={{ fontSize: "clamp(20px, 2.5vw, 30px)", fontWeight: 900, color: "#2656A2", margin: "0 0 8px 0" }}>
           {lang === "en" ? "Choose your eSIM plan" : "Choisissez votre forfait eSIM"}
         </h2>
         <p style={{ fontSize: 14, color: "#9CA3AF", margin: 0 }}>
@@ -81,8 +81,8 @@ export default function EsimForfait() {
               background: "white",
               borderRadius: 20,
               border: selected?.id === forfait.id
-                ? "2.5px solid #1F0270"
-                : forfait.populaire ? "2px solid #FFBA08" : "2px solid #E5E7EB",
+                ? "2.5px solid #2656A2"
+                : forfait.populaire ? "2px solid #F5BB02" : "2px solid #E5E7EB",
               padding: "clamp(20px, 2vw, 28px)",
               cursor: "pointer",
               position: "relative",
@@ -100,8 +100,8 @@ export default function EsimForfait() {
                 top: -12,
                 left: "50%",
                 transform: "translateX(-50%)",
-                background: "#FFBA08",
-                color: "#1F0270",
+                background: "#F5BB02",
+                color: "#2656A2",
                 borderRadius: 20,
                 padding: "4px 14px",
                 fontSize: 11,
@@ -125,7 +125,7 @@ export default function EsimForfait() {
                 width: 24,
                 height: 24,
                 borderRadius: "50%",
-                background: "#1F0270",
+                background: "#2656A2",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -139,21 +139,21 @@ export default function EsimForfait() {
               width: 52,
               height: 52,
               borderRadius: 14,
-              background: forfait.couleur === "#FFBA08" ? "#1F0270" : `${forfait.couleur}15`,
+              background: forfait.couleur === "#F5BB02" ? "#2656A2" : `${forfait.couleur}15`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               marginBottom: 16,
             }}>
-              <Wifi size={24} color={forfait.couleur === "#FFBA08" ? "#FFBA08" : forfait.couleur} />
+              <Wifi size={24} color={forfait.couleur === "#F5BB02" ? "#F5BB02" : forfait.couleur} />
             </div>
 
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1F0270", margin: "0 0 4px 0" }}>{forfait.nom}</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#2656A2", margin: "0 0 4px 0" }}>{forfait.nom}</h3>
             <p style={{ fontSize: 13, color: "#9CA3AF", margin: "0 0 16px 0" }}>{forfait.description}</p>
 
             {/* Prix */}
             <div style={{ marginBottom: 18 }}>
-              <span style={{ fontSize: 28, fontWeight: 900, color: "#1F0270" }}>
+              <span style={{ fontSize: 28, fontWeight: 900, color: "#2656A2" }}>
                 {forfait.prixGNF.toLocaleString("fr-FR")}
               </span>
               <span style={{ fontSize: 14, color: "#9CA3AF", marginLeft: 4 }}>GNF</span>
@@ -169,7 +169,7 @@ export default function EsimForfait() {
               ].map((f) => (
                 <div key={f.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                   <span style={{ color: "#6B7280" }}>{f.label}</span>
-                  <span style={{ fontWeight: 700, color: "#1F0270" }}>{f.value}</span>
+                  <span style={{ fontWeight: 700, color: "#2656A2" }}>{f.value}</span>
                 </div>
               ))}
             </div>
@@ -196,7 +196,7 @@ export default function EsimForfait() {
           disabled={!selected}
           style={{
             display: "flex", alignItems: "center", gap: 8,
-            background: selected ? "#1F0270" : "#E5E7EB",
+            background: selected ? "#2656A2" : "#E5E7EB",
             border: "none", borderRadius: 12, padding: "12px 32px",
             color: selected ? "white" : "#9CA3AF",
             fontSize: 15, fontWeight: 700,

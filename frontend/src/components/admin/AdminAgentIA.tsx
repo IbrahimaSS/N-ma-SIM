@@ -167,7 +167,7 @@ export function AdminAgentIA() {
         }}>
           {/* Header */}
           <div style={{
-            background: "linear-gradient(135deg, #1F0270, #3B12A6)",
+            background: "linear-gradient(135deg, #2656A2, #3B12A6)",
             padding: "16px 20px",
             color: "white",
             display: "flex",
@@ -188,7 +188,7 @@ export function AdminAgentIA() {
             {messages.map((msg, i) => (
               <div key={i} style={{
                 alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
-                backgroundColor: msg.role === "user" ? "#1F0270" : "white",
+                backgroundColor: msg.role === "user" ? "#2656A2" : "white",
                 color: msg.role === "user" ? "white" : "#1F2937",
                 padding: "12px 16px",
                 borderRadius: msg.role === "user" ? "20px 20px 0 20px" : "20px 20px 20px 0",
@@ -202,7 +202,7 @@ export function AdminAgentIA() {
             ))}
             {isLoading && (
               <div style={{ alignSelf: "flex-start", backgroundColor: "white", padding: "12px 16px", borderRadius: "20px 20px 20px 0", display: "flex", gap: 8 }}>
-                <Loader2 size={16} className="animate-spin text-[#1F0270]" />
+                <Loader2 size={16} className="animate-spin text-[#2656A2]" />
                 <span style={{ fontSize: 13, color: "#6B7280" }}>Réflexion...</span>
               </div>
             )}
@@ -255,7 +255,7 @@ export function AdminAgentIA() {
                   width: 40,
                   height: 40,
                   borderRadius: "50%",
-                  backgroundColor: inputText.trim() ? "#1F0270" : "#E5E7EB",
+                  backgroundColor: inputText.trim() ? "#2656A2" : "#E5E7EB",
                   color: "white",
                   border: "none",
                   display: "flex",
@@ -277,7 +277,7 @@ export function AdminAgentIA() {
             width: 60,
             height: 60,
             borderRadius: "50%",
-            background: "linear-gradient(135deg, #1F0270, #3B12A6)",
+            background: "linear-gradient(135deg, #2656A2, #3B12A6)",
             color: "white",
             border: "none",
             display: "flex",

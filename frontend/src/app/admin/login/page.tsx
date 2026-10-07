@@ -135,7 +135,7 @@ export default function AdminLogin() {
             {/* Logo / Badge */}
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 48 }}>
               <div style={{
-                background: "linear-gradient(135deg, #1F0270, #3B0CB8)",
+                background: "linear-gradient(135deg, #2656A2, #3B0CB8)",
                 borderRadius: 14,
                 padding: 10,
                 display: "flex",
@@ -146,7 +146,7 @@ export default function AdminLogin() {
                 <Shield size={26} style={{ color: "#FFB800" }} />
               </div>
               <div>
-                <span style={{ fontSize: 20, fontWeight: 800, color: "#1F0270", letterSpacing: "-0.5px", display: "block" }}>N&apos;ma SIM</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: "#2656A2", letterSpacing: "-0.5px", display: "block" }}>N&apos;ma SIM</span>
                 <span style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 500 }}>Portail Administrateur</span>
               </div>
             </div>
@@ -229,7 +229,7 @@ export default function AdminLogin() {
                         boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
                       }}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#1F0270";
+                        e.target.style.borderColor = "#2656A2";
                         e.target.style.background = "#FFFFFF";
                         e.target.style.boxShadow = "0 0 0 4px rgba(31, 2, 112, 0.08)";
                       }}
@@ -246,7 +246,7 @@ export default function AdminLogin() {
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                     <label style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>Mot de passe</label>
-                    <a href="#" style={{ fontSize: 13, color: "#1F0270", fontWeight: 600, textDecoration: "none" }}>Mot de passe oublié ?</a>
+                    <a href="#" style={{ fontSize: 13, color: "#2656A2", fontWeight: 600, textDecoration: "none" }}>Mot de passe oublié ?</a>
                   </div>
                   <div style={{ position: "relative" }}>
                     <Lock size={20} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
@@ -271,7 +271,7 @@ export default function AdminLogin() {
                         boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
                       }}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#1F0270";
+                        e.target.style.borderColor = "#2656A2";
                         e.target.style.background = "#FFFFFF";
                         e.target.style.boxShadow = "0 0 0 4px rgba(31, 2, 112, 0.08)";
                       }}
@@ -312,7 +312,7 @@ export default function AdminLogin() {
                     width: "100%",
                     height: 56,
                     borderRadius: 14,
-                    background: "linear-gradient(135deg, #1F0270, #3B0CB8)",
+                    background: "linear-gradient(135deg, #2656A2, #3B0CB8)",
                     color: "white",
                     border: "none",
                     fontSize: 16,
@@ -343,7 +343,7 @@ export default function AdminLogin() {
         {/* SECTION DROITE : Illustration de l'achat de carte SIM */}
         <div style={{
           flex: "0.8",
-          background: "#1F0270", // Même couleur que la sidebar admin
+          background: "#2656A2", // Même couleur que la sidebar admin
           display: "flex",
           flexDirection: "column",
           alignItems: "center",

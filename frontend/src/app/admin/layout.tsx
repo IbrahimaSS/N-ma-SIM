@@ -43,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!authorized) {
     return (
       <div style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center", background: "#F4F6FB", fontFamily: "'Inter', sans-serif" }}>
-        <div style={{ color: "#1F0270", fontWeight: 600, fontSize: 16 }}>Vérification des accès...</div>
+        <div style={{ color: "#2656A2", fontWeight: 600, fontSize: 16 }}>Vérification des accès...</div>
       </div>
     );
   }
@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           top: 16,
           left: 16,
           zIndex: 101,
-          background: "#1F0270",
+          background: "#2656A2",
           color: "white",
           border: "none",
           borderRadius: 10,
@@ -84,7 +84,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <div className={`admin-sidebar print:hidden ${sidebarOpen ? "open" : ""}`}>
-        <Suspense fallback={<div style={{ width: 220, background: "#1F0270", minHeight: "100vh" }} />}>
+        <Suspense fallback={<div style={{ width: 220, background: "#2656A2", minHeight: "100vh" }} />}>
           <AdminSidebar />
         </Suspense>
       </div>

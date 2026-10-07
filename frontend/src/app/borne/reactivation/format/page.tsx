@@ -51,7 +51,7 @@ export default function FormatReactivation() {
         <h1 style={{
           fontSize: "clamp(24px, 3vw, 38px)",
           fontWeight: 900,
-          color: "#1F0270",
+          color: "#2656A2",
           margin: "0 0 12px 0",
           letterSpacing: "-0.5px",
         }}>
@@ -94,7 +94,7 @@ export default function FormatReactivation() {
             overflow: "hidden",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.border = "2px solid #FFBA08";
+            e.currentTarget.style.border = "2px solid #F5BB02";
             e.currentTarget.style.boxShadow = "0 12px 36px rgba(31,2,112,0.13)";
             e.currentTarget.style.transform = "translateY(-5px)";
           }}
@@ -120,16 +120,16 @@ export default function FormatReactivation() {
             marginBottom: "clamp(14px, 1.8vw, 22px)", marginTop: "clamp(18px, 2vw, 24px)",
           }}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="4" y="2" width="13" height="20" rx="2" stroke="#1F0270" strokeWidth="1.8"/>
-              <path d="M12 2L17 7" stroke="#1F0270" strokeWidth="1.8" strokeLinecap="round"/>
-              <rect x="7" y="10" width="3" height="3" rx="0.5" fill="#1F0270"/>
-              <rect x="11.5" y="10" width="3" height="3" rx="0.5" fill="#1F0270"/>
-              <rect x="7" y="14.5" width="3" height="3" rx="0.5" fill="#1F0270"/>
-              <rect x="11.5" y="14.5" width="3" height="3" rx="0.5" fill="#1F0270"/>
+              <rect x="4" y="2" width="13" height="20" rx="2" stroke="#2656A2" strokeWidth="1.8"/>
+              <path d="M12 2L17 7" stroke="#2656A2" strokeWidth="1.8" strokeLinecap="round"/>
+              <rect x="7" y="10" width="3" height="3" rx="0.5" fill="#2656A2"/>
+              <rect x="11.5" y="10" width="3" height="3" rx="0.5" fill="#2656A2"/>
+              <rect x="7" y="14.5" width="3" height="3" rx="0.5" fill="#2656A2"/>
+              <rect x="11.5" y="14.5" width="3" height="3" rx="0.5" fill="#2656A2"/>
             </svg>
           </div>
 
-          <h3 style={{ fontSize: "clamp(16px, 1.8vw, 21px)", fontWeight: 800, color: "#1F0270", margin: "0 0 8px 0" }}>
+          <h3 style={{ fontSize: "clamp(16px, 1.8vw, 21px)", fontWeight: 800, color: "#2656A2", margin: "0 0 8px 0" }}>
             {t.physiqueTitle}
           </h3>
 
@@ -148,11 +148,11 @@ export default function FormatReactivation() {
 
           <div style={{
             width: "clamp(40px, 5vw, 52px)", height: "clamp(40px, 5vw, 52px)", borderRadius: "50%",
-            background: "#FFBA08", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "#F5BB02", display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 4px 14px rgba(255,186,8,0.4)", flexShrink: 0,
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12H19M13 6L19 12L13 18" stroke="#1F0270" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 12H19M13 6L19 12L13 18" stroke="#2656A2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </button>
@@ -180,7 +180,7 @@ export default function FormatReactivation() {
             overflow: "hidden",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.border = "2px solid #1F0270";
+            e.currentTarget.style.border = "2px solid #2656A2";
             e.currentTarget.style.boxShadow = "0 12px 36px rgba(31,2,112,0.18)";
             e.currentTarget.style.transform = "translateY(-5px)";
           }}
@@ -193,21 +193,21 @@ export default function FormatReactivation() {
           <div style={{
             width: "clamp(60px, 7vw, 84px)", height: "clamp(60px, 7vw, 84px)",
             borderRadius: "clamp(14px, 1.8vw, 20px)",
-            background: "linear-gradient(135deg, #1F0270 0%, #3B12A6 100%)",
+            background: "linear-gradient(135deg, #2656A2 0%, #3B12A6 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
             marginBottom: "clamp(14px, 1.8vw, 22px)", marginTop: "clamp(18px, 2vw, 24px)",
             boxShadow: "0 8px 24px rgba(31,2,112,0.22)",
           }}>
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12.5C5 9.46 7.24 6.96 10.16 6.55" stroke="#FFBA08" strokeWidth="1.8" strokeLinecap="round"/>
-              <path d="M19 12.5C19 9.46 16.76 6.96 13.84 6.55" stroke="#FFBA08" strokeWidth="1.8" strokeLinecap="round"/>
-              <path d="M2 12.5C2 7.81 5.36 3.92 9.79 3.1" stroke="#FFBA08" strokeWidth="1.8" strokeLinecap="round" strokeOpacity="0.55"/>
-              <path d="M22 12.5C22 7.81 18.64 3.92 14.21 3.1" stroke="#FFBA08" strokeWidth="1.8" strokeLinecap="round" strokeOpacity="0.55"/>
-              <circle cx="12" cy="12.5" r="2.2" fill="#FFBA08"/>
+              <path d="M5 12.5C5 9.46 7.24 6.96 10.16 6.55" stroke="#F5BB02" strokeWidth="1.8" strokeLinecap="round"/>
+              <path d="M19 12.5C19 9.46 16.76 6.96 13.84 6.55" stroke="#F5BB02" strokeWidth="1.8" strokeLinecap="round"/>
+              <path d="M2 12.5C2 7.81 5.36 3.92 9.79 3.1" stroke="#F5BB02" strokeWidth="1.8" strokeLinecap="round" strokeOpacity="0.55"/>
+              <path d="M22 12.5C22 7.81 18.64 3.92 14.21 3.1" stroke="#F5BB02" strokeWidth="1.8" strokeLinecap="round" strokeOpacity="0.55"/>
+              <circle cx="12" cy="12.5" r="2.2" fill="#F5BB02"/>
             </svg>
           </div>
 
-          <h3 style={{ fontSize: "clamp(16px, 1.8vw, 21px)", fontWeight: 800, color: "#1F0270", margin: "0 0 8px 0" }}>
+          <h3 style={{ fontSize: "clamp(16px, 1.8vw, 21px)", fontWeight: 800, color: "#2656A2", margin: "0 0 8px 0" }}>
             {t.esimTitle}
           </h3>
 
@@ -218,7 +218,7 @@ export default function FormatReactivation() {
           <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", marginBottom: "clamp(20px, 2.5vw, 28px)" }}>
             {[t.esimFeature1, t.esimFeature2, t.esimFeature3].map((feat) => (
               <div key={feat} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#4B5563" }}>
-                <span style={{ color: "#1F0270", fontWeight: 700, fontSize: 14 }}>✓</span>
+                <span style={{ color: "#2656A2", fontWeight: 700, fontSize: 14 }}>✓</span>
                 {feat}
               </div>
             ))}
@@ -226,11 +226,11 @@ export default function FormatReactivation() {
 
           <div style={{
             width: "clamp(40px, 5vw, 52px)", height: "clamp(40px, 5vw, 52px)", borderRadius: "50%",
-            background: "#1F0270", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "#2656A2", display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 4px 14px rgba(31,2,112,0.4)", flexShrink: 0,
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12H19M13 6L19 12L13 18" stroke="#FFBA08" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 12H19M13 6L19 12L13 18" stroke="#F5BB02" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </button>
@@ -244,7 +244,7 @@ export default function FormatReactivation() {
           padding: "10px 22px", color: "#6B7280", fontSize: 14, fontWeight: 600,
           cursor: "pointer", transition: "all 0.18s",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#1F0270"; e.currentTarget.style.color = "#1F0270"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#2656A2"; e.currentTarget.style.color = "#2656A2"; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.color = "#6B7280"; }}
       >
         <ArrowLeft size={16} />

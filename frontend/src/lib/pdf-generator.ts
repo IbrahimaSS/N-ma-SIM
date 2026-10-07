@@ -14,7 +14,7 @@ export function generateNmaSimPDF({ title, subtitle, columns, data, filename }: 
   const pageWidth = doc.internal.pageSize.getWidth();
 
   // En-tête : Fond Bleu N'ma SIM
-  doc.setFillColor(31, 2, 112); // #1F0270
+  doc.setFillColor(31, 2, 112); // #2656A2
   doc.rect(0, 0, pageWidth, 45, "F");
 
   // Accent Jaune N'ma SIM

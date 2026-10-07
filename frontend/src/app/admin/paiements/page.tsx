@@ -96,7 +96,7 @@ function Modal({ isOpen, onClose, title, customUI, children }: any) {
       <div style={{ background: customUI ? "transparent" : "white", borderRadius: customUI ? 24 : 16, width: "100%", maxWidth: 460, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: customUI ? "none" : "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }} onClick={e => e.stopPropagation()}>
         {!customUI && (
           <div style={{ padding: "20px 24px", borderBottom: "1px solid #E5E7EB", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#F9FAFB" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 18 }}>{title}</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: 0, fontSize: 18 }}>{title}</h3>
             <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B7280", display: "flex", padding: 0 }}><X size={20} /></button>
           </div>
         )}
@@ -174,7 +174,7 @@ export default function Paiements() {
   if (loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "50vh", flexDirection: "column", gap: 16 }}>
-        <Loader2 size={32} style={{ color: "#1F0270", animation: "spin 1s linear infinite" }} />
+        <Loader2 size={32} style={{ color: "#2656A2", animation: "spin 1s linear infinite" }} />
         <span style={{ color: "#6B7280", fontWeight: 600 }}>Chargement des paiements...</span>
       </div>
     );
@@ -194,7 +194,7 @@ export default function Paiements() {
       {/* Header */}
       <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Paiements</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>Paiements</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Suivi des transactions</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
@@ -205,7 +205,7 @@ export default function Paiements() {
           <button onClick={fetchPaiements} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <RefreshCcw size={16} /> Actualiser
           </button>
-          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#2656A2", fontWeight: 600 }}>
             <Download size={16} /> Export PDF
           </button>
           <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
@@ -236,7 +236,7 @@ export default function Paiements() {
             {kpis.map(k => (
               <div key={k.label} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 140, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
                 <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 8, fontWeight: 500 }}>{k.label}</div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+                <div style={{ fontSize: 28, fontWeight: 800, color: "#2656A2" }}>{k.value}</div>
               </div>
             ))}
           </div>
@@ -307,7 +307,7 @@ export default function Paiements() {
         {/* Répartition - masquée à l'impression */}
         <div className="print:hidden" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px" }}>Répartition des modes</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 16px" }}>Répartition des modes</h3>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <svg width={120} height={120} viewBox="0 0 120 120">
                 {repartition.length === 0 ? (
@@ -331,7 +331,7 @@ export default function Paiements() {
                     );
                   });
                 })()}
-                <text x="60" y="57" textAnchor="middle" fontSize="14" fontWeight="800" fill="#1F0270">{paiements.length}</text>
+                <text x="60" y="57" textAnchor="middle" fontSize="14" fontWeight="800" fill="#2656A2">{paiements.length}</text>
                 <text x="60" y="70" textAnchor="middle" fontSize="9" fill="#6B7280">Total</text>
               </svg>
             </div>
@@ -355,7 +355,7 @@ export default function Paiements() {
         {selectedPaiement && (
           <div style={{ background: "#F8F9FC", width: "100%", overflow: "hidden", position: "relative" }}>
             {/* Header Section */}
-            <div style={{ background: "#1F0270", padding: "24px 24px 48px", position: "relative", overflow: "hidden" }}>
+            <div style={{ background: "#2656A2", padding: "24px 24px 48px", position: "relative", overflow: "hidden" }}>
               {/* Decorative circles */}
               <div style={{ position: "absolute", top: -30, right: -30, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,184,0,0.10)" }} />
               <div style={{ position: "absolute", top: 20, right: 20, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,184,0,0.07)" }} />
@@ -382,7 +382,7 @@ export default function Paiements() {
               <div style={{ background: "white", borderRadius: 16, padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Montant Payé</div>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: "#1F0270" }}>{selectedPaiement.montant?.toLocaleString("fr-FR")} <span style={{ fontSize: 14, color: "#6B7280" }}>GNF</span></div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: "#2656A2" }}>{selectedPaiement.montant?.toLocaleString("fr-FR")} <span style={{ fontSize: 14, color: "#6B7280" }}>GNF</span></div>
                 </div>
                 <StatutBadge statut={selectedPaiement.statut === "CONFIRME" ? "Confirmé" : selectedPaiement.statut === "ECHOUE" ? "Échoué" : selectedPaiement.statut === "REMBOURSE" ? "Remboursé" : "En attente"} />
               </div>
@@ -429,7 +429,7 @@ export default function Paiements() {
                     {selectedPaiement.demande?.client?.nom?.charAt(0) || "?"}
                   </div>
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#1F0270" }}>{selectedPaiement.demande?.client?.nom || "Inconnu"} {selectedPaiement.demande?.client?.prenom || ""}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#2656A2" }}>{selectedPaiement.demande?.client?.nom || "Inconnu"} {selectedPaiement.demande?.client?.prenom || ""}</div>
                     <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>+224 {selectedPaiement.demande?.client?.telephone || selectedPaiement.demande?.numeroAReactiver || "—"}</div>
                   </div>
                 </div>
@@ -444,11 +444,11 @@ export default function Paiements() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Ticket (Dossier)</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{selectedPaiement.demande?.numeroDossier || "—"}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>{selectedPaiement.demande?.numeroDossier || "—"}</div>
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Service</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>
                       {selectedPaiement.demande?.type === "RECHARGE" ? "Recharge de crédit" : 
                        selectedPaiement.demande?.type === "REACTIVATION" ? "Réactivation puce" : 
                        selectedPaiement.demande?.offre?.nom || "—"}
@@ -460,12 +460,12 @@ export default function Paiements() {
                   </div>
                   <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>Date & Heure</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>{new Date(selectedPaiement.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>{new Date(selectedPaiement.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
                   </div>
                 </div>
                 <div style={{ background: "white", borderRadius: 12, padding: 16, border: "1px solid #EAECF5" }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 4 }}>ID Transaction Externe (Opérateur)</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270", fontFamily: "monospace" }}>{selectedPaiement.referenceExterne || selectedPaiement.id}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2", fontFamily: "monospace" }}>{selectedPaiement.referenceExterne || selectedPaiement.id}</div>
                 </div>
               </div>
 
@@ -482,17 +482,17 @@ export default function Paiements() {
                        selectedPaiement.demande?.type === "REACTIVATION" ? "Frais de réactivation" : 
                        selectedPaiement.demande?.offre?.nom || "Service (SIM/Internet)"}
                     </span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>
                       {selectedPaiement.montant?.toLocaleString("fr-FR")} GNF
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
                     <span style={{ fontSize: 13, color: "#374151" }}>Frais de transaction</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>0 GNF</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>0 GNF</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px dashed #E5E7EB", paddingTop: 16 }}>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: "#1F0270" }}>Total</span>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: "#1F0270" }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: "#2656A2" }}>Total</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: "#2656A2" }}>
                       {selectedPaiement.montant?.toLocaleString("fr-FR")} GNF
                     </span>
                   </div>

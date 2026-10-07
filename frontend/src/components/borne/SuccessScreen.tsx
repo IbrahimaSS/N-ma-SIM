@@ -71,7 +71,7 @@ export function SuccessScreen({ type = "nouvelle-sim", ticketRef = "NMA-2026-000
             {/* Icône SIM Card SVG custom */}
             <div style={{
               width: 120, height: 120, marginBottom: 32,
-              background: "linear-gradient(135deg, #FFBA08, #FFD55A)",
+              background: "linear-gradient(135deg, #F5BB02, #FFD55A)",
               borderRadius: 28, display: "flex", alignItems: "center",
               justifyContent: "center",
               boxShadow: "0 0 0 16px rgba(255,186,8,0.12), 0 0 0 32px rgba(255,186,8,0.06)",
@@ -80,17 +80,17 @@ export function SuccessScreen({ type = "nouvelle-sim", ticketRef = "NMA-2026-000
               {/* SVG Carte SIM */}
               <svg width="68" height="68" viewBox="0 0 68 68" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Corps de la carte SIM */}
-                <rect x="12" y="4" width="44" height="60" rx="6" fill="#1F0270" />
+                <rect x="12" y="4" width="44" height="60" rx="6" fill="#2656A2" />
                 {/* Encoche SIM (coin coupé) */}
-                <polygon points="12,4 28,4 12,18" fill="#FFBA08" />
+                <polygon points="12,4 28,4 12,18" fill="#F5BB02" />
                 {/* Puce dorée */}
-                <rect x="22" y="22" width="24" height="20" rx="4" fill="#FFBA08" />
+                <rect x="22" y="22" width="24" height="20" rx="4" fill="#F5BB02" />
                 {/* Lignes de la puce */}
-                <line x1="22" y1="29" x2="46" y2="29" stroke="#1F0270" strokeWidth="1.5" />
-                <line x1="22" y1="34" x2="46" y2="34" stroke="#1F0270" strokeWidth="1.5" />
-                <line x1="28" y1="22" x2="28" y2="42" stroke="#1F0270" strokeWidth="1.5" />
-                <line x1="34" y1="22" x2="34" y2="42" stroke="#1F0270" strokeWidth="1.5" />
-                <line x1="40" y1="22" x2="40" y2="42" stroke="#1F0270" strokeWidth="1.5" />
+                <line x1="22" y1="29" x2="46" y2="29" stroke="#2656A2" strokeWidth="1.5" />
+                <line x1="22" y1="34" x2="46" y2="34" stroke="#2656A2" strokeWidth="1.5" />
+                <line x1="28" y1="22" x2="28" y2="42" stroke="#2656A2" strokeWidth="1.5" />
+                <line x1="34" y1="22" x2="34" y2="42" stroke="#2656A2" strokeWidth="1.5" />
+                <line x1="40" y1="22" x2="40" y2="42" stroke="#2656A2" strokeWidth="1.5" />
                 {/* Check mark en dessous */}
                 <circle cx="34" cy="54" r="6" fill="#22C55E" />
                 <path d="M31 54 L33 56.5 L37 51.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -100,7 +100,7 @@ export function SuccessScreen({ type = "nouvelle-sim", ticketRef = "NMA-2026-000
             {/* Titre */}
             <h1 style={{
               fontSize: "clamp(32px, 4vw, 42px)", fontWeight: 900,
-              color: "#1F0270", margin: "0 0 12px 0",
+              color: "#2656A2", margin: "0 0 12px 0",
               letterSpacing: "-1px",
             }}>
               {lang === "en" ? "Congratulations!" : "Félicitations !"}
@@ -135,7 +135,7 @@ export function SuccessScreen({ type = "nouvelle-sim", ticketRef = "NMA-2026-000
               <p style={{ fontSize: 12, color: "#9CA3AF", margin: "0 0 4px 0", textTransform: "uppercase", letterSpacing: 2, fontWeight: 600 }}>
                 {lang === "en" ? "Reference" : "Référence"}
               </p>
-              <p style={{ fontSize: 24, fontWeight: 900, color: "#1F0270", margin: 0, letterSpacing: 3 }}>
+              <p style={{ fontSize: 24, fontWeight: 900, color: "#2656A2", margin: 0, letterSpacing: 3 }}>
                 {ticketRef}
               </p>
             </div>
@@ -156,7 +156,7 @@ export function SuccessScreen({ type = "nouvelle-sim", ticketRef = "NMA-2026-000
 
             <h1 style={{
               fontSize: "clamp(28px, 3.6vw, 36px)", fontWeight: 900,
-              color: "#1F0270", margin: "0 0 12px 0", letterSpacing: "-1px",
+              color: "#2656A2", margin: "0 0 12px 0", letterSpacing: "-1px",
               animation: "fadeSlideUp 0.6s ease-out 0.25s both",
             }}>
               {lang === "en" ? "Get the Max-it app" : "Téléchargez l'appli Max-it"}
@@ -195,7 +195,7 @@ export function SuccessScreen({ type = "nouvelle-sim", ticketRef = "NMA-2026-000
           marginBottom: 12,
         }}>
           <div style={{
-            height: "100%", background: "#1F0270", borderRadius: 6,
+            height: "100%", background: "#2656A2", borderRadius: 6,
             width: `${(countdown / duration) * 100}%`,
             transition: "width 1s linear",
           }} />

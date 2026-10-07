@@ -53,7 +53,7 @@ function Modal({ isOpen, onClose, title, children }: any) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
       <div style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 500, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }} onClick={e => e.stopPropagation()}>
-        <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1F0270", position: "relative", overflow: "hidden" }}>
+        <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#2656A2", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -15, right: -15, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,184,0,0.10)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
           <h3 style={{ fontWeight: 700, color: "#FFB800", margin: 0, fontSize: 18, position: "relative", zIndex: 1 }}>{title}</h3>
@@ -235,7 +235,7 @@ export default function BornesKiosk() {
   if (loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "50vh", flexDirection: "column", gap: 16 }}>
-        <Loader2 size={32} style={{ color: "#1F0270", animation: "spin 1s linear infinite" }} />
+        <Loader2 size={32} style={{ color: "#2656A2", animation: "spin 1s linear infinite" }} />
         <span style={{ color: "#6B7280", fontWeight: 600 }}>Chargement des bornes...</span>
       </div>
     );
@@ -245,7 +245,7 @@ export default function BornesKiosk() {
     <div>
       <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Bornes Kiosk</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>Bornes Kiosk</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Gestion du parc matériel et configuration</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
@@ -256,10 +256,10 @@ export default function BornesKiosk() {
           <button onClick={fetchBornes} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <RefreshCcw size={16} /> Actualiser
           </button>
-          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#2656A2", fontWeight: 600 }}>
             <Download size={16} /> Export PDF
           </button>
-          <button onClick={() => setIsAddBorneOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
+          <button onClick={() => setIsAddBorneOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#2656A2", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
             <Plus size={16} /> Ajouter une borne
           </button>
         </div>
@@ -286,7 +286,7 @@ export default function BornesKiosk() {
               </div>
               <div style={{ fontSize: 12, color: "#6B7280", fontWeight: 500 }}>{k.label}</div>
             </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: "#2656A2" }}>{k.value}</div>
             <div style={{ fontSize: 11, color: "#9CA3AF" }}>{k.sub}</div>
           </div>
         ))}
@@ -370,7 +370,7 @@ export default function BornesKiosk() {
         
         <div style={{ background: "white", padding: 16, borderRadius: 12, border: "1px solid #EAECF5", boxShadow: "0 2px 10px rgba(31,2,112,0.05)", display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Nom de la borne</label>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Nom de la borne</label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <MonitorSmartphone size={18} color="#9CA3AF" style={{ position: "absolute", left: 12 }} />
               <input type="text" value={newBorneNom} onChange={e=>setNewBorneNom(e.target.value)} placeholder="Ex: Borne Agence Madina" style={{ width: "100%", padding: "12px 12px 12px 38px", borderRadius: 10, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", transition: "all 0.2s" }} onFocus={(e) => { e.target.style.background = "white"; e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)"; }} onBlur={(e) => { e.target.style.background = "#F9FAFB"; e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }} />
@@ -378,7 +378,7 @@ export default function BornesKiosk() {
           </div>
           
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Emplacement (Adresse / Lieu)</label>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Emplacement (Adresse / Lieu)</label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <MapPin size={18} color="#9CA3AF" style={{ position: "absolute", left: 12 }} />
               <input type="text" value={newBorneEmplacement} onChange={e=>setNewBorneEmplacement(e.target.value)} placeholder="Ex: Marché Madina, Conakry" style={{ width: "100%", padding: "12px 12px 12px 38px", borderRadius: 10, border: "1px solid #E5E7EB", outline: "none", fontSize: 14, background: "#F9FAFB", transition: "all 0.2s" }} onFocus={(e) => { e.target.style.background = "white"; e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)"; }} onBlur={(e) => { e.target.style.background = "#F9FAFB"; e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }} />
@@ -406,7 +406,7 @@ export default function BornesKiosk() {
         <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
           <button onClick={closeAll} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer", fontSize: 14, transition: "all 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = "#F9FAFB"} onMouseOut={(e) => e.currentTarget.style.background = "white"}>{createdKey ? "Fermer" : "Annuler"}</button>
           {!createdKey && (
-            <button onClick={handleAddBorne} disabled={saving} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 14, opacity: saving ? 0.7 : 1 }}>
+            <button onClick={handleAddBorne} disabled={saving} style={{ flex: 1, padding: "14px", borderRadius: 10, background: "#2656A2", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 14, opacity: saving ? 0.7 : 1 }}>
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />} Créer la borne
             </button>
           )}
@@ -432,7 +432,7 @@ export default function BornesKiosk() {
                {/* Icône personnalisée de la borne (Jaune et Bleu) */}
                <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -100%)", zIndex: 20, display: "flex", flexDirection: "column", alignItems: "center" }}>
                  <div style={{ background: "#FFB800", padding: "10px", borderRadius: "50%", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", border: "3px solid white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                   <MonitorSmartphone size={24} color="#1F0270" />
+                   <MonitorSmartphone size={24} color="#2656A2" />
                  </div>
                  <div style={{ width: 0, height: 0, borderLeft: "8px solid transparent", borderRight: "8px solid transparent", borderTop: "10px solid white", marginTop: "-2px" }}></div>
                </div>
@@ -459,7 +459,7 @@ export default function BornesKiosk() {
                 <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Mode économie d'énergie</div>
                 <div style={{ fontSize: 12, color: "#6B7280" }}>Éteindre l'écran après 5 min d'inactivité</div>
               </div>
-              <div style={{ width: 44, height: 24, background: "#1F0270", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+              <div style={{ width: 44, height: 24, background: "#2656A2", borderRadius: 12, position: "relative", cursor: "pointer" }}>
                 <div style={{ width: 20, height: 20, background: "white", borderRadius: "50%", position: "absolute", top: 2, right: 2 }} />
               </div>
             </div>
@@ -468,7 +468,7 @@ export default function BornesKiosk() {
                 <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Mises à jour auto</div>
                 <div style={{ fontSize: 12, color: "#6B7280" }}>Télécharger le logiciel automatiquement</div>
               </div>
-              <div style={{ width: 44, height: 24, background: "#1F0270", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+              <div style={{ width: 44, height: 24, background: "#2656A2", borderRadius: 12, position: "relative", cursor: "pointer" }}>
                 <div style={{ width: 20, height: 20, background: "white", borderRadius: "50%", position: "absolute", top: 2, right: 2 }} />
               </div>
             </div>
@@ -483,7 +483,7 @@ export default function BornesKiosk() {
             </div>
             <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
               <button onClick={closeAll} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>Annuler</button>
-              <button onClick={handleSaveConfig} disabled={saving} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <button onClick={handleSaveConfig} disabled={saving} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#2656A2", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 {saving ? <Loader2 size={16} className="animate-spin" /> : "Enregistrer"}
               </button>
             </div>
@@ -505,7 +505,7 @@ export default function BornesKiosk() {
             <option value="Mamadou Sylla">Mamadou Sylla</option>
           </select>
         </div>
-        <button onClick={handleAssignTechnicien} disabled={saving} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer" }}>
+        <button onClick={handleAssignTechnicien} disabled={saving} style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 8, background: "#2656A2", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer" }}>
           {saving ? <Loader2 size={16} className="animate-spin" /> : "Affecter"}
         </button>
       </Modal>

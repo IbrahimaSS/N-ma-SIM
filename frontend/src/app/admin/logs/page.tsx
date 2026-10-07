@@ -171,7 +171,7 @@ export default function LogsHistorique() {
     <div>
       <div className="logs-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Logs & Historique</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>Logs & Historique</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Traçabilité et audit système</p>
         </div>
         <div className="logs-filters" style={{ display: "flex", gap: 12 }}>
@@ -228,7 +228,7 @@ export default function LogsHistorique() {
             )}
           </div>
         </div>
-        <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600, flexShrink: 0 }}>
+        <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#2656A2", fontWeight: 600, flexShrink: 0 }}>
           <Download size={16} /> Export PDF
         </button>
       </div>
@@ -247,9 +247,9 @@ export default function LogsHistorique() {
               <div style={{ background: k.bg, borderRadius: 10, padding: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <k.icon size={18} style={{ color: k.iconColor }} />
               </div>
-              <div style={{ fontSize: 12, color: "#1F0270", fontWeight: 700 }}>{k.label}</div>
+              <div style={{ fontSize: 12, color: "#2656A2", fontWeight: 700 }}>{k.label}</div>
             </div>
-            <div className="logs-kpi-value" style={{ fontSize: 26, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+            <div className="logs-kpi-value" style={{ fontSize: 26, fontWeight: 800, color: "#2656A2" }}>{k.value}</div>
           </div>
         ))}
       </div>
@@ -305,7 +305,7 @@ export default function LogsHistorique() {
                 <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 13, cursor: page===1?"default":"pointer", padding: "0 8px", opacity: page===1?0.4:1 }}>‹</button>
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   const p = totalPages <= 5 ? i+1 : page <= 3 ? i+1 : page >= totalPages-2 ? totalPages-4+i : page-2+i;
-                  return <button key={p} onClick={() => setPage(p)} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: p===page?"#1F0270":"white", color: p===page?"white":"#374151", fontSize: 13, cursor: "pointer", padding: "0 8px" }}>{p}</button>;
+                  return <button key={p} onClick={() => setPage(p)} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: p===page?"#2656A2":"white", color: p===page?"white":"#374151", fontSize: 13, cursor: "pointer", padding: "0 8px" }}>{p}</button>;
                 })}
                 <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page===totalPages} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: "white", color: "#374151", fontSize: 13, cursor: page===totalPages?"default":"pointer", padding: "0 8px", opacity: page===totalPages?0.4:1 }}>›</button>
               </div>
@@ -314,7 +314,7 @@ export default function LogsHistorique() {
         ) : (
           <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", overflow: "hidden", height: "fit-content", padding: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1F0270", margin: 0 }}>Tentatives de connexion</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: "#2656A2", margin: 0 }}>Tentatives de connexion</h2>
               <button onClick={() => setViewMode("logs")} style={{ fontSize: 13, color: "#4F46E5", background: "none", border: "1px solid #E5E7EB", padding: "6px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>
                 ← Retour aux logs
               </button>
@@ -355,7 +355,7 @@ export default function LogsHistorique() {
 
         {/* Activité de sécurité (Déplacé au-dessous du tableau, SANS légende, taille augmentée) */}
         <div className="print:hidden" style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 15, width: "100%", textAlign: "left", marginBottom: 16 }}>Activité de sécurité</h3>
+          <h3 style={{ fontWeight: 700, color: "#2656A2", margin: 0, fontSize: 15, width: "100%", textAlign: "left", marginBottom: 16 }}>Activité de sécurité</h3>
           
           {/* Donut Chart dynamique */}
           <div style={{ position: "relative", width: 200, height: 200, margin: "20px 0" }}>
@@ -377,7 +377,7 @@ export default function LogsHistorique() {
               ))}
             </svg>
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-              <div style={{ fontSize: 32, fontWeight: 800, color: "#1F0270", lineHeight: 1.2 }}>
+              <div style={{ fontSize: 32, fontWeight: 800, color: "#2656A2", lineHeight: 1.2 }}>
                 {hoveredSegment ? hoveredSegment.val : logs.length.toString()}
               </div>
               <div style={{ fontSize: 14, color: "#6B7280", fontWeight: 500 }}>
@@ -391,7 +391,7 @@ export default function LogsHistorique() {
       <div className="print:hidden" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 15 }}>Dernières alertes</h3>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: 0, fontSize: 15 }}>Dernières alertes</h3>
               <button onClick={() => setViewMode("tentatives")} style={{ fontSize: 12, color: "#4F46E5", background: "none", border: "none", cursor: "pointer" }}>Voir tout</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

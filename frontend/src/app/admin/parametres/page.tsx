@@ -161,7 +161,7 @@ export default function Parametres() {
       const pageWidth = doc.internal.pageSize.getWidth();
       
       // En-tête
-      doc.setFillColor(31, 2, 112); // #1F0270
+      doc.setFillColor(31, 2, 112); // #2656A2
       doc.rect(0, 0, pageWidth, 40, "F");
       
       doc.setTextColor(255, 255, 255);
@@ -327,14 +327,14 @@ export default function Parametres() {
   };
 
   const ToggleSwitch = ({ active, onClick, disabled = false }: { active: boolean, onClick: () => void, disabled?: boolean }) => (
-    <div onClick={disabled ? undefined : onClick} style={{ width: 44, height: 24, background: active ? "#1F0270" : "#E5E7EB", borderRadius: 12, position: "relative", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.6 : 1, transition: "background 0.2s" }}>
+    <div onClick={disabled ? undefined : onClick} style={{ width: 44, height: 24, background: active ? "#2656A2" : "#E5E7EB", borderRadius: 12, position: "relative", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.6 : 1, transition: "background 0.2s" }}>
       <div style={{ width: 20, height: 20, background: "white", borderRadius: "50%", position: "absolute", top: 2, left: active ? 22 : 2, transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
     </div>
   );
 
   const SaveButton = ({ text = "Enregistrer les modifications" }: { text?: string }) => (
     <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-      <button onClick={handleSave} disabled={isSaving || loading} style={{ background: "#1F0270", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: (isSaving || loading) ? "not-allowed" : "pointer", opacity: (isSaving || loading) ? 0.7 : 1 }}>
+      <button onClick={handleSave} disabled={isSaving || loading} style={{ background: "#2656A2", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: (isSaving || loading) ? "not-allowed" : "pointer", opacity: (isSaving || loading) ? 0.7 : 1 }}>
         {isSaving ? "Enregistrement..." : text}
       </button>
     </div>
@@ -388,7 +388,7 @@ export default function Parametres() {
       )}
 
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Paramètres</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>Paramètres</h1>
         <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Configuration de la plateforme</p>
       </div>
 
@@ -396,8 +396,8 @@ export default function Parametres() {
         {tabs.map((tab, i) => (
           <button key={i} onClick={() => setActiveTab(tab.label)} style={{ 
             display: "flex", alignItems: "center", gap: 8, padding: "0 4px 16px",
-            background: "none", border: "none", borderBottom: activeTab === tab.label ? "2px solid #1F0270" : "2px solid transparent",
-            color: activeTab === tab.label ? "#1F0270" : "#6B7280", fontWeight: activeTab === tab.label ? 600 : 500,
+            background: "none", border: "none", borderBottom: activeTab === tab.label ? "2px solid #2656A2" : "2px solid transparent",
+            color: activeTab === tab.label ? "#2656A2" : "#6B7280", fontWeight: activeTab === tab.label ? 600 : 500,
             fontSize: 14, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s"
           }}>
             <tab.icon size={16} /> {tab.label}
@@ -410,7 +410,7 @@ export default function Parametres() {
         {activeTab === "Informations générales" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", gap: 24, alignItems: "start" }}>
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Informations de l'organisation</h3>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Informations de l'organisation</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {[
                   { label: "Nom de l'organisation", val: "N'ma SIM" },
@@ -434,7 +434,7 @@ export default function Parametres() {
                         <img src={settings["Logo de l'organisation"]} alt="Logo" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
                       </div>
                     ) : (
-                      <div style={{ width: 44, height: 44, borderRadius: 8, background: "#1F0270", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 12 }}>N'ma</div>
+                      <div style={{ width: 44, height: 44, borderRadius: 8, background: "#2656A2", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 12 }}>N'ma</div>
                     )}
                     <label style={{ background: "#EEF2FF", color: "#4F46E5", border: "none", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-block" }}>
                       Modifier le logo
@@ -447,7 +447,7 @@ export default function Parametres() {
             </div>
 
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Paramètres régionaux</h3>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Paramètres régionaux</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {[
                   { label: "Fuseau horaire", val: "(GMT) Afrique/Conakry" },
@@ -472,7 +472,7 @@ export default function Parametres() {
         {activeTab === "Sécurité" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", gap: 24, alignItems: "start" }}>
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Règles d'authentification</h3>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Règles d'authentification</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {[
                   { label: "Expiration de session (minutes)", val: "60" },
@@ -496,7 +496,7 @@ export default function Parametres() {
             </div>
 
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>État de la sécurité</h3>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>État de la sécurité</h3>
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
                 <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Shield size={24} color="#166534" />
@@ -516,7 +516,7 @@ export default function Parametres() {
 
         {activeTab === "Notifications" && (
           <div style={{ maxWidth: 800, background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Préférences de notification</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Préférences de notification</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[
                 { title: "Nouvelles demandes SIM", desc: "Être alerté lors d'une nouvelle souscription depuis une borne" },
@@ -539,7 +539,7 @@ export default function Parametres() {
 
         {activeTab === "Paiements" && (
           <div style={{ maxWidth: 800, background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Configuration des paiements</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Configuration des paiements</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
@@ -582,7 +582,7 @@ export default function Parametres() {
 
         {activeTab === "API & Intégrations" && (
           <div style={{ maxWidth: 800, background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>API Orange (Simulée)</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>API Orange (Simulée)</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 16, borderBottom: "1px solid #F3F4F6" }}>
                 <span style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>Statut de connexion API</span>
@@ -617,7 +617,7 @@ export default function Parametres() {
               </div>
               
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                <button onClick={handleSave} disabled={isSaving} style={{ background: "#1F0270", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: isSaving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, opacity: isSaving ? 0.7 : 1 }}>
+                <button onClick={handleSave} disabled={isSaving} style={{ background: "#2656A2", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: isSaving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, opacity: isSaving ? 0.7 : 1 }}>
                   <Check size={16} /> {isSaving ? "Test en cours..." : "Tester et enregistrer"}
                 </button>
               </div>
@@ -628,7 +628,7 @@ export default function Parametres() {
         {activeTab === "Modèles & Langues" && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Modèles de reçu</h3>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Modèles de reçu</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Modèle par défaut</label>
@@ -646,7 +646,7 @@ export default function Parametres() {
             </div>
 
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Langues du système</h3>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Langues du système</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>Langue principale</label>
@@ -694,7 +694,7 @@ export default function Parametres() {
 
         {activeTab === "Système & Maintenance" && (
           <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>À propos du système</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>À propos du système</h3>
             
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -742,7 +742,7 @@ export default function Parametres() {
 
             <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <h4 style={{ margin: 0, fontSize: 15, color: "#1F0270", fontWeight: 700 }}>Sauvegardes du Système (Backups)</h4>
+                <h4 style={{ margin: 0, fontSize: 15, color: "#2656A2", fontWeight: 700 }}>Sauvegardes du Système (Backups)</h4>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>Sauvegarde auto. (Quotidienne)</span>
                   <ToggleSwitch active={settings["Auto Backup"]} onClick={() => handleToggle("Auto Backup")} />
@@ -753,7 +753,7 @@ export default function Parametres() {
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginBottom: 4 }}>Rapport d'Audit (PDF)</div>
                   <div style={{ fontSize: 12, color: "#6B7280" }}>Rapport synthétique et lisible de l'état du système.</div>
                 </div>
-                <button onClick={handlePdfReport} disabled={isGeneratingPdf} style={{ background: "white", color: "#1F0270", border: "1px solid #E5E7EB", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: isGeneratingPdf ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s" }}>
+                <button onClick={handlePdfReport} disabled={isGeneratingPdf} style={{ background: "white", color: "#2656A2", border: "1px solid #E5E7EB", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: isGeneratingPdf ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s" }}>
                   <FileBarChart size={16} /> {isGeneratingPdf ? "Génération..." : "Télécharger PDF"}
                 </button>
               </div>

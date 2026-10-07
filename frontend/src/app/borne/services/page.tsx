@@ -20,7 +20,7 @@ export default function Services() {
       id: "nouvelle-sim",
       title: lang === "en" ? "New SIM" : "Nouvelle SIM",
       description: lang === "en" ? "Get a new SIM card in minutes." : "Obtenez une nouvelle carte SIM en quelques minutes.",
-      icon: <Microchip size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
+      icon: <Microchip size={52} strokeWidth={1.5} style={{ color: "#2656A2", marginBottom: 20 }} />,
       action: () => router.push("/borne/nouvelle-sim/format"),
       disabled: false,
     },
@@ -28,7 +28,7 @@ export default function Services() {
       id: "reactivation",
       title: lang === "en" ? "Reactivation" : "Réactivation",
       description: lang === "en" ? "Reactivate a disabled chip safely." : "Réactivez une puce désactivée en toute sécurité.",
-      icon: <RefreshCcw size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
+      icon: <RefreshCcw size={52} strokeWidth={1.5} style={{ color: "#2656A2", marginBottom: 20 }} />,
       action: () => router.push("/borne/reactivation/identification"),
       disabled: false,
     },
@@ -36,7 +36,7 @@ export default function Services() {
       id: "recharge",
       title: lang === "en" ? "Recharge" : "Recharge",
       description: lang === "en" ? "Top up your number quickly." : "Rechargez votre numéro rapidement.",
-      icon: <BatteryCharging size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
+      icon: <BatteryCharging size={52} strokeWidth={1.5} style={{ color: "#2656A2", marginBottom: 20 }} />,
       action: () => router.push("/borne/recharge/numero"),
       disabled: false,
     },
@@ -44,7 +44,7 @@ export default function Services() {
       id: "verification",
       title: lang === "en" ? "Verification" : "Vérification",
       description: lang === "en" ? "Check the information linked to your ID." : "Vérifiez les informations associées à votre pièce d'identité.",
-      icon: <ShieldCheck size={52} strokeWidth={1.5} style={{ color: "#1F0270", marginBottom: 20 }} />,
+      icon: <ShieldCheck size={52} strokeWidth={1.5} style={{ color: "#2656A2", marginBottom: 20 }} />,
       action: () => router.push("/borne/verification/scan-piece"),
       disabled: false,
     },
@@ -62,7 +62,7 @@ export default function Services() {
       <div style={{ textAlign: "center", marginBottom: "clamp(14px, 2vh, 28px)" }}>
         <h1 style={{
           fontSize: "clamp(24px, 3vw, 36px)",
-          fontWeight: 900, color: "#1F0270", margin: "0 0 10px 0"
+          fontWeight: 900, color: "#2656A2", margin: "0 0 10px 0"
         }}>
           {lang === "en" ? "Choose a service" : "Choisissez un service"}
         </h1>
@@ -99,7 +99,7 @@ export default function Services() {
             }}
             onMouseEnter={(e) => {
               if (!service.disabled) {
-                (e.currentTarget as HTMLDivElement).style.border = "1.5px solid #FFBA08";
+                (e.currentTarget as HTMLDivElement).style.border = "1.5px solid #F5BB02";
                 (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
               }
             }}
@@ -115,7 +115,7 @@ export default function Services() {
 
             <h3 style={{
               fontSize: "clamp(14px, 1.6vw, 18px)", fontWeight: 800,
-              color: service.disabled ? "#C0C0D8" : "#1F0270",
+              color: service.disabled ? "#C0C0D8" : "#2656A2",
               margin: "0 0 8px 0",
             }}>
               {service.title}
@@ -139,11 +139,11 @@ export default function Services() {
             ) : (
               <div style={{
                 width: "clamp(36px, 4vw, 48px)", height: "clamp(36px, 4vw, 48px)",
-                borderRadius: "50%", background: "#FFBA08",
+                borderRadius: "50%", background: "#F5BB02",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: "0 4px 12px rgba(255,186,8,0.35)",
               }}>
-                <ArrowRight size={20} color="#1F0270" strokeWidth={2.5} />
+                <ArrowRight size={20} color="#2656A2" strokeWidth={2.5} />
               </div>
             )}
           </div>
@@ -156,17 +156,17 @@ export default function Services() {
           display: "flex", alignItems: "center", gap: 8,
           background: "white", padding: "10px 22px",
           borderRadius: 999, boxShadow: "0 2px 10px rgba(31,2,112,0.08)",
-          fontSize: 14, fontWeight: 700, color: "#1F0270",
+          fontSize: 14, fontWeight: 700, color: "#2656A2",
         }}>
-          <Globe size={15} color="#1F0270" /> {lang === "en" ? "English" : "Français"}
+          <Globe size={15} color="#2656A2" /> {lang === "en" ? "English" : "Français"}
         </div>
         <div style={{
           display: "flex", alignItems: "center", gap: 8,
           background: "white", padding: "10px 22px",
           borderRadius: 999, boxShadow: "0 2px 10px rgba(31,2,112,0.08)",
-          fontSize: 14, fontWeight: 700, color: "#1F0270",
+          fontSize: 14, fontWeight: 700, color: "#2656A2",
         }}>
-          {profile === "etranger" ? <Briefcase size={15} color="#1F0270" /> : <UserIcon size={15} color="#1F0270" />}
+          {profile === "etranger" ? <Briefcase size={15} color="#2656A2" /> : <UserIcon size={15} color="#2656A2" />}
           {profile === "etranger" ? (lang === "en" ? "Foreigner" : "Étranger") : (lang === "en" ? "Resident" : "Résident")}
         </div>
       </div>

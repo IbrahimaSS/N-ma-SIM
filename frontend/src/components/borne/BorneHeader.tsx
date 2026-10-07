@@ -46,9 +46,9 @@ export const BorneHeader = () => {
         }}
       >
         <img
-          src="/logo-transparent.png"
+          src="/logo-final.png"
           alt="N'ma SIM"
-          style={{ width: "100%", transform: "scale(1.3)", display: "block" }}
+          style={{ width: "88%", display: "block" }}
         />
       </div>
 

@@ -36,7 +36,7 @@ export default function EsimCompatibilite() {
       title: lang === "en" ? "Open Settings" : "Paramètres",
       desc: lang === "en" ? "Go to Settings on your phone" : "Ouvrez Paramètres sur votre téléphone",
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="#1F0270" strokeWidth="1.8"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="#1F0270" strokeWidth="1.8"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="#2656A2" strokeWidth="1.8"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="#2656A2" strokeWidth="1.8"/></svg>
       ),
     },
     {
@@ -44,7 +44,7 @@ export default function EsimCompatibilite() {
       title: lang === "en" ? "Mobile Network" : "Réseau mobile",
       desc: lang === "en" ? "Tap Mobile Network or SIM card" : "Appuyez sur Réseau mobile ou Carte SIM",
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="#1F0270" strokeWidth="1.8"/><circle cx="12" cy="17" r="1" fill="#1F0270"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="#2656A2" strokeWidth="1.8"/><circle cx="12" cy="17" r="1" fill="#2656A2"/></svg>
       ),
     },
     {
@@ -52,7 +52,7 @@ export default function EsimCompatibilite() {
       title: lang === "en" ? "Add eSIM" : "Ajouter une eSIM",
       desc: lang === "en" ? 'Look for "Add eSIM" or "Digital SIM"' : 'Cherchez "Ajouter une eSIM" ou "SIM numérique"',
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#1F0270" strokeWidth="1.8"/><path d="M12 8v8M8 12h8" stroke="#1F0270" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2656A2" strokeWidth="1.8"/><path d="M12 8v8M8 12h8" stroke="#2656A2" strokeWidth="1.8" strokeLinecap="round"/></svg>
       ),
     },
     {
@@ -116,19 +116,19 @@ export default function EsimCompatibilite() {
             justifyContent: "center",
             width: 64, height: 64,
             borderRadius: 18,
-            background: "linear-gradient(135deg, #1F0270 0%, #3B12A6 100%)",
+            background: "linear-gradient(135deg, #2656A2 0%, #3B12A6 100%)",
             boxShadow: "0 8px 24px rgba(31,2,112,0.22)",
             marginBottom: 18,
           }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12.5C5 9.46 7.24 6.96 10.16 6.55" stroke="#FFBA08" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M19 12.5C19 9.46 16.76 6.96 13.84 6.55" stroke="#FFBA08" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M2 12.5C2 7.81 5.36 3.92 9.79 3.1" stroke="#FFBA08" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.5"/>
-              <path d="M22 12.5C22 7.81 18.64 3.92 14.21 3.1" stroke="#FFBA08" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.5"/>
-              <circle cx="12" cy="12.5" r="2.5" fill="#FFBA08"/>
+              <path d="M5 12.5C5 9.46 7.24 6.96 10.16 6.55" stroke="#F5BB02" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M19 12.5C19 9.46 16.76 6.96 13.84 6.55" stroke="#F5BB02" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M2 12.5C2 7.81 5.36 3.92 9.79 3.1" stroke="#F5BB02" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.5"/>
+              <path d="M22 12.5C22 7.81 18.64 3.92 14.21 3.1" stroke="#F5BB02" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.5"/>
+              <circle cx="12" cy="12.5" r="2.5" fill="#F5BB02"/>
             </svg>
           </div>
-          <h2 style={{ fontSize: "clamp(20px, 2.8vw, 30px)", fontWeight: 900, color: "#1F0270", margin: "0 0 10px" }}>
+          <h2 style={{ fontSize: "clamp(20px, 2.8vw, 30px)", fontWeight: 900, color: "#2656A2", margin: "0 0 10px" }}>
             {lang === "en" ? "Is your phone eSIM compatible?" : "Votre téléphone est-il compatible eSIM ?"}
           </h2>
           <p style={{ fontSize: 14, color: "#9CA3AF", margin: 0, maxWidth: 460, marginInline: "auto", lineHeight: 1.6 }}>
@@ -197,7 +197,7 @@ export default function EsimCompatibilite() {
               </p>
               <button
                 onClick={() => { sessionStorage.removeItem("kiosk_flow"); router.push("/borne/nouvelle-sim/scan-piece"); }}
-                style={{ background: "#1F0270", color: "white", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                style={{ background: "#2656A2", color: "white", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
               >
                 <span>→</span>
                 {lang === "en" ? "Switch to Physical SIM" : "Basculer vers SIM Physique"}
@@ -216,10 +216,10 @@ export default function EsimCompatibilite() {
             marginBottom: 20,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#1F0270", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="#FFBA08" strokeWidth="2"/><circle cx="12" cy="17" r="1.2" fill="#FFBA08"/></svg>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#2656A2", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="#F5BB02" strokeWidth="2"/><circle cx="12" cy="17" r="1.2" fill="#F5BB02"/></svg>
               </div>
-              <p style={{ fontWeight: 900, color: "#1F0270", margin: 0, fontSize: 15 }}>
+              <p style={{ fontWeight: 900, color: "#2656A2", margin: 0, fontSize: 15 }}>
                 {lang === "en" ? "How to check in 4 steps" : "Comment vérifier en 4 étapes"}
               </p>
             </div>
@@ -227,7 +227,7 @@ export default function EsimCompatibilite() {
             {/* ── Méthode rapide : *#06# → EID ── */}
             <div style={{
               background: "white",
-              border: "1px dashed #1F0270",
+              border: "1px dashed #2656A2",
               borderRadius: 14,
               padding: "14px 16px",
               marginBottom: 16,
@@ -235,16 +235,16 @@ export default function EsimCompatibilite() {
               gap: 12,
               alignItems: "flex-start",
             }}>
-              <Zap size={20} color="#1F0270" strokeWidth={1.8} style={{ flexShrink: 0 }} />
+              <Zap size={20} color="#2656A2" strokeWidth={1.8} style={{ flexShrink: 0 }} />
               <div>
-                <p style={{ fontWeight: 800, fontSize: 13, color: "#1F0270", margin: "0 0 3px" }}>
+                <p style={{ fontWeight: 800, fontSize: 13, color: "#2656A2", margin: "0 0 3px" }}>
                   {lang === "en" ? "Quick method" : "Méthode rapide"}
                 </p>
                 <p style={{ fontSize: 12, color: "#6B7280", margin: 0, lineHeight: 1.5 }}>
                   {lang === "en" ? (
-                    <>Dial <strong style={{ color: "#1F0270" }}>*#06#</strong> on your phone. If an <strong>EID</strong> number (32 digits) appears, your phone supports eSIM.</>
+                    <>Dial <strong style={{ color: "#2656A2" }}>*#06#</strong> on your phone. If an <strong>EID</strong> number (32 digits) appears, your phone supports eSIM.</>
                   ) : (
-                    <>Composez <strong style={{ color: "#1F0270" }}>*#06#</strong> sur votre téléphone. Si un numéro <strong>EID</strong> (32 chiffres) s&apos;affiche, votre téléphone est compatible eSIM.</>
+                    <>Composez <strong style={{ color: "#2656A2" }}>*#06#</strong> sur votre téléphone. Si un numéro <strong>EID</strong> (32 chiffres) s&apos;affiche, votre téléphone est compatible eSIM.</>
                   )}
                 </p>
               </div>
@@ -272,7 +272,7 @@ export default function EsimCompatibilite() {
                     {s.icon}
                   </div>
                   <div>
-                    <p style={{ fontWeight: 800, fontSize: 13, color: "#1F0270", margin: "0 0 3px" }}>{s.title}</p>
+                    <p style={{ fontWeight: 800, fontSize: 13, color: "#2656A2", margin: "0 0 3px" }}>{s.title}</p>
                     <p style={{ fontSize: 12, color: "#6B7280", margin: 0, lineHeight: 1.4 }}>{s.desc}</p>
                   </div>
                 </div>
@@ -282,7 +282,7 @@ export default function EsimCompatibilite() {
             {/* Marques */}
             <button
               onClick={() => setShowBrands(!showBrands)}
-              style={{ background: "none", border: "none", fontSize: 13, fontWeight: 700, color: "#1F0270", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: 0, marginBottom: showBrands ? 10 : 0 }}
+              style={{ background: "none", border: "none", fontSize: 13, fontWeight: 700, color: "#2656A2", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: 0, marginBottom: showBrands ? 10 : 0 }}
             >
               <ChevronRight size={14} style={{ transition: "transform 0.2s", transform: showBrands ? "rotate(90deg)" : "rotate(0deg)" }} />
               {lang === "en" ? "See compatible phones" : "Voir les téléphones compatibles"}
@@ -300,7 +300,7 @@ export default function EsimCompatibilite() {
               onClick={() => setAnswer("oui")}
               style={{
                 marginTop: 16,
-                background: "linear-gradient(135deg, #1F0270, #3B12A6)",
+                background: "linear-gradient(135deg, #2656A2, #3B12A6)",
                 color: "white", border: "none", borderRadius: 12,
                 padding: "12px 20px",
                 fontSize: 14, fontWeight: 800, cursor: "pointer",
@@ -326,7 +326,7 @@ export default function EsimCompatibilite() {
               color: "#6B7280", fontSize: 15, fontWeight: 600, cursor: "pointer",
               transition: "all 0.18s",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#1F0270"; e.currentTarget.style.color = "#1F0270"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#2656A2"; e.currentTarget.style.color = "#2656A2"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.color = "#6B7280"; }}
           >
             <ArrowLeft size={18} />
@@ -337,7 +337,7 @@ export default function EsimCompatibilite() {
             disabled={answer !== "oui"}
             style={{
               display: "flex", alignItems: "center", gap: 8,
-              background: answer === "oui" ? "linear-gradient(135deg, #1F0270, #3B12A6)" : "#E5E7EB",
+              background: answer === "oui" ? "linear-gradient(135deg, #2656A2, #3B12A6)" : "#E5E7EB",
               border: "none", borderRadius: 12, padding: "12px 36px",
               color: answer === "oui" ? "white" : "#9CA3AF",
               fontSize: 15, fontWeight: 700,

@@ -31,11 +31,11 @@ export default function BorneLayout({ children }: { children: ReactNode }) {
         <ellipse cx="96" cy="58" rx="34" ry="42" fill="white" opacity="0.20" />
 
         {/* JAUNE — coin haut droit */}
-        <path d="M 100,0 L 60,0 A 48,48 0 0,1 100,55 Z" fill="#FFBA08" />
-        <path d="M 60,0 A 60,60 0 0,1 100,72" stroke="#FFBA08" strokeWidth="0.18" fill="none" opacity="0.9" />
+        <path d="M 100,0 L 60,0 A 48,48 0 0,1 100,55 Z" fill="#F5BB02" />
+        <path d="M 60,0 A 60,60 0 0,1 100,72" stroke="#F5BB02" strokeWidth="0.18" fill="none" opacity="0.9" />
 
         {/* BLEU — coin bas gauche */}
-        <path d="M 0,100 L 0,40 A 58,58 0 0,0 42,100 Z" fill="#1F0270" />
+        <path d="M 0,100 L 0,40 A 58,58 0 0,0 42,100 Z" fill="#2656A2" />
       </svg>
 
       {/* Motif pois — aussi fixé */}

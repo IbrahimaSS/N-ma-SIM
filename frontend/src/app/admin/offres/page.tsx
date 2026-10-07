@@ -54,7 +54,7 @@ function Modal({ isOpen, onClose, title, children }: any) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
       <div style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 500, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }} onClick={e => e.stopPropagation()}>
-        <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1F0270", position: "relative", overflow: "hidden" }}>
+        <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#2656A2", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -15, right: -15, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,184,0,0.10)" }} />
           <h3 style={{ fontWeight: 700, color: "#FFB800", margin: 0, fontSize: 18, position: "relative", zIndex: 1 }}>{title}</h3>
           <button onClick={onClose} style={{ background: "rgba(255,255,255,0.12)", border: "none", cursor: "pointer", color: "white", display: "flex", padding: 7, borderRadius: 8, position: "relative", zIndex: 1 }}><X size={18} /></button>
@@ -194,7 +194,7 @@ export default function Offres() {
   if (loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "50vh", flexDirection: "column", gap: 16 }}>
-        <Loader2 size={32} style={{ color: "#1F0270", animation: "spin 1s linear infinite" }} />
+        <Loader2 size={32} style={{ color: "#2656A2", animation: "spin 1s linear infinite" }} />
         <span style={{ color: "#6B7280", fontWeight: 600 }}>Chargement des offres...</span>
       </div>
     );
@@ -205,17 +205,17 @@ export default function Offres() {
       {/* Header */}
       <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Offres</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>Offres</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Gestion des offres SIM</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
           <button onClick={fetchOffres} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
             <RefreshCcw size={16} /> Actualiser
           </button>
-          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#2656A2", fontWeight: 600 }}>
             <Download size={16} /> Export PDF
           </button>
-          <button onClick={openAdd} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
+          <button onClick={openAdd} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#2656A2", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
             <Plus size={16} /> Ajouter une offre
           </button>
         </div>
@@ -241,7 +241,7 @@ export default function Offres() {
             </div>
             <div>
               <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 4, fontWeight: 500 }}>{k.label}</div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#2656A2" }}>{k.value}</div>
               <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>{total > 0 ? `${Math.round(k.value / total * 100)}% des offres` : "—"}</div>
             </div>
           </div>
@@ -316,7 +316,7 @@ export default function Offres() {
         {/* Paramètres tarifaires - masqué à l'impression */}
         <div className="print:hidden" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 20px", fontSize: 15 }}>Paramètres tarifaires</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Paramètres tarifaires</h3>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Devise</label>
               <select style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13, color: "#111827", background: "white", cursor: "pointer" }}>
@@ -340,7 +340,7 @@ export default function Offres() {
 
           {/* Résumé DB */}
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", fontSize: 15 }}>Récapitulatif</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 16px", fontSize: 15 }}>Récapitulatif</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
                 { label: "Total des offres", value: total },
@@ -351,7 +351,7 @@ export default function Offres() {
               ].map(r => (
                 <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#374151" }}>
                   <span>{r.label}</span>
-                  <span style={{ fontWeight: 700, color: "#1F0270" }}>{r.value}</span>
+                  <span style={{ fontWeight: 700, color: "#2656A2" }}>{r.value}</span>
                 </div>
               ))}
             </div>
@@ -391,7 +391,7 @@ export default function Offres() {
         </div>
         <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
           <button onClick={() => { setIsAddOpen(false); setEditOffre(null); }} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "white", border: "1px solid #E5E7EB", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Annuler</button>
-          <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#1F0270", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: saving ? 0.7 : 1 }}>
+          <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: "12px", borderRadius: 8, background: "#2656A2", border: "none", color: "white", fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: saving ? 0.7 : 1 }}>
             {saving ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <CheckCircle2 size={16} />}
             {editOffre ? "Enregistrer" : "Créer l'offre"}
           </button>
