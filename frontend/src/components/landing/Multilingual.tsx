@@ -3,9 +3,9 @@ import { Reveal } from "./Reveal";
 
 const LANGUES = [
   { code: "FR", label: "Français", flag: "🇫🇷" },
-  { code: "SUS", label: "Soussou" },
-  { code: "POU", label: "Poular" },
-  { code: "MAL", label: "Malinké" },
+  { code: "SUS", label: "Soussou", flag: "🇬🇳" },
+  { code: "POU", label: "Poular", flag: "🇬🇳" },
+  { code: "MAL", label: "Malinké", flag: "🇬🇳" },
   { code: "EN", label: "English", flag: "🇬🇧" },
 ];
 
@@ -34,16 +34,7 @@ export function Multilingual() {
               key={l.code}
               className="flex items-center gap-2 bg-white border border-border-light rounded-full pl-2.5 pr-4 py-2 shadow-sm"
             >
-              {l.flag ? (
-                <span className="text-xl leading-none flex-shrink-0">{l.flag}</span>
-              ) : (
-                <span
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg,#CE1126 33%,#FCD116 33% 66%,#009A44 66%)" }}
-                >
-                  {l.code}
-                </span>
-              )}
+              <span className="text-xl leading-none flex-shrink-0">{l.flag}</span>
               <span className="text-sm font-bold text-primary">{l.label}</span>
             </div>
           ))}
