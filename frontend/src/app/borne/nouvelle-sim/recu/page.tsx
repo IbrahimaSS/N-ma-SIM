@@ -10,6 +10,7 @@ import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2, AlertTria
 import { SuccessScreen } from "@/components/borne/SuccessScreen";
 import { OrangeMoneyChoice } from "@/components/borne/OrangeMoneyChoice";
 import { getKycResult } from "@/lib/kyc.storage";
+import { identiteValidee } from "@/lib/kyc.decision";
 import type { Offer } from "@/types";
 
 // Type local minimal pour l'offre sauvegardée en sessionStorage
@@ -84,8 +85,8 @@ function RecuContent() {
     getKycResult().then(async (kycResult) => {
       const champs = kycResult?.champs || {};
       // Garde-fou : même si le blocage de l'étape selfie a été contourné, on n'éjecte
-      // jamais une puce (bouton "Terminer") pour une identité REJETÉE par le KYC.
-      setKycRejete(!!kycResult?.decision?.includes("REJETÉ"));
+      // jamais une puce (bouton "Terminer") pour une identité non validée par le KYC.
+      setKycRejete(!identiteValidee(kycResult));
 
       // Récupérer les infos éditées par l'utilisateur (nom, prenom, adresse, tel, etc)
       let finalClientInfo: any = {};

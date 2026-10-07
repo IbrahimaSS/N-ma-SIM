@@ -10,6 +10,7 @@ import {
   AlertCircle, Phone, CreditCard, Loader2, Smartphone
 } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
+import { identiteValidee } from "@/lib/kyc.decision";
 
 // Prix par défaut si le backend ne répond pas
 const PRIX_DEFAUT = 10000;
@@ -85,10 +86,10 @@ export default function PaiementReactivation() {
       const motifReactivation = sessionStorage.getItem("reactivation_motif") || "";
       const kycResult = await getKycResult();
 
-      // Garde-fou final avant délivrance : une identité REJETÉE par le KYC ne doit jamais
+      // Garde-fou final avant délivrance : une identité non validée par le KYC ne doit jamais
       // aboutir à une réactivation validée, même si le blocage en amont (page selfie) a été
       // contourné (retour arrière, session restée ouverte, etc.).
-      if (kycResult?.decision?.includes("REJETÉ")) {
+      if (!identiteValidee(kycResult)) {
         throw new Error("Vérification d'identité refusée par le contrôle KYC. Veuillez contacter un agent.");
       }
 
