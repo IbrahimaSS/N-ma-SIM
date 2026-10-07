@@ -210,7 +210,15 @@ export default function ConfirmationInfos() {
     );
   };
 
-  const isRejected = kycResult?.decision.toUpperCase().includes("REJET") ?? false;
+  // À cette étape, aucun selfie n'a encore été envoyé : le moteur KYC rejette
+  // alors systématiquement pour "visage non vérifiable" (système binaire,
+  // tout doute -> rejet), ce qui bloquerait ce bouton pour tout le monde.
+  // La vraie vérification faciale (et son REJET éventuel) a lieu à l'étape
+  // suivante (selfie), avec le vrai selfie. On ne bloque donc ici que sur
+  // un rejet réellement lié au document (type non identifié, MRZ incohérente,
+  // etc.), pas sur l'absence de selfie.
+  const decisionUp = kycResult?.decision.toUpperCase() ?? "";
+  const isRejected = decisionUp.includes("REJET") && !decisionUp.includes("VISAGE");
   // Verrouille tout le formulaire dès qu'une extraction KYC existe
   const isLocked = kycResult !== null;
 
