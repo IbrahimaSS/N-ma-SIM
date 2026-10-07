@@ -1,9 +1,18 @@
+"use client";
+import { useState } from "react";
 import Link from "next/link";
-import { Mail, Phone, ArrowRight } from "lucide-react";
+import { Mail, Phone, ArrowRight, MessageSquare, MessageCircle, X } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { QrCode } from "@/components/QrCode";
 
+const SUPPORT_PHONE = "+224621003302";
+
 export function AboutCtaFooter() {
+  const [shareOpen, setShareOpen] = useState(false);
+
+  const getLink = () => (typeof window !== "undefined" ? `${window.location.origin}/decouvrir` : "/decouvrir");
+  const message = () => `Découvre N'ma SIM : ${getLink()}`;
+
   return (
     <>
       {/* ── À propos ── */}
@@ -56,12 +65,73 @@ export function AboutCtaFooter() {
 
           <div className="flex flex-col items-center">
             <p className="text-white/60 text-xs font-semibold mb-3">Scannez pour ouvrir sur votre téléphone</p>
-            <div className="bg-white border border-white/20 rounded-2xl p-3 inline-block">
+            <button
+              onClick={() => setShareOpen(true)}
+              className="bg-white border border-white/20 rounded-2xl p-3 inline-block hover:brightness-95 transition-[filter] cursor-pointer"
+              aria-label="Autres moyens de recevoir le lien"
+            >
               <QrCode path="/decouvrir" size={120} alt="QR Code N'ma SIM" />
-            </div>
+            </button>
+            <p className="text-white/40 text-xs mt-3">ou cliquez pour recevoir le lien autrement</p>
           </div>
         </Reveal>
       </section>
+
+      {shareOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center px-5"
+          onClick={() => setShareOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShareOpen(false)}
+              className="absolute top-4 right-4 text-text-muted hover:text-primary transition-colors"
+              aria-label="Fermer"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-lg font-bold text-primary mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+              Nous contacter
+            </h3>
+            <p className="text-text-muted text-sm mb-5">Choisissez comment nous contacter.</p>
+
+            <div className="flex flex-col gap-2">
+              <a
+                href={`sms:${SUPPORT_PHONE}?body=${encodeURIComponent(message())}`}
+                className="flex items-center gap-3 rounded-xl border border-border-light p-3.5 hover:border-primary/30 hover:shadow-md transition-all duration-200"
+              >
+                <span className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                  <MessageSquare size={18} className="text-primary" />
+                </span>
+                <span className="text-sm font-semibold text-primary">Par SMS</span>
+              </a>
+              <a
+                href={`tel:${SUPPORT_PHONE}`}
+                className="flex items-center gap-3 rounded-xl border border-border-light p-3.5 hover:border-primary/30 hover:shadow-md transition-all duration-200"
+              >
+                <span className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                  <Phone size={18} className="text-primary" />
+                </span>
+                <span className="text-sm font-semibold text-primary">Par appel téléphonique</span>
+              </a>
+              <a
+                href={`https://wa.me/${SUPPORT_PHONE.replace("+", "")}?text=${encodeURIComponent(message())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-xl border border-border-light p-3.5 hover:border-primary/30 hover:shadow-md transition-all duration-200"
+              >
+                <span className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle size={18} className="text-primary" />
+                </span>
+                <span className="text-sm font-semibold text-primary">Par WhatsApp</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <footer data-navbar-invert="true" className="bg-primary py-8">
