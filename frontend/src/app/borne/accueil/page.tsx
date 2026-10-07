@@ -7,6 +7,7 @@ import {
   Globe, Briefcase, User as UserIcon,
   HelpCircle, ArrowRight, Check, Hand,
 } from "lucide-react";
+import { QrCode } from "@/components/QrCode";
 
 export default function Accueil() {
   const router = useRouter();
@@ -333,13 +334,7 @@ export default function Accueil() {
           {lang === "en" ? "Discover N'ma SIM on your phone" : "Découvrez N'ma SIM sur votre téléphone"}
         </p>
         <div style={{ background: "white", border: "1px solid #E5E7EB", borderRadius: 16, padding: 12 }}>
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(
-              typeof window !== "undefined" ? `${window.location.origin}/decouvrir` : "/decouvrir"
-            )}`}
-            alt="QR Code N'ma SIM"
-            style={{ width: 110, height: 110, display: "block" }}
-          />
+          <QrCode path="/decouvrir" size={110} alt="QR Code N'ma SIM" />
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail, Phone, ArrowRight } from "lucide-react";
 import { Reveal } from "./Reveal";
+import { QrCode } from "@/components/QrCode";
 
 export function AboutCtaFooter() {
   return (
@@ -56,13 +57,7 @@ export function AboutCtaFooter() {
           <div className="flex flex-col items-center">
             <p className="text-white/60 text-xs font-semibold mb-3">Scannez pour ouvrir sur votre téléphone</p>
             <div className="bg-white border border-white/20 rounded-2xl p-3 inline-block">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-                  typeof window !== "undefined" ? `${window.location.origin}/decouvrir` : "/decouvrir"
-                )}`}
-                alt="QR Code N'ma SIM"
-                className="w-[120px] h-[120px] block"
-              />
+              <QrCode path="/decouvrir" size={120} alt="QR Code N'ma SIM" />
             </div>
           </div>
         </Reveal>
