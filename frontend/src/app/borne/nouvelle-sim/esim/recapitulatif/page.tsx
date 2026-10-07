@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ArrowLeft, ArrowRight, User, Smartphone, CreditCard, ShieldCheck } from "lucide-react";
 import type { EsimForfait } from "@/data/esim-forfaits";
+import { libelleNumeroPiece, libelleNumeroPersonnel } from "@/lib/piece";
 
 export default function EsimRecapitulatif() {
   const router = useRouter();
@@ -76,9 +77,15 @@ export default function EsimRecapitulatif() {
                 <span className="font-bold text-text-main">{clientInfo.prenom} {clientInfo.nom}</span>
               </div>
               <div className="flex justify-between border-b border-border-light pb-2">
-                <span className="text-text-muted">{t.idNumber}</span>
+                <span className="text-text-muted">{libelleNumeroPiece(clientInfo.typePiece, lang)}</span>
                 <span className="font-bold text-text-main">{clientInfo.numeroPiece}</span>
               </div>
+              {clientInfo.typePiece === "passeport" && clientInfo.numeroPersonnel && (
+                <div className="flex justify-between border-b border-border-light pb-2">
+                  <span className="text-text-muted">{libelleNumeroPersonnel(lang)}</span>
+                  <span className="font-bold text-text-main">{clientInfo.numeroPersonnel}</span>
+                </div>
+              )}
               <div className="flex justify-between border-b border-border-light pb-2">
                 <span className="text-text-muted">Type de pièce</span>
                 <span className="font-bold text-text-main uppercase">{clientInfo.typePiece}</span>

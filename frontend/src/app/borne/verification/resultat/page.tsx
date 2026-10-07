@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { CheckCircle2, AlertTriangle, XCircle, Home, User as UserIcon, Calendar, FileText, MapPin, Loader2, Phone, Hash } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
+import { libelleNumeroPiece, libelleNumeroPersonnel } from "@/lib/piece";
 import type { KycReponse } from "@/types/kyc";
 
 export default function VerificationResultat() {
@@ -196,10 +197,21 @@ export default function VerificationResultat() {
               <FileText className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-text-muted uppercase tracking-wider">{t.idNumber}</p>
+              <p className="text-xs text-text-muted uppercase tracking-wider">{libelleNumeroPiece(kycResult.type_piece, lang)}</p>
               <p className="font-bold text-text-main text-lg">{champs?.numero_identite || champs?.numero_carte || champs?.nin || "—"}</p>
             </div>
           </div>
+          {champs?.numero_personnel && (
+            <div className="bg-gray-50 p-4 rounded-xl border border-border-light flex gap-4 items-center md:col-span-2">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm flex-shrink-0">
+                <Hash className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-text-muted uppercase tracking-wider">{libelleNumeroPersonnel(lang)}</p>
+                <p className="font-bold text-text-main text-lg">{champs.numero_personnel}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Section: Numéros et Historique Associés */}

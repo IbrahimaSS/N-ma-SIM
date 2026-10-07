@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Info, ChevronRight, ArrowLeft, FileText, User as UserIcon, Clock, CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
+import { libelleNumeroPiece, libelleNumeroPersonnel } from "@/lib/piece";
 import type { KycReponse } from "@/types/kyc";
 
 export default function ConfirmationInfos() {
@@ -29,6 +30,7 @@ export default function ConfirmationInfos() {
   const [telephone, setTelephone] = useState("");
   const [typePiece, setTypePiece] = useState("cni");
   const [numeroPiece, setNumeroPiece] = useState("");
+  const [numeroPersonnel, setNumeroPersonnel] = useState("");
 
 
   useEffect(() => {
@@ -82,6 +84,8 @@ export default function ConfirmationInfos() {
         } else {
           setNumeroPiece(c.numero_identite ?? c.numero_carte ?? c.nin ?? "");
         }
+        // Passeport : le moteur extrait aussi le numéro personnel (NIN), distinct du n° de passeport
+        setNumeroPersonnel(c.numero_personnel ?? "");
       }
     }).finally(() => setIsLoading(false));
 
@@ -96,6 +100,7 @@ export default function ConfirmationInfos() {
       if (p.adresse) setAdresse(p.adresse);
       if (p.telephone) setTelephone(p.telephone);
       if (p.numeroPiece) setNumeroPiece(p.numeroPiece);
+      if (p.numeroPersonnel) setNumeroPersonnel(p.numeroPersonnel);
       if (p.typePiece) setTypePiece(p.typePiece);
     }
   }, []);
@@ -124,7 +129,6 @@ export default function ConfirmationInfos() {
     passport: lang === "en" ? "Passport" : "Passeport",
     carteElecteur: lang === "en" ? "Voter ID" : "Carte d'électeur",
     permis: lang === "en" ? "Biometric Licence" : "Permis Biométrique",
-    idNumber: lang === "en" ? "Document number" : "Numéro de pièce",
 
     infoNote: lang === "en" ? "Your information has been automatically extracted." : "Vos informations ont été extraites automatiquement.",
     back: lang === "en" ? "Back" : "Retour",
@@ -369,13 +373,22 @@ export default function ConfirmationInfos() {
             <option value="permis">{t.permis}</option>
           </Select>
           <Input
-            label={t.idNumber}
+            label={libelleNumeroPiece(typePiece, lang)}
             required
             value={numeroPiece}
             onChange={(e) => setNumeroPiece(e.target.value)}
             disabled={isLocked}
             readOnly={isLocked}
           />
+          {typePiece === "passeport" && (
+            <Input
+              label={libelleNumeroPersonnel(lang)}
+              value={numeroPersonnel}
+              onChange={(e) => setNumeroPersonnel(e.target.value)}
+              disabled={isLocked}
+              readOnly={isLocked}
+            />
+          )}
 
         </div>
 
@@ -401,6 +414,7 @@ export default function ConfirmationInfos() {
                 adresse,
                 typePiece,
                 numeroPiece,
+                numeroPersonnel,
               }));
               const isEsim = sessionStorage.getItem("kiosk_flow") === "esim";
               router.push(isEsim ? "/borne/nouvelle-sim/esim/selfie" : "/borne/nouvelle-sim/selfie");
