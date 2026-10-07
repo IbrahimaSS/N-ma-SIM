@@ -130,6 +130,10 @@ export default function ConfirmationInfos() {
     back: lang === "en" ? "Back" : "Retour",
     confirm: lang === "en" ? "Confirm and continue" : "Confirmer et continuer",
     // Décisions IA
+    decisionPendingSelfie: lang === "en" ? "ID document read successfully" : "Pièce d'identité lue avec succès",
+    decisionPendingSelfieDetail: lang === "en"
+      ? "Check your information, then take your selfie to complete the verification."
+      : "Vérifiez vos informations, puis prenez votre selfie pour terminer la vérification.",
     decisionAccepted: lang === "en" ? "✅ Identity validated by the System" : "✅ Identité validée par le Système",
     decisionManual: lang === "en" ? "⚠️ Human verification required" : "⚠️ Vérification humaine requise",
     decisionRejected: lang === "en" ? "❌ Identity rejected" : "❌ Identité rejetée",
@@ -154,6 +158,18 @@ export default function ConfirmationInfos() {
     // L'API renvoie des chaînes comme "✅ ACCEPTÉ", "⚠️ VÉRIFICATION MANUELLE", "❌ REJETÉ"
     const decisionUpper = decision.toUpperCase();
     const simPct = faceResult?.similarite != null ? Math.round(faceResult.similarite * 100) : null;
+
+    if (decisionUpper.includes("ATTENTE DU SELFIE")) {
+      return (
+        <div className="mb-5 p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-primary">{t.decisionPendingSelfie}</p>
+            <p className="text-sm text-text-muted mt-1">{t.decisionPendingSelfieDetail}</p>
+          </div>
+        </div>
+      );
+    }
 
     if (decisionUpper.includes("ACCEPT")) {
       return (
@@ -210,15 +226,7 @@ export default function ConfirmationInfos() {
     );
   };
 
-  // À cette étape, aucun selfie n'a encore été envoyé : le moteur KYC rejette
-  // alors systématiquement pour "visage non vérifiable" (système binaire,
-  // tout doute -> rejet), ce qui bloquerait ce bouton pour tout le monde.
-  // La vraie vérification faciale (et son REJET éventuel) a lieu à l'étape
-  // suivante (selfie), avec le vrai selfie. On ne bloque donc ici que sur
-  // un rejet réellement lié au document (type non identifié, MRZ incohérente,
-  // etc.), pas sur l'absence de selfie.
-  const decisionUp = kycResult?.decision.toUpperCase() ?? "";
-  const isRejected = decisionUp.includes("REJET") && !decisionUp.includes("VISAGE");
+  const isRejected = kycResult?.decision.toUpperCase().includes("REJET") ?? false;
   // Verrouille tout le formulaire dès qu'une extraction KYC existe
   const isLocked = kycResult !== null;
 
