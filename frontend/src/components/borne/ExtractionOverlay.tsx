@@ -55,24 +55,24 @@ export function ExtractionOverlay({ visible, lang = "fr", title, subtitle }: Ext
       }}>
         <div style={{
           width: 64, height: 64, borderRadius: 16, margin: "0 auto 20px",
-          background: "linear-gradient(135deg, #1F0270, #3B12A6)",
+          background: "linear-gradient(135deg, #2656A2, #3B12A6)",
           display: "flex", alignItems: "center", justifyContent: "center",
           animation: "pulseExtract 1.4s ease-in-out infinite",
         }}>
-          <ScanLine size={32} color="#FFBA08" />
+          <ScanLine size={32} color="#F5BB02" />
         </div>
 
-        <p style={{ fontSize: 19, fontWeight: 900, color: "#1F0270", margin: "0 0 6px" }}>{resolvedTitle}</p>
+        <p style={{ fontSize: 19, fontWeight: 900, color: "#2656A2", margin: "0 0 6px" }}>{resolvedTitle}</p>
         <p style={{ fontSize: 13, color: "#9CA3AF", margin: "0 0 28px" }}>{resolvedSubtitle}</p>
 
-        <div style={{ fontSize: 44, fontWeight: 900, color: "#1F0270", marginBottom: 14, fontVariantNumeric: "tabular-nums" }}>
+        <div style={{ fontSize: 44, fontWeight: 900, color: "#2656A2", marginBottom: 14, fontVariantNumeric: "tabular-nums" }}>
           {Math.round(progress)}%
         </div>
 
         <div style={{ width: "100%", height: 12, borderRadius: 8, background: "#EEF2FF", overflow: "hidden", marginBottom: 14 }}>
           <div style={{
             height: "100%", width: `${progress}%`, borderRadius: 8,
-            background: "linear-gradient(90deg, #1F0270, #3B12A6, #FFBA08)",
+            background: "linear-gradient(90deg, #2656A2, #3B12A6, #F5BB02)",
             transition: "width 0.2s linear",
           }} />
         </div>

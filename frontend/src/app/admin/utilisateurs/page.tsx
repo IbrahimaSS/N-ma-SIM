@@ -311,7 +311,7 @@ export default function Utilisateurs() {
               <User size={18} style={{ color: "#4F46E5" }} />
             </div>
             <div style={{ textAlign: "left" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>Admin Principal</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>Admin Principal</div>
               <div style={{ fontSize: 11, color: "#6B7280" }}>Administrateur</div>
             </div>
             <ChevronDown size={14} style={{ color: "#6B7280", cursor: "pointer" }} />
@@ -325,7 +325,7 @@ export default function Utilisateurs() {
         <div>
           <div className="users-header print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
             <div>
-              <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Utilisateurs</h1>
+              <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>Utilisateurs</h1>
               <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Gestion des comptes et rôles</p>
             </div>
             <div className="users-filters" style={{ display: "flex", gap: 12 }}>
@@ -367,12 +367,12 @@ export default function Utilisateurs() {
                   </div>
                 )}
               </div>
-              <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "white", border: "1px solid #E5E7EB", color: "#1F0270", fontSize: 14, fontWeight: 600, cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+              <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "white", border: "1px solid #E5E7EB", color: "#2656A2", fontSize: 14, fontWeight: 600, cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
                 <Download size={16} /> Export PDF
               </button>
               <button
                 onClick={() => setIsAddingUser(true)}
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#1F0270", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, background: "#2656A2", color: "white", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
               >
                 <Plus size={16} /> Ajouter un utilisateur
               </button>
@@ -395,7 +395,7 @@ export default function Utilisateurs() {
                   </div>
                   <div style={{ fontSize: 12, color: "#6B7280", fontWeight: 500 }}>{k.label}</div>
                 </div>
-                <div style={{ fontSize: 26, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+                <div style={{ fontSize: 26, fontWeight: 800, color: "#2656A2" }}>{k.value}</div>
                 <div style={{ fontSize: 11, color: k.color, fontWeight: 500 }}>{k.sub}</div>
               </div>
             ))}
@@ -489,7 +489,7 @@ export default function Utilisateurs() {
               <span style={{ fontSize: 13, color: "#6B7280" }}>Affichage 1 à {filtered.length} sur {users.length} utilisateurs</span>
               <div style={{ display: "flex", gap: 6 }}>
                 {[1, 2, 3, 4, 5, ">"].map((p, i) => (
-                  <button key={i} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: p === 1 ? "#1F0270" : "white", color: p === 1 ? "white" : "#374151", fontSize: 13, cursor: "pointer", padding: "0 8px" }}>{p}</button>
+                  <button key={i} style={{ minWidth: 32, height: 32, borderRadius: 8, border: "1px solid #E5E7EB", background: p === 1 ? "#2656A2" : "white", color: p === 1 ? "white" : "#374151", fontSize: 13, cursor: "pointer", padding: "0 8px" }}>{p}</button>
                 ))}
               </div>
             </div>
@@ -499,7 +499,7 @@ export default function Utilisateurs() {
           <div className="print:hidden" style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div>
-                <h3 style={{ fontWeight: 800, color: "#1F0270", margin: "0 0 4px", fontSize: 18 }}>Rôles & Permissions</h3>
+                <h3 style={{ fontWeight: 800, color: "#2656A2", margin: "0 0 4px", fontSize: 18 }}>Rôles & Permissions</h3>
                 <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Sélectionnez un rôle pour voir ses privilèges associés.</p>
               </div>
               <button style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #E5E7EB", background: "#F9FAFB", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
@@ -559,7 +559,7 @@ export default function Utilisateurs() {
                     </div>
                     <div style={{ flex: 1, borderLeft: "1px solid #E5E7EB", paddingLeft: 40, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                       <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8 }}>Statistiques du rôle</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: "#1F0270", marginBottom: 4 }}>{r.users}</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: "#2656A2", marginBottom: 4 }}>{r.users}</div>
                       <div style={{ fontSize: 13, color: "#4B5563", fontWeight: 500, marginBottom: 16 }}>Utilisateurs actifs</div>
                       <div style={{ display: "inline-block", alignSelf: "flex-start", background: "#EEF2FF", color: "#4338CA", fontSize: 12, fontWeight: 700, padding: "6px 12px", borderRadius: 20 }}>
                         {r.badge}
@@ -580,7 +580,7 @@ export default function Utilisateurs() {
 
             {/* Title & Description inside form layout to match structure */}
             <div>
-              <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>
+              <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>
                 {editingUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
               </h1>
               <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>
@@ -591,15 +591,15 @@ export default function Utilisateurs() {
             {/* SECTION 1: Informations personnelles */}
             <div style={{ background: "white", borderRadius: 16, padding: 24, border: "1px solid #EAECF5", boxShadow: "0 1px 6px rgba(31,2,112,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <span style={{ background: "#1F0270", color: "white", width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: "bold" }}>1</span>
+                <span style={{ background: "#2656A2", color: "white", width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: "bold" }}>1</span>
                 <User className="w-5 h-5 text-indigo-600" />
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1F0270", margin: 0 }}>Informations personnelles</h3>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#2656A2", margin: 0 }}>Informations personnelles</h3>
               </div>
 
               {/* 2x2 Grid of Fields */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Nom complet <span style={{ color: "#EF4444" }}>*</span></label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Nom complet <span style={{ color: "#EF4444" }}>*</span></label>
                   <div style={{ position: "relative" }}>
                     <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input required type="text" value={nomComplet} onChange={e => setNomComplet(e.target.value)} placeholder="Entrez le nom complet" style={{ width: "100%", padding: "10px 12px 10px 38px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", background: "white" }} />
@@ -607,7 +607,7 @@ export default function Utilisateurs() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Téléphone <span style={{ color: "#EF4444" }}>*</span></label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Téléphone <span style={{ color: "#EF4444" }}>*</span></label>
                   <div style={{ position: "relative" }}>
                     <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input required type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder="Ex. : +224 620 12 34 56" style={{ width: "100%", padding: "10px 12px 10px 38px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", background: "white" }} />
@@ -615,7 +615,7 @@ export default function Utilisateurs() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Email <span style={{ color: "#EF4444" }}>*</span></label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Email <span style={{ color: "#EF4444" }}>*</span></label>
                   <div style={{ position: "relative" }}>
                     <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Entrez l'adresse email" style={{ width: "100%", padding: "10px 12px 10px 38px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", background: "white" }} />
@@ -623,7 +623,7 @@ export default function Utilisateurs() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Service / Département</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Service / Département</label>
                   <div style={{ position: "relative" }}>
                     <Briefcase className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <select value={service} onChange={e => setService(e.target.value)} style={{ width: "100%", padding: "10px 12px 10px 38px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", background: "white", appearance: "none" }}>
@@ -640,7 +640,7 @@ export default function Utilisateurs() {
 
               {/* Photo Upload Area - Positioned below fields as in mockup */}
               <div>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 8 }}>Photo de profil (optionnel)</label>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 8 }}>Photo de profil (optionnel)</label>
                 <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
                   <input id="photo-upload" type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
 
@@ -662,7 +662,7 @@ export default function Utilisateurs() {
                   }}>
                     <CloudUpload className="w-7 h-7 text-indigo-600 flex-shrink-0" />
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>Choisir une image</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>Choisir une image</span>
                       <span style={{ fontSize: 11, color: "#6B7280" }}>JPG, PNG (max. 2 Mo)</span>
                     </div>
                   </label>
@@ -702,15 +702,15 @@ export default function Utilisateurs() {
             {/* SECTION 2: Rôle et permissions */}
             <div style={{ background: "white", borderRadius: 16, padding: 24, border: "1px solid #EAECF5", boxShadow: "0 1px 6px rgba(31,2,112,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <span style={{ background: "#1F0270", color: "white", width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: "bold" }}>2</span>
+                <span style={{ background: "#2656A2", color: "white", width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: "bold" }}>2</span>
                 <ShieldCheck className="w-5 h-5 text-indigo-600" />
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1F0270", margin: 0 }}>Rôle et permissions</h3>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#2656A2", margin: 0 }}>Rôle et permissions</h3>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
                 {/* Select Role */}
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Rôle de l'utilisateur <span style={{ color: "#EF4444" }}>*</span></label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Rôle de l'utilisateur <span style={{ color: "#EF4444" }}>*</span></label>
                   <div style={{ position: "relative" }}>
                     <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <select required value={role} onChange={e => setRole(e.target.value)} style={{ width: "100%", padding: "10px 12px 10px 38px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", background: "white", appearance: "none" }}>
@@ -726,7 +726,7 @@ export default function Utilisateurs() {
 
                 {/* Selected permissions info */}
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Permissions incluses</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Permissions incluses</label>
                   <div style={{
                     border: "1px solid #E0E7FF",
                     background: role ? "#EEF2FF" : "#F9FAFB",
@@ -761,15 +761,15 @@ export default function Utilisateurs() {
             {/* SECTION 3: Informations de connexion */}
             <div style={{ background: "white", borderRadius: 16, padding: 24, border: "1px solid #EAECF5", boxShadow: "0 1px 6px rgba(31,2,112,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <span style={{ background: "#1F0270", color: "white", width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: "bold" }}>3</span>
+                <span style={{ background: "#2656A2", color: "white", width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: "bold" }}>3</span>
                 <Lock className="w-5 h-5 text-indigo-600" />
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1F0270", margin: 0 }}>Informations de connexion</h3>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#2656A2", margin: 0 }}>Informations de connexion</h3>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
                 {/* Username */}
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Nom d'utilisateur <span style={{ color: "#EF4444" }}>*</span></label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Nom d'utilisateur <span style={{ color: "#EF4444" }}>*</span></label>
                   <div style={{ position: "relative" }}>
                     <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input required type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Entrez le nom d'utilisateur" style={{ width: "100%", padding: "10px 12px 10px 38px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", background: "white" }} />
@@ -778,7 +778,7 @@ export default function Utilisateurs() {
 
                 {/* Password */}
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Mot de passe <span style={{ color: "#EF4444" }}>*</span></label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Mot de passe <span style={{ color: "#EF4444" }}>*</span></label>
                   <div style={{ position: "relative" }}>
                     <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input required type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Créez un mot de passe" style={{ width: "100%", padding: "10px 34px 10px 38px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", background: "white" }} />
@@ -790,7 +790,7 @@ export default function Utilisateurs() {
 
                 {/* Confirm Password */}
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#1F0270", marginBottom: 6 }}>Confirmer le mot de passe <span style={{ color: "#EF4444" }}>*</span></label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Confirmer le mot de passe <span style={{ color: "#EF4444" }}>*</span></label>
                   <div style={{ position: "relative" }}>
                     <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input required type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirmez le mot de passe" style={{ width: "100%", padding: "10px 34px 10px 38px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", background: "white" }} />
@@ -803,15 +803,15 @@ export default function Utilisateurs() {
 
               {/* Notification Toggles */}
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#1F0270", fontWeight: 500, cursor: "pointer" }}>
-                  <input type="checkbox" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} style={{ width: 16, height: 16, accentColor: "#1F0270" }} />
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#2656A2", fontWeight: 500, cursor: "pointer" }}>
+                  <input type="checkbox" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} style={{ width: 16, height: 16, accentColor: "#2656A2" }} />
                   Envoyer les identifiants à l'utilisateur par
                 </label>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" onClick={() => setSendEmail(!sendEmail)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: sendEmail ? "1px solid #1F0270" : "1px solid #E5E7EB", borderRadius: 8, background: sendEmail ? "#EEF2FF" : "white", color: "#1F0270", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                  <button type="button" onClick={() => setSendEmail(!sendEmail)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: sendEmail ? "1px solid #2656A2" : "1px solid #E5E7EB", borderRadius: 8, background: sendEmail ? "#EEF2FF" : "white", color: "#2656A2", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                     <Mail className="w-3.5 h-3.5 text-indigo-900" /> Email
                   </button>
-                  <button type="button" onClick={() => setSendSms(!sendSms)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: sendSms ? "1px solid #1F0270" : "1px solid #E5E7EB", borderRadius: 8, background: sendSms ? "#EEF2FF" : "white", color: "#1F0270", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                  <button type="button" onClick={() => setSendSms(!sendSms)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: sendSms ? "1px solid #2656A2" : "1px solid #E5E7EB", borderRadius: 8, background: sendSms ? "#EEF2FF" : "white", color: "#2656A2", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                     <MessageSquare className="w-3.5 h-3.5 text-indigo-900" /> SMS
                   </button>
                 </div>
@@ -830,7 +830,7 @@ export default function Utilisateurs() {
               <button
                 type="submit"
                 disabled={saving}
-                style={{ height: 44, padding: "0 28px", borderRadius: 10, border: "none", background: "#FFB800", color: "#1F0270", fontSize: 14, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, opacity: saving ? 0.7 : 1 }}
+                style={{ height: 44, padding: "0 28px", borderRadius: 10, border: "none", background: "#FFB800", color: "#2656A2", fontSize: 14, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, opacity: saving ? 0.7 : 1 }}
               >
                 {saving ? (
                   <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
@@ -854,7 +854,7 @@ export default function Utilisateurs() {
                 <div style={{ background: "#EEF2FF", width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Info className="w-4 h-4 text-indigo-600" />
                 </div>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: "#1F0270", margin: 0 }}>À propos des rôles</h4>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: "#2656A2", margin: 0 }}>À propos des rôles</h4>
               </div>
               <p style={{ fontSize: 12, color: "#6B7280", margin: "0 0 16px", lineHeight: 1.4 }}>
                 Chaque rôle dispose de permissions spécifiques dans la plateforme.
@@ -869,7 +869,7 @@ export default function Utilisateurs() {
                     <Shield className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1F0270" }}>Administrateur</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2656A2" }}>Administrateur</div>
                     <div style={{ fontSize: 11, color: "#6B7280", marginTop: 4, lineHeight: 1.4 }}>Accès complet à toutes les fonctionnalités et aux paramètres du système.</div>
                   </div>
                 </div>
@@ -1095,7 +1095,7 @@ export default function Utilisateurs() {
                     handleStartEdit(detailsUser);
                     setDetailsUser(null);
                   }}
-                  style={{ flex: 1, background: "#FFB800", color: "#1F0270", border: "none", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                  style={{ flex: 1, background: "#FFB800", color: "#2656A2", border: "none", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                 >
                   <Edit2 size={16} /> Modifier
                 </button>

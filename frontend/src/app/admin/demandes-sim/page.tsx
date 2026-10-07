@@ -167,7 +167,7 @@ function HistoriqueClientModal({ groupe, onClose, onVoirDemande }: { groupe: Cli
       <div style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 640, maxHeight: "88vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }} onClick={e => e.stopPropagation()}>
         <div style={{ padding: "20px 24px", borderBottom: "1px solid #E5E7EB", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#F9FAFB" }}>
           <div>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, fontSize: 18 }}>{client?.prenom} {client?.nom}</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: 0, fontSize: 18 }}>{client?.prenom} {client?.nom}</h3>
             <p style={{ margin: "2px 0 0", fontSize: 12, color: "#6B7280" }}>{client?.telephone || "Aucun numéro"}</p>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B7280" }}><X size={20} /></button>
@@ -182,7 +182,7 @@ function HistoriqueClientModal({ groupe, onClose, onVoirDemande }: { groupe: Cli
           ].map(k => (
             <div key={k.label} style={{ background: "#F8F9FC", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
               <k.icon size={14} style={{ color: "#4F46E5", marginBottom: 4 }} />
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#2656A2" }}>{k.value}</div>
               <div style={{ fontSize: 10, color: "#6B7280" }}>{k.label}</div>
             </div>
           ))}
@@ -295,7 +295,7 @@ function DemandesContent() {
       {/* Header */}
       <div className="print:hidden" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: 0 }}>Demandes SIM</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: 0 }}>Demandes SIM</h1>
           <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>Dashboard administrateur</p>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -306,7 +306,7 @@ function DemandesContent() {
             <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un ticket, un client..." style={{ paddingLeft: 36, paddingRight: 16, height: 40, borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, outline: "none", width: 300, background: "white" }} />
           </div>
-          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#1F0270", fontWeight: 600 }}>
+          <button onClick={generatePDF} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#2656A2", fontWeight: 600 }}>
              <Download size={16} /> Export PDF
           </button>
           <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: 40, borderRadius: 10, border: "1px solid #E5E7EB", background: "white", cursor: "pointer", fontSize: 14, color: "#374151" }}>
@@ -325,7 +325,7 @@ function DemandesContent() {
         ].map(k => (
           <div key={k.label} style={{ background: "white", borderRadius: 16, padding: "18px 22px", flex: 1, minWidth: 160, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8, fontWeight: 500 }}>{k.label}</div>
-            <div style={{ fontSize: 30, fontWeight: 800, color: "#1F0270" }}>{k.value}</div>
+            <div style={{ fontSize: 30, fontWeight: 800, color: "#2656A2" }}>{k.value}</div>
             <div style={{ fontSize: 12, color: k.color, marginTop: 6 }}>{k.sub}</div>
             {k.badge && <div style={{ marginTop: 8, display: "inline-block", background: "#FEF3C7", color: "#92400E", borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 600 }}>{k.badge}</div>}
           </div>
@@ -335,7 +335,7 @@ function DemandesContent() {
       {/* Table */}
       <div style={{ background: "white", borderRadius: 16, border: "1px solid #EAECF5", overflow: "hidden" }} className="print:border-none print:shadow-none print:overflow-visible">
         {loading ? (
-           <div style={{ padding: 40, display: "flex", justifyContent: "center" }}><Loader2 size={32} className="animate-spin" style={{ color: "#1F0270" }} /></div>
+           <div style={{ padding: 40, display: "flex", justifyContent: "center" }}><Loader2 size={32} className="animate-spin" style={{ color: "#2656A2" }} /></div>
         ) : clientGroups.length === 0 ? (
            <div style={{ padding: 40, textAlign: "center", color: "#6B7280" }}>Aucune demande trouvée.</div>
         ) : (

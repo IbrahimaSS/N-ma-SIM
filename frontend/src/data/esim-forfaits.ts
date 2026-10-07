@@ -38,7 +38,7 @@ export const ESIM_FORFAITS_DEMO: EsimForfait[] = [
     appels: "Illimité",
     sms: "100 SMS",
     duree: "30 jours",
-    couleur: "#1F0270",
+    couleur: "#2656A2",
     populaire: true,
   },
   {
@@ -50,6 +50,6 @@ export const ESIM_FORFAITS_DEMO: EsimForfait[] = [
     appels: "Illimité",
     sms: "Illimité",
     duree: "30 jours",
-    couleur: "#FFBA08",
+    couleur: "#F5BB02",
   },
 ];

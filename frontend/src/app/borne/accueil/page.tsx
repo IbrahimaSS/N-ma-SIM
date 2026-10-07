@@ -33,7 +33,7 @@ export default function Accueil() {
       {/* =============================================
           1. LOGO — image réelle, centrée en haut
       ============================================= */}
-      <div 
+      <div
         className="w-[260px] h-[80px] lg:w-[360px] lg:h-[120px]"
         style={{
           background: "white",
@@ -44,23 +44,16 @@ export default function Accueil() {
           alignItems: "center",
           justifyContent: "center",
           paddingTop: 10,
+          marginBottom: 32,
         }}
       >
         <img
-          src="/logo-transparent.png"
+          src="/logo-final.png"
           alt="N'ma SIM Logo"
-          className="w-[95%] scale-[1.15] lg:w-[100%] lg:scale-[1.2]"
+          className="w-[90%] lg:w-[92%]"
           style={{ display: "block" }}
         />
       </div>
-
-      {/* =============================================
-          2. SLOGAN
-      ============================================= */}
-      <p style={{ marginTop: 24, marginBottom: 20, fontSize: "clamp(16px, 1.4vw, 20px)", fontWeight: 700, textAlign: "center" }}>
-        <span style={{ color: "#1F0270" }}>{lang === "en" ? "Your SIM, " : "Votre SIM, "}</span>
-        <span style={{ color: "#FFBA08" }}>{lang === "en" ? "simply." : "en toute simplicité."}</span>
-      </p>
 
       {/* =============================================
           3. CARTE CENTRALE
@@ -85,18 +78,18 @@ export default function Accueil() {
             background: "#EEEEF8",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <UserIcon size={36} color="#1F0270" strokeWidth={1.5} />
+            <UserIcon size={36} color="#2656A2" strokeWidth={1.5} />
           </div>
           <div style={{
             position: "absolute", bottom: 0, right: 0,
             background: "white", borderRadius: "50%",
             padding: 3, boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
           }}>
-            <Hand size={18} color="#FFBA08" />
+            <Hand size={18} color="#F5BB02" />
           </div>
         </div>
 
-        <h1 style={{ fontSize: "clamp(26px, 2.8vw, 36px)", fontWeight: 900, color: "#1F0270", margin: "0 0 10px 0" }}>
+        <h1 style={{ fontSize: "clamp(26px, 2.8vw, 36px)", fontWeight: 900, color: "#2656A2", margin: "0 0 10px 0" }}>
           {lang === "en" ? "Welcome!" : "Bienvenue !"}
         </h1>
 
@@ -120,10 +113,10 @@ export default function Accueil() {
               flex: 1, height: 54,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               fontWeight: 700, fontSize: 13,
-              color: lang === "fr" ? "#1F0270" : "#9CA3AF",
+              color: lang === "fr" ? "#2656A2" : "#9CA3AF",
               background: lang === "fr" ? "rgba(31,2,112,0.05)" : "transparent",
               border: "none",
-              borderBottom: lang === "fr" ? "3px solid #1F0270" : "3px solid transparent",
+              borderBottom: lang === "fr" ? "3px solid #2656A2" : "3px solid transparent",
               cursor: "pointer", transition: "all 0.2s",
             }}>
               <span style={{ fontSize: 20 }}>🇫🇷</span>
@@ -135,11 +128,11 @@ export default function Accueil() {
               flex: 1, height: 54,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               fontWeight: 700, fontSize: 13,
-              color: lang === "en" ? "#1F0270" : "#9CA3AF",
+              color: lang === "en" ? "#2656A2" : "#9CA3AF",
               background: lang === "en" ? "rgba(31,2,112,0.05)" : "transparent",
               border: "none",
               borderLeft: "1px solid #E5E7EB",
-              borderBottom: lang === "en" ? "3px solid #1F0270" : "3px solid transparent",
+              borderBottom: lang === "en" ? "3px solid #2656A2" : "3px solid transparent",
               cursor: "pointer", transition: "all 0.2s",
             }}>
               <span style={{ fontSize: 20 }}>🇬🇧</span>
@@ -239,10 +232,10 @@ export default function Accueil() {
                 flex: 1, height: 50,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 fontWeight: 700, fontSize: 14,
-                color: profile === p.key ? "#1F0270" : "#9CA3AF",
+                color: profile === p.key ? "#2656A2" : "#9CA3AF",
                 background: profile === p.key ? "rgba(31,2,112,0.05)" : "transparent",
                 border: "none",
-                borderBottom: profile === p.key ? "3px solid #1F0270" : "3px solid transparent",
+                borderBottom: profile === p.key ? "3px solid #2656A2" : "3px solid transparent",
                 cursor: "pointer", transition: "all 0.2s",
               }}>
                 {p.icon}
@@ -259,7 +252,7 @@ export default function Accueil() {
             width: "100%",
             display: "flex", alignItems: "center", gap: 12,
             padding: "12px 16px",
-            border: `1.5px solid ${accepted ? "#1F0270" : "#E5E7EB"}`,
+            border: `1.5px solid ${accepted ? "#2656A2" : "#E5E7EB"}`,
             borderRadius: 12,
             cursor: "pointer",
             marginBottom: 20,
@@ -269,8 +262,8 @@ export default function Accueil() {
         >
           <div style={{
             width: 24, height: 24, borderRadius: 6, flexShrink: 0,
-            background: accepted ? "#1F0270" : "transparent",
-            border: `2px solid ${accepted ? "#1F0270" : "#D1D5DB"}`,
+            background: accepted ? "#2656A2" : "transparent",
+            border: `2px solid ${accepted ? "#2656A2" : "#D1D5DB"}`,
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: "all 0.2s",
           }}>
@@ -283,7 +276,7 @@ export default function Accueil() {
             }}
             style={{
               padding: "4px 8px",
-              background: "#1F0270",
+              background: "#2656A2",
               color: "white",
               border: "none",
               borderRadius: 6,
@@ -294,7 +287,7 @@ export default function Accueil() {
           >
             {lang === "en" ? "Read" : "Lire"}
           </button>
-          <p style={{ fontSize: 13, color: "#1F0270", textAlign: "left", margin: 0, lineHeight: 1.5, userSelect: "none" }}>
+          <p style={{ fontSize: 13, color: "#2656A2", textAlign: "left", margin: 0, lineHeight: 1.5, userSelect: "none" }}>
             {lang === "en" ? (
               <>— I accept the <strong>Terms of Use</strong> and <strong>Privacy Policy</strong></>
             ) : (
@@ -309,8 +302,8 @@ export default function Accueil() {
           onClick={() => canStart && router.push("/borne/services")}
           style={{
             width: "100%", height: 58,
-            background: canStart ? "#FFBA08" : "#F3F4F6",
-            color: canStart ? "#1F0270" : "#9CA3AF",
+            background: canStart ? "#F5BB02" : "#F3F4F6",
+            color: canStart ? "#2656A2" : "#9CA3AF",
             fontWeight: 800, fontSize: "clamp(16px, 1.4vw, 20px)",
             borderRadius: 14, border: "none",
             cursor: canStart ? "pointer" : "not-allowed",
@@ -324,12 +317,30 @@ export default function Accueil() {
           <div style={{
             position: "absolute", right: 14,
             width: 42, height: 42, borderRadius: "50%",
-            border: `2px solid ${canStart ? "#1F0270" : "#D1D5DB"}`,
+            border: `2px solid ${canStart ? "#2656A2" : "#D1D5DB"}`,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <ArrowRight size={20} color={canStart ? "#1F0270" : "#9CA3AF"} strokeWidth={2.5} />
+            <ArrowRight size={20} color={canStart ? "#2656A2" : "#9CA3AF"} strokeWidth={2.5} />
           </div>
         </button>
+      </div>
+
+      {/* =============================================
+          4. QR CODE — vers la landing page N'ma SIM
+      ============================================= */}
+      <div style={{ marginTop: 28, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: "#6B7280", marginBottom: 10, textAlign: "center" }}>
+          {lang === "en" ? "Discover N'ma SIM on your phone" : "Découvrez N'ma SIM sur votre téléphone"}
+        </p>
+        <div style={{ background: "white", border: "1px solid #E5E7EB", borderRadius: 16, padding: 12 }}>
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(
+              typeof window !== "undefined" ? `${window.location.origin}/decouvrir` : "/decouvrir"
+            )}`}
+            alt="QR Code N'ma SIM"
+            style={{ width: 110, height: 110, display: "block" }}
+          />
+        </div>
       </div>
 
       {/* Modal Conditions d'utilisation */}
@@ -353,7 +364,7 @@ export default function Accueil() {
             boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
             textAlign: "left"
           }}>
-            <h2 style={{ fontSize: 24, fontWeight: 900, color: "#1F0270", marginBottom: 20 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 900, color: "#2656A2", marginBottom: 20 }}>
               {lang === "en" ? "Terms of Use and Privacy Policy" : "Conditions d’utilisation et politique de confidentialité"}
             </h2>
             
@@ -363,7 +374,7 @@ export default function Accueil() {
                   <p>By using N’ma SIM, you agree that certain information will be collected and used only for processing your request.</p>
                   
                   <div>
-                    <p style={{ fontWeight: 700, color: "#1F0270", marginBottom: 8 }}>The data that may be collected includes:</p>
+                    <p style={{ fontWeight: 700, color: "#2656A2", marginBottom: 8 }}>The data that may be collected includes:</p>
                     <ul style={{ paddingLeft: 20, margin: 0 }}>
                       <li>your photo or selfie;</li>
                       <li>your ID document;</li>
@@ -374,7 +385,7 @@ export default function Accueil() {
                   </div>
 
                   <div>
-                    <p style={{ fontWeight: 700, color: "#1F0270", marginBottom: 8 }}>This information is used to:</p>
+                    <p style={{ fontWeight: 700, color: "#2656A2", marginBottom: 8 }}>This information is used to:</p>
                     <ul style={{ paddingLeft: 20, margin: 0 }}>
                       <li>verify your identity;</li>
                       <li>secure your request;</li>
@@ -386,14 +397,14 @@ export default function Accueil() {
 
                   <p>N’ma SIM must not use this data for other purposes without authorization. The information must be protected and processed securely.</p>
                   
-                  <p style={{ fontWeight: 700, color: "#1F0270" }}>By checking the box, you confirm that you have read and accepted these terms.</p>
+                  <p style={{ fontWeight: 700, color: "#2656A2" }}>By checking the box, you confirm that you have read and accepted these terms.</p>
                 </>
               ) : (
                 <>
                   <p>En utilisant N’ma SIM, vous acceptez que certaines informations soient collectées et utilisées uniquement pour le traitement de votre demande.</p>
                   
                   <div>
-                    <p style={{ fontWeight: 700, color: "#1F0270", marginBottom: 8 }}>Les données pouvant être collectées sont :</p>
+                    <p style={{ fontWeight: 700, color: "#2656A2", marginBottom: 8 }}>Les données pouvant être collectées sont :</p>
                     <ul style={{ paddingLeft: 20, margin: 0 }}>
                       <li>votre photo ou selfie ;</li>
                       <li>votre pièce d’identité ;</li>
@@ -404,7 +415,7 @@ export default function Accueil() {
                   </div>
 
                   <div>
-                    <p style={{ fontWeight: 700, color: "#1F0270", marginBottom: 8 }}>Ces informations sont utilisées pour :</p>
+                    <p style={{ fontWeight: 700, color: "#2656A2", marginBottom: 8 }}>Ces informations sont utilisées pour :</p>
                     <ul style={{ paddingLeft: 20, margin: 0 }}>
                       <li>vérifier votre identité ;</li>
                       <li>sécuriser votre demande ;</li>
@@ -416,7 +427,7 @@ export default function Accueil() {
 
                   <p>N’ma SIM ne doit pas utiliser ces données à d’autres fins sans autorisation. Les informations doivent être protégées et traitées de manière sécurisée.</p>
                   
-                  <p style={{ fontWeight: 700, color: "#1F0270" }}>En cochant la case, vous confirmez avoir lu et accepté ces conditions.</p>
+                  <p style={{ fontWeight: 700, color: "#2656A2" }}>En cochant la case, vous confirmez avoir lu et accepté ces conditions.</p>
                 </>
               )}
             </div>
@@ -427,8 +438,8 @@ export default function Accueil() {
                 marginTop: 24,
                 width: "100%",
                 height: 50,
-                background: "#FFBA08",
-                color: "#1F0270",
+                background: "#F5BB02",
+                color: "#2656A2",
                 fontWeight: 800,
                 fontSize: 16,
                 borderRadius: 12,

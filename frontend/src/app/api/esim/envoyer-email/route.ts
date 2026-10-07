@@ -26,7 +26,7 @@ function buildHtml(opts: {
 }) {
   const { nomClient, reference, numeroDossier, qrString } = opts;
   return `<!doctype html>
-<html lang="fr"><body style="margin:0;background:#F4F5F9;font-family:Arial,Helvetica,sans-serif;color:#1F0270;">
+<html lang="fr"><body style="margin:0;background:#F4F5F9;font-family:Arial,Helvetica,sans-serif;color:#2656A2;">
   <div style="max-width:560px;margin:0 auto;padding:24px;">
     <div style="background:linear-gradient(135deg,#1a1464 0%,#2d27a0 60%,#f5a800 100%);border-radius:20px 20px 0 0;padding:24px;color:#fff;">
       <p style="margin:0;font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.7;">Activation</p>

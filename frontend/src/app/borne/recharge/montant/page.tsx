@@ -74,9 +74,9 @@ export default function RechargeMontant() {
                 style={{
                   padding: "14px 8px",
                   borderRadius: 12,
-                  border: selected === m ? "2px solid #1F0270" : "1.5px solid #E5E7EB",
+                  border: selected === m ? "2px solid #2656A2" : "1.5px solid #E5E7EB",
                   background: selected === m ? "#EEF2FF" : "white",
-                  color: selected === m ? "#1F0270" : "#374151",
+                  color: selected === m ? "#2656A2" : "#374151",
                   fontWeight: 700,
                   fontSize: 15,
                   cursor: "pointer",
@@ -96,7 +96,7 @@ export default function RechargeMontant() {
               placeholder="Ex : 15000"
               style={{
                 width: "100%", padding: "12px 16px", borderRadius: 12,
-                border: custom ? "2px solid #1F0270" : "1.5px solid #E5E7EB",
+                border: custom ? "2px solid #2656A2" : "1.5px solid #E5E7EB",
                 fontSize: 16, outline: "none", color: "#111827",
               }}
             />
@@ -104,7 +104,7 @@ export default function RechargeMontant() {
           {finalAmount && finalAmount >= 1000 && (
             <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "12px 24px", textAlign: "center" }}>
               <p style={{ color: "#6B7280", fontSize: 13, marginBottom: 2 }}>{lang === "en" ? "Selected amount" : "Montant sélectionné"}</p>
-              <p style={{ color: "#1F0270", fontWeight: 800, fontSize: 24 }}>{finalAmount.toLocaleString("fr-FR")} GNF</p>
+              <p style={{ color: "#2656A2", fontWeight: 800, fontSize: 24 }}>{finalAmount.toLocaleString("fr-FR")} GNF</p>
             </div>
           )}
         </div>

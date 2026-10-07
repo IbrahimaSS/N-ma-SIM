@@ -113,8 +113,8 @@ export default function DetailDemande() {
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 80, gap: 12 }}>
-      <Loader2 size={28} style={{ color: "#1F0270", animation: "spin 1s linear infinite" }} />
-      <span style={{ color: "#1F0270", fontWeight: 600 }}>Chargement...</span>
+      <Loader2 size={28} style={{ color: "#2656A2", animation: "spin 1s linear infinite" }} />
+      <span style={{ color: "#2656A2", fontWeight: 600 }}>Chargement...</span>
     </div>
   );
 
@@ -145,7 +145,7 @@ export default function DetailDemande() {
         </button>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1F0270", margin: "0 0 8px" }}>Détail de la demande</h1>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: "#2656A2", margin: "0 0 8px" }}>Détail de la demande</h1>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span style={{ fontSize: 14, color: "#6B7280" }}>
                 {demande.numeroDossier} • Créée le {formatDate(demande.createdAt)}
@@ -186,7 +186,7 @@ export default function DetailDemande() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
                 <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
                   <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Numéro rechargé</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#1F0270" }}>+224 {demande.numeroAReactiver || "—"}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#2656A2" }}>+224 {demande.numeroAReactiver || "—"}</div>
                 </div>
                 <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
                   <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Montant</div>
@@ -219,7 +219,7 @@ export default function DetailDemande() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                     <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
                       <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Numéro à réactiver</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: "#1F0270" }}>{demande.numeroAReactiver || "—"}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: "#2656A2" }}>{demande.numeroAReactiver || "—"}</div>
                     </div>
                     <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
                       <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Motif</div>
@@ -232,7 +232,7 @@ export default function DetailDemande() {
               {/* Informations client */}
               <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                  <h3 style={{ fontWeight: 700, color: "#1F0270", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                  <h3 style={{ fontWeight: 700, color: "#2656A2", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
                     <User size={18} style={{ color: "#4F46E5" }} /> Informations client
                   </h3>
                   <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: "#4F46E5" }}>
@@ -262,7 +262,7 @@ export default function DetailDemande() {
           {/* Offre & Paiement — seulement pour non-recharge */}
           {!isRecharge && (
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-              <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
                 <CreditCard size={18} style={{ color: "#4F46E5" }} /> Offre & Paiement
               </h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -326,7 +326,7 @@ export default function DetailDemande() {
           {/* Résultat IA — masqué pour les recharges */}
           {!isRecharge && (
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
               <Zap size={18} style={{ color: "#FFB800" }} /> Résultat IA
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -386,7 +386,7 @@ export default function DetailDemande() {
 
           {/* Historique */}
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
-            <h3 style={{ fontWeight: 700, color: "#1F0270", margin: "0 0 16px", fontSize: 15 }}>🕐 Historique</h3>
+            <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 16px", fontSize: 15 }}>🕐 Historique</h3>
             <div style={{ position: "relative" }}>
               <div style={{ position: "absolute", left: 7, top: 0, bottom: 0, width: 2, background: "#E5E7EB" }} />
               {[

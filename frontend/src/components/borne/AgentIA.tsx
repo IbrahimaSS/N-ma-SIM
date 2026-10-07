@@ -429,7 +429,7 @@ export function AgentIA({
     ? "linear-gradient(135deg, #DC2626, #EF4444, #FF6B6B)"
     : isMuted
     ? "#E5E7EB"
-    : "linear-gradient(135deg, #1F0270, #3B0CB8, #FFBA08)";
+    : "linear-gradient(135deg, #2656A2, #3B0CB8, #F5BB02)";
 
   const orbAnimation = isListening
     ? "pulseRed 1s ease-in-out infinite"
@@ -518,7 +518,7 @@ export function AgentIA({
       {/* Label état */}
       <span style={{
         fontSize: 11, fontWeight: 700, textAlign: "center",
-        color: isListening ? "#DC2626" : "#1F0270",
+        color: isListening ? "#DC2626" : "#2656A2",
         opacity: 0.8,
         background: "rgba(255,255,255,0.85)",
         padding: "2px 10px", borderRadius: 12,

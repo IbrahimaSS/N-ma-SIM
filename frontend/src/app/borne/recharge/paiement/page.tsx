@@ -142,7 +142,7 @@ export default function RechargePaiement() {
           {/* Numéro de dossier */}
           <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 16, padding: "16px 32px", textAlign: "center", width: "100%", maxWidth: 360 }}>
             <p style={{ color: "#6B7280", fontSize: 13, marginBottom: 4 }}>{lang === "en" ? "Transaction reference" : "Référence de la transaction"}</p>
-            <p style={{ color: "#1F0270", fontWeight: 800, fontSize: 20, letterSpacing: 1 }}>{numeroDossier}</p>
+            <p style={{ color: "#2656A2", fontWeight: 800, fontSize: 20, letterSpacing: 1 }}>{numeroDossier}</p>
           </div>
 
           <Button size="lg" onClick={() => router.push("/borne/accueil")}>
@@ -177,14 +177,14 @@ export default function RechargePaiement() {
                       <Phone size={16} style={{ color: "#6B7280" }} />
                       <span style={{ color: "#6B7280", fontSize: 13 }}>{t.number}</span>
                     </div>
-                    <span style={{ fontWeight: 700, color: "#1F0270", fontSize: 14 }}>+224 {numero}</span>
+                    <span style={{ fontWeight: 700, color: "#2656A2", fontSize: 14 }}>+224 {numero}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #E5E7EB", paddingTop: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Banknote size={16} style={{ color: "#6B7280" }} />
                       <span style={{ color: "#6B7280", fontSize: 13 }}>{t.amount}</span>
                     </div>
-                    <span style={{ fontWeight: 800, color: "#1F0270", fontSize: 18 }}>{montant.toLocaleString("fr-FR")} GNF</span>
+                    <span style={{ fontWeight: 800, color: "#2656A2", fontSize: 18 }}>{montant.toLocaleString("fr-FR")} GNF</span>
                   </div>
                </div>
             </div>
