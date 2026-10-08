@@ -37,6 +37,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<KycRepons
   const selfie = formData.get("selfie");
   const verso = formData.get("verso");
   const docType = formData.get("doc_type");
+  const sessionId = formData.get("session_id");
 
   // Validation des champs obligatoires
   if (!recto || !(recto instanceof Blob)) {
@@ -60,6 +61,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<KycRepons
 
   if (docType && typeof docType === "string") {
     iaFormData.append("doc_type", docType);
+  }
+
+  if (sessionId && typeof sessionId === "string") {
+    iaFormData.append("session_id", sessionId);
   }
 
   // Appel à l'API IA KYC
