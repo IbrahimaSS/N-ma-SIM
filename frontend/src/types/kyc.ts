@@ -85,6 +85,8 @@ export interface KycReponse {
   liveness_piece?: KycLiveness;
   details?: string[];
   message?: string;
+  /** Essais de selfie restants avant rejet définitif (API Unikraft) */
+  tentatives_restantes?: number;
 }
 
 /** Erreur structurée retournée par notre proxy backend */
