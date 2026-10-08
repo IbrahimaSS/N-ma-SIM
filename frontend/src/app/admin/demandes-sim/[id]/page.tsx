@@ -323,16 +323,16 @@ export default function DetailDemande() {
         {/* ── Colonne droite ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-          {/* Résultat IA — masqué pour les recharges */}
+          {/* Résultat N'ma SIM (vérification d'identité) — masqué pour les recharges */}
           {!isRecharge && (
           <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
-              <Zap size={18} style={{ color: "#FFB800" }} /> Résultat IA
+              <Zap size={18} style={{ color: "#FFB800" }} /> Résultat N&apos;ma SIM
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { label: "Document lisible (OCR)", val: demande.verificationOCR, isBoolean: true },
-                { label: "Selfie vérifié", val: demande.verificationSelfie, isBoolean: true },
+                { label: "Pièce d'identité lue", val: demande.verificationOCR, isBoolean: true },
+                { label: "Visage vérifié (selfie / pièce)", val: demande.verificationSelfie, isBoolean: true },
               ].map((item, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F3F4F6" }}>
                   <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
@@ -346,10 +346,10 @@ export default function DetailDemande() {
                 </div>
               ))}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}>
-                <span style={{ fontSize: 13, color: "#374151" }}>Score de vérification</span>
+                <span style={{ fontSize: 13, color: "#374151" }}>Similarité faciale</span>
                 <span style={{
-                  background: demande.scoreVerification >= 80 ? "#DBEAFE" : "#FEF3C7",
-                  color: demande.scoreVerification >= 80 ? "#1D4ED8" : "#92400E",
+                  background: demande.verificationSelfie === true ? "#D1FAE5" : demande.verificationSelfie === false ? "#FEE2E2" : "#F3F4F6",
+                  color: demande.verificationSelfie === true ? "#065F46" : demande.verificationSelfie === false ? "#991B1B" : "#6B7280",
                   borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 700
                 }}>
                   {demande.scoreVerification != null ? `${demande.scoreVerification}%` : "—"}

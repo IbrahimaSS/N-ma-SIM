@@ -90,7 +90,9 @@ export default function EsimGeneration() {
                 methode: payment.method === "Orange Money" ? "ORANGE_MONEY" : "LENGO_PAY",
                 reference: payment.reference || undefined,
               },
-              kyc_result: kyc ? { decision: kyc.decision, details: kyc.details } : undefined,
+              kyc_result: kyc
+                ? { decision: kyc.decision, details: kyc.details, champs: kyc.champs, face: kyc.face ?? kyc.visage }
+                : undefined,
             }),
           });
           if (res.ok) {

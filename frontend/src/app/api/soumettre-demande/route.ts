@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { champsVerificationKyc } from "@/lib/kyc.verification";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
 
@@ -162,19 +163,20 @@ export async function POST(request: Request) {
       // On ne bloque pas — la demande est créée, le paiement peut être rattrapé manuellement
     }
 
-    // ─── 4. Auto-validation : paiement confirmé = demande validée ────────
-    // Sauf si le KYC a été REJETÉ : la demande reste EN_ATTENTE_VALIDATION pour
-    // qu'un agent tranche manuellement (voir kycRejete ci-dessus).
-    if (!kycRejete) {
-      await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-internal-service": "kiosk-borne",
-        },
-        body: JSON.stringify({ statut: "VALIDEE" }),
-      });
-    }
+    // ─── 4. Résultat N'ma SIM + auto-validation (paiement confirmé = demande validée) ──
+    // Si le KYC a été REJETÉ, la demande reste EN_ATTENTE_VALIDATION pour qu'un agent
+    // tranche manuellement (voir kycRejete ci-dessus) ; le résultat KYC est enregistré quand même.
+    await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-service": "kiosk-borne",
+      },
+      body: JSON.stringify({
+        ...champsVerificationKyc(kyc_result),
+        ...(kycRejete ? {} : { statut: "VALIDEE" }),
+      }),
+    });
 
     // ─── 5. Retourner le numéro de ticket ─────────────────────────────────
     return NextResponse.json({
