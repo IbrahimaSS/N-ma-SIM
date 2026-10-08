@@ -7,7 +7,6 @@ import {
   Globe, Briefcase, User as UserIcon,
   HelpCircle, ArrowRight, Check, Hand,
 } from "lucide-react";
-import { QrCode } from "@/components/QrCode";
 import { resetKioskSession } from "@/lib/kiosk-guard";
 
 export default function Accueil() {
@@ -300,18 +299,6 @@ export default function Accueil() {
             <ArrowRight size={20} color={canStart ? "#2656A2" : "#9CA3AF"} strokeWidth={2.5} />
           </div>
         </button>
-      </div>
-
-      {/* =============================================
-          4. QR CODE — vers la landing page N'ma SIM
-      ============================================= */}
-      <div style={{ marginTop: 28, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: "#6B7280", marginBottom: 10, textAlign: "center" }}>
-          {lang === "en" ? "Discover N'ma SIM on your phone" : "Découvrez N'ma SIM sur votre téléphone"}
-        </p>
-        <div style={{ background: "white", border: "1px solid #E5E7EB", borderRadius: 16, padding: 12 }}>
-          <QrCode path="/decouvrir" size={110} alt="QR Code N'ma SIM" />
-        </div>
       </div>
 
       {/* Modal Conditions d'utilisation */}
