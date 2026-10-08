@@ -85,8 +85,12 @@ export interface KycReponse {
   liveness_piece?: KycLiveness;
   details?: string[];
   message?: string;
-  /** Essais de selfie restants avant rejet définitif (API Unikraft) */
+  /** Essais de selfie restants avant blocage de la pièce (API Unikraft) */
   tentatives_restantes?: number;
+  /** Fin du blocage après trop d'essais (ISO 8601, UTC) */
+  reessayer_apres?: string | null;
+  /** Session KYC à renvoyer à chaque appel du parcours */
+  session_id?: string;
 }
 
 /** Erreur structurée retournée par notre proxy backend */

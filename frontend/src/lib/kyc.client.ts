@@ -41,6 +41,13 @@ export async function verifierKYC(
     formData.append("doc_type", docType);
   }
 
+  // Même session KYC sur tout le parcours : l'API y rattache les essais de selfie
+  // quand le numéro de la pièce n'a pas pu être lu. Vidée entre deux clients.
+  const sessionId = lireSessionKyc();
+  if (sessionId) {
+    formData.append("session_id", sessionId);
+  }
+
   let response: Response;
   try {
     response = await fetch("/api/kyc", {
@@ -65,7 +72,27 @@ export async function verifierKYC(
     throw err;
   }
 
-  return data as KycReponse;
+  const resultat = data as KycReponse;
+  if (resultat.session_id) ecrireSessionKyc(resultat.session_id);
+  return resultat;
+}
+
+const CLE_SESSION_KYC = "kyc_session_id";
+
+function lireSessionKyc(): string | null {
+  try {
+    return sessionStorage.getItem(CLE_SESSION_KYC);
+  } catch {
+    return null;
+  }
+}
+
+function ecrireSessionKyc(sessionId: string): void {
+  try {
+    sessionStorage.setItem(CLE_SESSION_KYC, sessionId);
+  } catch {
+    // sessionStorage indisponible : l'API suit alors les essais par pièce uniquement.
+  }
 }
 
 /** Extrait le nom d'un fichier ou retourne un nom par défaut */

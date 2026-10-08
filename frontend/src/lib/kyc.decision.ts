@@ -74,6 +74,23 @@ export function expliquerDecision(result: KycReponse, lang: Langue = "fr"): Expl
     };
   }
 
+  if (decision.includes("TROP DE TENTATIVES")) {
+    const fin = result.reessayer_apres ? new Date(result.reessayer_apres) : null;
+    const locale = en ? "en-GB" : "fr-FR";
+    const quand =
+      fin && !isNaN(fin.getTime())
+        ? `${fin.toLocaleDateString(locale, { day: "2-digit", month: "2-digit" })} ${en ? "at" : "à"} ${fin.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`
+        : null;
+    return {
+      titre: e("Nombre de tentatives dépassé", "Too many attempts"),
+      message: e(
+        `Vous avez atteint le nombre maximal de 5 tentatives de vérification. Par sécurité, veuillez patienter 24 heures avant de réessayer${quand ? ` (à partir du ${quand})` : ""}.`,
+        `You have reached the maximum of 5 verification attempts. For security reasons, please wait 24 hours before trying again${quand ? ` (from ${quand})` : ""}.`
+      ),
+      probleme_visage: false,
+    };
+  }
+
   if (decision.includes("REPRENDRE_PHOTO")) {
     if (details.some((d) => /floue/i.test(d))) {
       return {
@@ -173,7 +190,7 @@ export function expliquerDecision(result: KycReponse, lang: Langue = "fr"): Expl
     };
   }
 
-  if (decision.includes("VISAGE NON CONCORDANT") || decision.includes("ÉCHEC FACIAL")) {
+  if (decision.includes("VISAGE NON CONCORDANT")) {
     return visageNonConcordant;
   }
 
