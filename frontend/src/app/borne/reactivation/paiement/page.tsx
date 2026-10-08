@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
 import { identiteValidee } from "@/lib/kyc.decision";
+import { lireDemandeSoumise, memoriserDemande } from "@/lib/kiosk-demande";
 
 // Prix par défaut si le backend ne répond pas
 const PRIX_DEFAUT = 10000;
@@ -29,6 +30,7 @@ export default function PaiementReactivation() {
   const [numero, setNumero] = useState("—");
   const [motif, setMotif] = useState("—");
   const [isEsimFlow, setIsEsimFlow] = useState(false);
+  const envoiEnCours = useRef(false);
 
   // Écouter le message de succès de l'Iframe Lengo Pay
   useEffect(() => {
@@ -75,6 +77,10 @@ export default function PaiementReactivation() {
   }, []);
 
   const validerPaiementReactivation = async (paymentInfo: { method: string; reference: string }) => {
+    // Une seule demande par parcours : le message de succès Lengo Pay peut arriver deux fois,
+    // et un double appui ne doit pas créer un doublon dans le back-office.
+    if (envoiEnCours.current || lireDemandeSoumise()) return;
+    envoiEnCours.current = true;
     setIsLoading(true);
     setError("");
     try {
@@ -120,6 +126,7 @@ export default function PaiementReactivation() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Erreur serveur");
 
+      memoriserDemande({ numeroDossier: data.numeroDossier, demandeId: data.demandeId });
       sessionStorage.setItem("ticket_ref", data.numeroDossier);
       sessionStorage.setItem("demande_id", data.demandeId);
       sessionStorage.setItem("reactivation_montant_paye", prix.toString());
@@ -154,6 +161,7 @@ export default function PaiementReactivation() {
           : "Une erreur est survenue lors de la validation. Veuillez réessayer."
       );
       setPaymentUrl(null); // Permet de réessayer
+      envoiEnCours.current = false;
     } finally {
       setIsLoading(false);
     }
