@@ -132,7 +132,7 @@ Réponds brièvement et poliment.
         'Authorization': `Bearer ${grokApiKey}`,
       },
       body: JSON.stringify({
-        model: "qwen/qwen3.6-27b",
+        model: "qwen/qwen3.8-27b",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `[Path: ${currentPath}] ${message}` }
