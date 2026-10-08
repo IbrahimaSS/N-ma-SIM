@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
 
     // ══════════════════════════════════════════════════════════════════
     // APPEL AU LLM GROQ — seulement si pas de règle déterministe
-    // Modèle : qwen/qwen3.6-27b (llama-3.1/3.3-70b-versatile décommissionnés par Groq,
+    // Modèle : qwen/qwen3.8-27b (llama-3.1/3.3-70b-versatile décommissionnés par Groq,
     // migration recommandée — même modèle déjà utilisé dans admin-agent/route.ts)
     // ══════════════════════════════════════════════════════════════════
     const groqApiKey = process.env.GROK_API_KEY;
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${groqApiKey}`,
       },
       body: JSON.stringify({
-        model: 'qwen/qwen3.6-27b',
+        model: 'qwen/qwen3.8-27b',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message || (isFr ? 'Guide-moi pour cette étape.' : 'Guide me for this step.') }
