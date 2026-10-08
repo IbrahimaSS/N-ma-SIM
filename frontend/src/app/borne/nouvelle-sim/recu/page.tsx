@@ -11,6 +11,7 @@ import { SuccessScreen } from "@/components/borne/SuccessScreen";
 import { OrangeMoneyChoice } from "@/components/borne/OrangeMoneyChoice";
 import { getKycResult } from "@/lib/kyc.storage";
 import { identiteValidee } from "@/lib/kyc.decision";
+import { lireDemandeSoumise, memoriserDemande } from "@/lib/kiosk-demande";
 import type { Offer } from "@/types";
 
 // Type local minimal pour l'offre sauvegardée en sessionStorage
@@ -100,6 +101,15 @@ function RecuContent() {
       const prenom = finalClientInfo.prenom || champs.prenom || "";
       if (nom || prenom) setNomClient(`${prenom} ${nom}`.trim());
 
+      // Demande déjà enregistrée pour ce parcours (écran rechargé, ex. après "Terminer") :
+      // on reprend son numéro au lieu d'en créer une deuxième.
+      const dejaSoumise = lireDemandeSoumise();
+      if (dejaSoumise?.numeroDossier) {
+        setNumeroDossier(dejaSoumise.numeroDossier);
+        if (dejaSoumise.demandeId) setDemandeId(dejaSoumise.demandeId);
+        return;
+      }
+
       setIsSubmitting(true);
       try {
         // ✅ Correspondance correcte des champs KYC
@@ -131,6 +141,7 @@ function RecuContent() {
           const data = await res.json();
           if (data.numeroDossier) setNumeroDossier(data.numeroDossier);
           if (data.demandeId) setDemandeId(data.demandeId);
+          memoriserDemande({ numeroDossier: data.numeroDossier, demandeId: data.demandeId });
         } else {
           console.error("[RECU] Erreur soumission", await res.text());
           setNumeroDossier("NMA-" + Date.now().toString().slice(-6));

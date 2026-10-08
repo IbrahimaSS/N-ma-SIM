@@ -8,6 +8,7 @@ import {
   HelpCircle, ArrowRight, Check, Hand,
 } from "lucide-react";
 import { QrCode } from "@/components/QrCode";
+import { resetKioskSession } from "@/lib/kiosk-guard";
 
 export default function Accueil() {
   const router = useRouter();
@@ -15,6 +16,12 @@ export default function Accueil() {
   const [lang, setLang] = useState<"fr" | "en" | "sus" | "pou" | "mal">("fr");
   const [profile, setProfile] = useState<"resident" | "etranger" | null>(null);
   const [showModal, setShowModal] = useState(false);
+
+  // Nouveau client : on repart d'une session vide (infos, KYC, n° de dossier du client précédent).
+  // Doit rester AVANT l'effet ci-dessous, qui réécrit la langue et le profil choisis.
+  useEffect(() => {
+    resetKioskSession();
+  }, []);
 
   // Sauvegarde globale de la session pour l'Agent IA et les autres pages
   useEffect(() => {

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Loader2, Wifi, Smartphone, CheckCircle2 } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
 import { identiteValidee } from "@/lib/kyc.decision";
+import { lireDemandeSoumise, memoriserDemande } from "@/lib/kiosk-demande";
 
 export default function EsimGeneration() {
   const router = useRouter();
@@ -28,6 +29,12 @@ export default function EsimGeneration() {
 
     if (isGenerating.current) return;
     isGenerating.current = true;
+
+    // eSIM déjà générée pour ce parcours (écran rechargé) : ni nouvelle demande, ni nouveau profil.
+    if (sessionStorage.getItem("kiosk_esim_profile")) {
+      router.replace("/borne/nouvelle-sim/esim/qr-code");
+      return;
+    }
 
     const run = async () => {
       setStatus("generating");
@@ -52,9 +59,10 @@ export default function EsimGeneration() {
         }
 
         // 1. Enregistrer la demande dans le back-office (Client + DemandeSIM + Paiement, statut VALIDEE)
-        let numeroDossier: string | undefined;
-        let demandeId: string | undefined;
-        try {
+        const dejaSoumise = lireDemandeSoumise();
+        let numeroDossier: string | undefined = dejaSoumise?.numeroDossier;
+        let demandeId: string | undefined = dejaSoumise?.demandeId;
+        if (!numeroDossier) try {
           const res = await fetch("/api/soumettre-demande", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -89,6 +97,7 @@ export default function EsimGeneration() {
             const data = await res.json();
             numeroDossier = data.numeroDossier;
             demandeId = data.demandeId;
+            memoriserDemande({ numeroDossier, demandeId });
           } else {
             console.error("[ESIM] Soumission demande échouée", await res.text());
           }
