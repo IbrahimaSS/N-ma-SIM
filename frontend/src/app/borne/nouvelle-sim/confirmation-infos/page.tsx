@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { Info, ChevronRight, ArrowLeft, FileText, User as UserIcon, Clock, CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
 import { libelleNumeroPiece, libelleNumeroPersonnel } from "@/lib/piece";
+import { expliquerDecision } from "@/lib/kyc.decision";
 import type { KycReponse } from "@/types/kyc";
 
 export default function ConfirmationInfos() {
@@ -138,19 +139,11 @@ export default function ConfirmationInfos() {
     decisionPendingSelfieDetail: lang === "en"
       ? "Check your information, then take your selfie to complete the verification."
       : "Vérifiez vos informations, puis prenez votre selfie pour terminer la vérification.",
-    decisionRetakePhoto: lang === "en" ? "ID document photo not readable" : "Photo de la pièce illisible",
-    decisionRetakePhotoDetail: lang === "en"
-      ? "Go back and scan your ID again (front and back for an ID card or passport), flat and well lit."
-      : "Revenez en arrière et scannez à nouveau votre pièce (recto et verso pour une CNI ou un passeport), bien à plat et éclairée.",
     decisionAccepted: lang === "en" ? "✅ Identity validated by the System" : "✅ Identité validée par le Système",
     decisionManual: lang === "en" ? "⚠️ Human verification required" : "⚠️ Vérification humaine requise",
-    decisionRejected: lang === "en" ? "❌ Identity rejected" : "❌ Identité rejetée",
     decisionManualDetail: lang === "en"
       ? "Your request will be reviewed by an agent before continuing."
       : "Votre demande sera vérifiée par un agent avant de continuer.",
-    decisionRejectedDetail: lang === "en"
-      ? "The system was unable to validate your identity. Please contact an agent."
-      : "Le système n'a pas pu valider votre identité. Veuillez contacter un agent.",
     similarity: lang === "en" ? "Face similarity" : "Similarité faciale",
     loading: lang === "en" ? "Loading your information..." : "Chargement de vos informations...",
     noKyc: lang === "en" ? "No system result found. Information must be filled in manually." : "Aucun résultat système trouvé. Les informations doivent être saisies manuellement.",
@@ -168,12 +161,13 @@ export default function ConfirmationInfos() {
     const simPct = faceResult?.similarite != null ? Math.round(faceResult.similarite * 100) : null;
 
     if (decisionUpper.includes("REPRENDRE_PHOTO")) {
+      const { titre, message } = expliquerDecision(kycResult, lang);
       return (
         <div className="mb-5 p-4 bg-warning/10 border border-warning/30 rounded-xl flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold text-warning">{t.decisionRetakePhoto}</p>
-            <p className="text-sm text-warning/80 mt-1">{t.decisionRetakePhotoDetail}</p>
+            <p className="font-bold text-warning">{titre}</p>
+            <p className="text-sm text-warning/80 mt-1">{message}</p>
           </div>
         </div>
       );
@@ -217,19 +211,13 @@ export default function ConfirmationInfos() {
     }
 
     if (decisionUpper.includes("REJET")) {
+      const { titre, message } = expliquerDecision(kycResult, lang);
       return (
         <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
           <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="w-full">
-            <p className="font-bold text-red-600">{t.decisionRejected}</p>
-            <p className="text-sm text-red-500 mt-1 mb-2">{t.decisionRejectedDetail}</p>
-            {kycResult.details && kycResult.details.length > 0 && (
-              <ul className="text-xs text-red-700 bg-red-100/50 p-2 rounded-lg list-disc pl-5">
-                {kycResult.details.map((detail, idx) => (
-                  <li key={idx}>{detail}</li>
-                ))}
-              </ul>
-            )}
+            <p className="font-bold text-red-600">{titre}</p>
+            <p className="text-sm text-red-500 mt-1">{message}</p>
           </div>
         </div>
       );

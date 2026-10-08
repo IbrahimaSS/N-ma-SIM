@@ -117,7 +117,7 @@ export default function Selfie() {
       // Sauvegarder le résultat pour la page suivante
       await saveKycResult(result);
 
-      const verdict = interpreterDecisionSelfie(result);
+      const verdict = interpreterDecisionSelfie(result, lang);
       if (!verdict.valide) {
         setKycError(verdict.message);
         setSelfieFile(null);

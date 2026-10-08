@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { CheckCircle2, AlertTriangle, XCircle, Home, User as UserIcon, Calendar, FileText, MapPin, Loader2, Phone, Hash } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
 import { libelleNumeroPiece, libelleNumeroPersonnel } from "@/lib/piece";
+import { expliquerDecision } from "@/lib/kyc.decision";
 import type { KycReponse } from "@/types/kyc";
 
 export default function VerificationResultat() {
@@ -94,8 +95,7 @@ export default function VerificationResultat() {
   const simPct = faceResult?.similarite != null ? Math.round(faceResult.similarite * 100) : null;
   const isAccepted = decisionUpper.includes("ACCEPT");
   const isRejected = decisionUpper.includes("REJET");
-  // Cas spécifique : visage non concordant (rejeté à cause du selfie)
-  const isFaceMismatch = isRejected && details?.some((d: string) => d.toLowerCase().includes("visage"));
+  const explication = isAccepted ? null : expliquerDecision(kycResult, lang);
 
   return (
     <Card className="w-full max-w-4xl mx-auto p-4">
@@ -122,7 +122,7 @@ export default function VerificationResultat() {
           )}
           
           <h3 className={`text-2xl font-extrabold mb-1 ${isAccepted ? "text-success" : isRejected ? "text-red-600" : "text-warning"}`}>
-            {isAccepted ? t.accepted : isRejected ? t.rejected : t.manual}
+            {isAccepted ? t.accepted : explication?.titre}
           </h3>
           
           {simPct != null && (
@@ -131,19 +131,9 @@ export default function VerificationResultat() {
             </p>
           )}
 
-          {/* Message spécifique si visage non concordant */}
-          {isFaceMismatch && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 max-w-md w-full text-center">
-              <p className="text-red-700 font-bold text-sm mb-1">{lang === "en" ? "⚠️ Face mismatch" : "⚠️ Visage non concordant"}</p>
-              <p className="text-red-600 text-xs">{lang === "en" ? "The captured selfie does not match the photo on the ID. Please contact an agent or try again." : "Le selfie capturé ne correspond pas à la photo présente sur la pièce d'identité. Veuillez contacter un agent ou recommencer."}</p>
-            </div>
-          )}
-
-          {details && details.length > 0 && !isAccepted && !isFaceMismatch && (
-            <div className="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-200 max-w-md w-full text-left">
-              <ul className="text-sm text-gray-700 space-y-1 list-disc pl-5">
-                {details.map((d: string, i: number) => <li key={i}>{d}</li>)}
-              </ul>
+          {explication && (
+            <div className={`mt-4 rounded-xl p-4 max-w-md w-full text-center border ${isRejected ? "bg-red-50 border-red-200" : "bg-warning/10 border-warning/30"}`}>
+              <p className={`text-sm ${isRejected ? "text-red-600" : "text-warning"}`}>{explication.message}</p>
             </div>
           )}
         </div>
