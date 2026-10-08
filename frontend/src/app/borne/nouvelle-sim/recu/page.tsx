@@ -133,7 +133,9 @@ function RecuContent() {
               methode: parsedPayment?.method === "Orange Money" ? "ORANGE_MONEY" : "LENGO_PAY",
               reference: parsedPayment?.reference || undefined,
             },
-            kyc_result: kycResult ? { decision: kycResult.decision, details: kycResult.details } : undefined,
+            kyc_result: kycResult
+              ? { decision: kycResult.decision, details: kycResult.details, champs: kycResult.champs, face: kycResult.face ?? kycResult.visage }
+              : undefined,
           }),
         });
 

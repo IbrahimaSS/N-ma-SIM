@@ -18,14 +18,14 @@ export async function POST(request: Request) {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        // Token système interne — la borne a accès sans login agent
-        "Authorization": `Bearer ${process.env.KIOSK_SYSTEM_TOKEN || "kiosk-system"}`,
+        // Appel interne de la borne (même mécanisme que soumettre-demande), sans login agent
+        "x-internal-service": "kiosk-borne",
       },
+      // Le résultat KYC réel (OCR, visage, similarité) est déjà enregistré à la soumission :
+      // on ne l'écrase pas ici par des valeurs fixes.
       body: JSON.stringify({
         statut: "VALIDEE",
         commentaireAdmin: "Validation automatique borne libre-service.",
-        verificationOCR: true,
-        verificationSelfie: true,
       }),
     });
 

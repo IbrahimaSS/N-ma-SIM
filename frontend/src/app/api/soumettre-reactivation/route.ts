@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { champsVerificationKyc } from "@/lib/kyc.verification";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
 
@@ -86,16 +87,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "ID demande non reçu" }, { status: 500 });
     }
 
-    // ─── 3. Mettre à jour le score KYC si disponible ─────────────────────
+    // ─── 3. Enregistrer le résultat N'ma SIM (KYC) ───────────────────────
     if (kyc_result) {
       await fetch(`${BACKEND_URL}/api/demandes/${demandeId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scoreVerification: kyc_result.score || null,
-          verificationOCR: kyc_result.champs ? true : false,
-          verificationSelfie: kyc_result.selfie?.verifie ?? null,
-        }),
+        headers: { "Content-Type": "application/json", "x-internal-service": "kiosk-borne" },
+        body: JSON.stringify(champsVerificationKyc(kyc_result)),
       });
     }
 
