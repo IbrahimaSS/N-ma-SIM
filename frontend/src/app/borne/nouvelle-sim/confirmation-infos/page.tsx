@@ -109,8 +109,8 @@ export default function ConfirmationInfos() {
   const t = {
     title: lang === "en" ? "Step 2/6 — Confirm your information" : "Étape 2/6 — Confirmation des informations",
     subtitle: lang === "en"
-      ? "The information below was pre-filled from your ID document. Please verify and correct if necessary."
-      : "Les informations ci-dessous ont été pré-remplies automatiquement à partir de votre pièce d'identité. Vérifiez et corrigez si nécessaire.",
+      ? "Make sure the information below matches your ID document."
+      : "Vérifiez que les informations ci-dessous correspondent à votre pièce d'identité.",
     service: lang === "en" ? "Service:" : "Service :",
     serviceVal: lang === "en" ? "New SIM" : "Nouvelle SIM",
     profileLabel: lang === "en" ? "Profile:" : "Profil :",
@@ -135,10 +135,10 @@ export default function ConfirmationInfos() {
     back: lang === "en" ? "Back" : "Retour",
     confirm: lang === "en" ? "Confirm and continue" : "Confirmer et continuer",
     // Décisions IA
-    decisionPendingSelfie: lang === "en" ? "ID document read successfully" : "Pièce d'identité lue avec succès",
+    decisionPendingSelfie: lang === "en" ? "Your ID document has been read" : "Votre pièce d'identité a été lue",
     decisionPendingSelfieDetail: lang === "en"
-      ? "Check your information, then take your selfie to complete the verification."
-      : "Vérifiez vos informations, puis prenez votre selfie pour terminer la vérification.",
+      ? "If everything is correct, confirm to continue to the verification photo (selfie). If any information is wrong, go back and scan your document again."
+      : "Si tout est exact, confirmez pour passer à la photo de vérification (selfie). Si une information est erronée, revenez en arrière et scannez à nouveau votre pièce.",
     decisionAccepted: lang === "en" ? "✅ Identity validated by the System" : "✅ Identité validée par le Système",
     decisionManual: lang === "en" ? "⚠️ Human verification required" : "⚠️ Vérification humaine requise",
     decisionManualDetail: lang === "en"
@@ -289,13 +289,6 @@ export default function ConfirmationInfos() {
           </div>
         )}
 
-        {/* Formulaire pré-rempli — verrouillé si extraction KYC disponible */}
-        {isLocked && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <p className="text-sm text-blue-700 font-medium">{t.infoNote}</p>
-          </div>
-        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 mb-5">
           <Input
             label={t.lastName}
