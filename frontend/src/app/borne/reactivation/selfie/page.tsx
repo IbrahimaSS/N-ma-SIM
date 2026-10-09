@@ -9,6 +9,7 @@ import { Upload, Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, L
 import { CameraCapture } from "@/components/borne/CameraCapture";
 import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { SuccessOverlay } from "@/components/borne/SuccessOverlay";
+import { ErrorOverlay } from "@/components/borne/ErrorOverlay";
 import { verifierKYC } from "@/lib/kyc.client";
 import { interpreterDecisionSelfie } from "@/lib/kyc.decision";
 import { getKycImage, saveKycImage, saveKycResult } from "@/lib/kyc.storage";
@@ -23,6 +24,9 @@ export default function ReactivationSelfie() {
   const [kycResult, setKycResult] = useState<KycReponse | null>(null);
   const [kycError, setKycError] = useState<string | null>(null);
   const [cameraMode, setCameraMode] = useState(false);
+  // Échec affiché au centre de l'écran (ErrorOverlay) ; la caméra se rouvre à la fermeture si besoin
+  const [showErrorOverlay, setShowErrorOverlay] = useState(false);
+  const relancerCameraRef = useRef(false);
   const [successTarget, setSuccessTarget] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
   // Anti-double-appel : le bouton "Continuer" reste cliquable pendant les 1.5s de lancement
@@ -92,7 +96,8 @@ export default function ReactivationSelfie() {
         setIsAnalyzing(false);
         // Problème de visage : on rouvre la caméra. Les autres motifs (pièce illisible,
         // mineur, document expiré...) ne se règlent pas en reprenant un selfie.
-        if (verdict.relancerCamera) setCameraMode(true);
+        relancerCameraRef.current = verdict.relancerCamera;
+        setShowErrorOverlay(true);
         return; // Ne pas naviguer vers la vérification
       }
 
@@ -102,6 +107,8 @@ export default function ReactivationSelfie() {
     } catch (err) {
       const kycErr = err as KycError;
       setKycError(kycErr.message || (lang === "en" ? "Unknown error." : "Erreur inconnue."));
+      relancerCameraRef.current = false;
+      setShowErrorOverlay(true);
     } finally {
       setIsAnalyzing(false);
       isVerifyingRef.current = false;
@@ -132,6 +139,15 @@ export default function ReactivationSelfie() {
         visible={!!successTarget}
         lang={lang}
         onComplete={() => { if (successTarget) router.push(successTarget); }}
+      />
+      <ErrorOverlay
+        visible={showErrorOverlay && !!kycError}
+        lang={lang}
+        message={kycError ?? ""}
+        onClose={() => {
+          setShowErrorOverlay(false);
+          if (relancerCameraRef.current) setCameraMode(true);
+        }}
       />
       <input ref={selfieInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="hidden" onChange={handleFileSelect} />
       <CardHeader className="pb-6">
@@ -189,10 +205,17 @@ export default function ReactivationSelfie() {
               </div>
             ) : kycResult ? (
               <div className="flex flex-col gap-3 flex-grow">
-                <div className="bg-success/15 border border-success/30 rounded-xl p-4 flex items-center gap-3 mb-2">
-                  <ShieldCheck className="w-6 h-6 text-success" />
-                  <span className="font-bold text-success text-lg">{t.detected}</span>
-                </div>
+                {kycError ? (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 mb-2">
+                    <XCircle className="w-6 h-6 text-red-600" />
+                    <span className="font-bold text-red-700 text-lg">{lang === "en" ? "Face not validated" : "Visage non validé"}</span>
+                  </div>
+                ) : (
+                  <div className="bg-success/15 border border-success/30 rounded-xl p-4 flex items-center gap-3 mb-2">
+                    <ShieldCheck className="w-6 h-6 text-success" />
+                    <span className="font-bold text-success text-lg">{t.detected}</span>
+                  </div>
+                )}
                 {kycResult.visage && (
                   <div className="flex items-center gap-3 text-sm text-text-main font-medium">
                     <CheckCircle2 className="w-5 h-5 text-success" />
