@@ -72,7 +72,7 @@ export default function VerificationScanPiece() {
     capturingVerso: lang === "en" ? "Capturing: Back" : "Capture : Verso",
   };
 
-  const needsVerso = docType === "cni" || docType === "passeport";
+  const needsVerso = docType === "cni" || docType === "passeport" || docType === "permis";
   const canContinue = !!rectoFile && (!needsVerso || !!versoFile);
 
   const handleRectoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -118,8 +118,8 @@ export default function ScanPiece() {
     capturingVerso: lang === "en" ? "Capturing: Back (verso)" : "Capture : Verso",
   };
 
-  // Le verso est obligatoire pour CNI et Passeport
-  const needsVerso = docType === "cni" || docType === "passeport";
+  // Le verso est obligatoire pour CNI, passeport et permis
+  const needsVerso = docType === "cni" || docType === "passeport" || docType === "permis";
   const hasRecto = !!rectoFile;
   const hasVerso = !!versoFile;
   // Prêt à continuer : recto obligatoire, verso obligatoire seulement si needsVerso
@@ -214,7 +214,7 @@ export default function ScanPiece() {
         setRectoFile(file);
         setRectoPreviewUrl(URL.createObjectURL(file));
         // Demander le verso si nécessaire
-        if (docType === "cni" || docType === "passeport") {
+        if (docType === "cni" || docType === "passeport" || docType === "permis") {
           setTimeout(() => direInstructions(lang, "verso", "nouvelle-sim"), 500);
         }
       } else {

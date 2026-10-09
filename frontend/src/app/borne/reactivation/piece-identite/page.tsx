@@ -100,7 +100,7 @@ export default function ReactivationPieceIdentite() {
     capturingVerso: lang === "en" ? "Capturing: Back (verso)" : "Capture : Verso",
   };
 
-  const needsVerso = docType === "cni" || docType === "passeport";
+  const needsVerso = docType === "cni" || docType === "passeport" || docType === "permis";
   const hasRecto = !!rectoFile;
   const hasVerso = !!versoFile;
   const canContinue = hasRecto && (!needsVerso || hasVerso);
@@ -165,7 +165,7 @@ export default function ReactivationPieceIdentite() {
         setRectoFile(file); 
         setRectoPreviewUrl(URL.createObjectURL(file)); 
         // Demander le verso si nécessaire
-        if (docType === "cni" || docType === "passeport") {
+        if (docType === "cni" || docType === "passeport" || docType === "permis") {
           setTimeout(() => direInstructions(lang, "verso", "reactivation"), 500);
         }
       } else { 
