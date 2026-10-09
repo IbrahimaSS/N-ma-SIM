@@ -5,13 +5,15 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, ScanLine } from "lucide-react";
+import { Camera, CheckCircle2, Info, ChevronRight, ArrowLeft, XCircle, Loader2, ScanLine, AlertTriangle } from "lucide-react";
 import { CameraCapture } from "@/components/borne/CameraCapture";
 import { ExtractionOverlay } from "@/components/borne/ExtractionOverlay";
 import { saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import { verifierKYC } from "@/lib/kyc.client";
 import { scannerViaImprimante } from "@/lib/materiel/scanner.client";
 import { jouerAudioLocal } from "@/lib/soussou-audio";
+import { recadrerPiece, type StatutRecadrage } from "@/lib/kyc.recadrage";
+import { useLancementAuto, useSelectionFichier } from "@/lib/useLancementAuto";
 
 // Helper pour déclencher l'audio local (Soussou / Malinké) des instructions recto/verso
 function direInstructions(lang: string, type: "recto" | "verso", service: "nouvelle-sim" | "reactivation") {
@@ -42,6 +44,12 @@ export default function ScanPiece() {
   // Scan via l'imprimante-scanner physique
   const [scanningTarget, setScanningTarget] = useState<CameraTarget | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
+
+  // Recadrage automatique de la pièce (zoom sur la carte, sans déformation)
+  const [recadrageEnCours, setRecadrageEnCours] = useState<CameraTarget | null>(null);
+  const [statuts, setStatuts] = useState<Partial<Record<CameraTarget, StatutRecadrage>>>({});
+  // Fenêtre de choix de fichier ouverte : le lancement automatique attend
+  const selection = useSelectionFichier();
 
   // Caméra
   const [cameraMode, setCameraMode] = useState(false);
@@ -116,6 +124,13 @@ export default function ScanPiece() {
     cameraError: lang === "en" ? "Camera not accessible. Please check permissions." : "Caméra inaccessible. Vérifiez les autorisations.",
     capturingRecto: lang === "en" ? "Capturing: Front (recto)" : "Capture : Recto",
     capturingVerso: lang === "en" ? "Capturing: Back (verso)" : "Capture : Verso",
+    cropping: lang === "en" ? "Framing the document..." : "Cadrage de la pièce...",
+    notFound: lang === "en" ? "No document detected" : "Aucune pièce détectée",
+    notFoundHelp: lang === "en"
+      ? "We could not find your document in the image. Place it flat and fully visible, then press « Change » to take the picture again."
+      : "Nous ne trouvons pas votre pièce sur l'image. Posez-la bien à plat et entièrement visible, puis appuyez sur « Changer » pour la reprendre.",
+    cancelAuto: lang === "en" ? "Cancel automatic start" : "Annuler le lancement automatique",
+    autoLaunch: (s: number) => lang === "en" ? `Analysis starts automatically in ${s} s...` : `L'analyse démarre automatiquement dans ${s} s...`,
   };
 
   // Le verso est obligatoire pour CNI, passeport et permis
@@ -124,27 +139,43 @@ export default function ScanPiece() {
   const hasVerso = !!versoFile;
   // Prêt à continuer : recto obligatoire, verso obligatoire seulement si needsVerso
   const canContinue = hasRecto && (!needsVerso || hasVerso);
+  // Une face où aucune pièce n'a été détectée bloque le lancement automatique
+  const pieceIntrouvable = statuts.recto === "introuvable" || (needsVerso && statuts.verso === "introuvable");
+
+  /** Toute image (import, caméra, scanner) passe par ici : recadrage sur la pièce puis aperçu */
+  const definirImage = async (target: CameraTarget, brut: File) => {
+    setRecadrageEnCours(target);
+    const { file, statut } = await recadrerPiece(brut);
+    if (target === "recto") {
+      if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
+      setRectoFile(file);
+      setRectoPreviewUrl(URL.createObjectURL(file));
+    } else {
+      if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
+      setVersoFile(file);
+      setVersoPreviewUrl(URL.createObjectURL(file));
+    }
+    setStatuts((s) => ({ ...s, [target]: statut }));
+    setSaveError(null);
+    setRecadrageEnCours(null);
+  };
 
   /** Import fichier recto */
   const handleRectoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    selection.fermer();
     const file = e.target.files?.[0];
     if (!file) return;
-    if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
-    setRectoFile(file);
-    setRectoPreviewUrl(URL.createObjectURL(file));
-    setSaveError(null);
     e.target.value = "";
+    definirImage("recto", file);
   };
 
   /** Import fichier verso */
   const handleVersoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    selection.fermer();
     const file = e.target.files?.[0];
     if (!file) return;
-    if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
-    setVersoFile(file);
-    setVersoPreviewUrl(URL.createObjectURL(file));
-    setSaveError(null);
     e.target.value = "";
+    definirImage("verso", file);
   };
 
   /** Scanner via l'imprimante-scanner physique (le document doit déjà être posé sur la vitre) */
@@ -153,16 +184,7 @@ export default function ScanPiece() {
     setScanningTarget(target);
     try {
       const file = await scannerViaImprimante(`${target}_scan.jpg`);
-      if (target === "recto") {
-        if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
-        setRectoFile(file);
-        setRectoPreviewUrl(URL.createObjectURL(file));
-      } else {
-        if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
-        setVersoFile(file);
-        setVersoPreviewUrl(URL.createObjectURL(file));
-      }
-      setSaveError(null);
+      await definirImage(target, file);
     } catch (err) {
       setScanError(err instanceof Error ? err.message : "Erreur de scan.");
     } finally {
@@ -237,6 +259,7 @@ export default function ScanPiece() {
     setRectoPreviewUrl(null);
     setVersoFile(null);
     setVersoPreviewUrl(null);
+    setStatuts({});
     setSaveError(null);
     // Déclenche l'instruction vocale
     direInstructions(lang, "recto", "nouvelle-sim");
@@ -244,7 +267,7 @@ export default function ScanPiece() {
 
   /** Sauvegarde dans IndexedDB puis navigation */
   const handleContinue = async () => {
-    if (!rectoFile) return;
+    if (!rectoFile || isSaving) return;
     setIsSaving(true);
     setSaveError(null);
     try {
@@ -286,6 +309,15 @@ export default function ScanPiece() {
     }
   };
 
+  // Extraction lancée toute seule 5 s après que toutes les faces requises sont prêtes
+  // (le client peut encore appuyer sur « Changer » pendant ce délai).
+  const { restant: lancementDans, annuler: annulerLancement } = useLancementAuto(
+    canContinue ? `${docType}|${rectoPreviewUrl}|${needsVerso ? versoPreviewUrl : ""}` : null,
+    canContinue && !cameraMode && !recadrageEnCours && !scanningTarget && !pieceIntrouvable && !selection.ouverte,
+    isSaving,
+    handleContinue,
+  );
+
   // ─── Composant réutilisable : zone de capture (recto ou verso) ───────────────
   const CaptureZone = ({
     label,
@@ -294,8 +326,8 @@ export default function ScanPiece() {
     onCamera,
     onScan,
     isScanning,
-    inputRef,
-    onSelect,
+    isProcessing,
+    statut,
   }: {
     label: string;
     previewUrl: string | null;
@@ -303,22 +335,20 @@ export default function ScanPiece() {
     onCamera: () => void;
     onScan: () => void;
     isScanning: boolean;
-    inputRef: React.RefObject<HTMLInputElement | null>;
-    onSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    isProcessing: boolean;
+    statut?: StatutRecadrage;
   }) => (
     <div className="border border-border-light rounded-xl p-4 bg-gray-50 flex flex-col gap-3">
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="hidden"
-        onChange={onSelect}
-      />
       <h4 className="font-bold text-text-main text-sm">{label}</h4>
 
-      {/* Aperçu */}
-      <div className="w-full h-28 bg-white rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm relative">
-        {previewUrl ? (
+      {/* Aperçu : la pièce recadrée est zoomée dans le cadre, sans déformation */}
+      <div className="w-full h-36 bg-white rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm relative">
+        {isProcessing ? (
+          <div className="flex flex-col items-center gap-2 text-primary">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span className="text-xs font-semibold">{t.cropping}</span>
+          </div>
+        ) : previewUrl ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewUrl} alt={label} className="w-full h-full object-contain" />
@@ -343,11 +373,11 @@ export default function ScanPiece() {
       </div>
 
       {/* Boutons Import / Caméra / Scanner */}
-      {!previewUrl ? (
-        <div className="grid grid-cols-2 gap-2">
+      {isProcessing ? null : !previewUrl ? (
+        <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto w-full">
           <button
             onClick={onCamera}
-            className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group"
+            className="flex flex-col items-center justify-center py-2 px-3 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group"
           >
             <Camera className="w-5 h-5 text-primary mb-1 group-hover:scale-110 transition-transform" />
             <span className="text-xs font-bold text-primary">{t.takePhoto}</span>
@@ -355,7 +385,7 @@ export default function ScanPiece() {
           <button
             onClick={onScan}
             disabled={isScanning}
-            className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group disabled:opacity-60 disabled:cursor-wait"
+            className="flex flex-col items-center justify-center py-2 px-3 border-2 border-dashed border-border-light rounded-xl hover:border-primary hover:bg-primary/5 transition-colors group disabled:opacity-60 disabled:cursor-wait"
           >
             {isScanning ? (
               <Loader2 className="w-5 h-5 text-primary mb-1 animate-spin" />
@@ -367,8 +397,17 @@ export default function ScanPiece() {
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-success" />
-          <span className="text-xs text-success font-semibold">{t.readable}</span>
+          {statut === "introuvable" ? (
+            <>
+              <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0" />
+              <span className="text-xs text-warning font-semibold">{t.notFound}</span>
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="w-4 h-4 text-success" />
+              <span className="text-xs text-success font-semibold">{t.readable}</span>
+            </>
+          )}
           <button
             onClick={onImport}
             className="ml-auto text-xs text-primary underline hover:text-primary/70 transition-colors"
@@ -383,6 +422,11 @@ export default function ScanPiece() {
   return (
     <Card className="w-full p-2">
       <ExtractionOverlay visible={isSaving} lang={lang} />
+      {/* Champs fichier au niveau de la page (et non dans CaptureZone, recréée à chaque rendu) :
+          sinon le champ qui a ouvert la fenêtre de choix est remplacé pendant le décompte et
+          le fichier choisi est perdu. */}
+      <input ref={rectoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleRectoSelect} />
+      <input ref={versoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleVersoSelect} />
       <CardHeader className="flex flex-row items-center justify-between pb-6">
         <div>
           <CardTitle className="text-2xl">{t.title}</CardTitle>
@@ -446,17 +490,8 @@ export default function ScanPiece() {
                   mode="document"
                   label={cameraTarget === "recto" ? t.capturingRecto : t.capturingVerso}
                   onCapture={(file) => {
-                    if (cameraTarget === "recto") {
-                      if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
-                      setRectoFile(file);
-                      setRectoPreviewUrl(URL.createObjectURL(file));
-                    } else {
-                      if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
-                      setVersoFile(file);
-                      setVersoPreviewUrl(URL.createObjectURL(file));
-                    }
-                    setSaveError(null);
                     setCameraMode(false);
+                    definirImage(cameraTarget, file);
                   }}
                   onCancel={stopCamera}
                 />
@@ -465,27 +500,27 @@ export default function ScanPiece() {
 
             {/* Zones de capture : recto + verso (si besoin) */}
             {!cameraMode && (
-              <div className={`grid gap-4 mb-5 ${needsVerso ? "grid-cols-2" : "grid-cols-1"}`}>
+              <div className={`grid gap-4 mb-5 ${needsVerso ? "grid-cols-2" : "grid-cols-1 max-w-md mx-auto w-full"}`}>
                 <CaptureZone
                   label={t.previewRecto}
                   previewUrl={rectoPreviewUrl}
-                  onImport={() => rectoInputRef.current?.click()}
+                  onImport={() => selection.ouvrir(rectoInputRef)}
                   onCamera={() => openCamera("recto")}
                   onScan={() => handleScan("recto")}
                   isScanning={scanningTarget === "recto"}
-                  inputRef={rectoInputRef}
-                  onSelect={handleRectoSelect}
+                  isProcessing={recadrageEnCours === "recto"}
+                  statut={statuts.recto}
                 />
                 {needsVerso && (
                   <CaptureZone
                     label={t.previewVerso}
                     previewUrl={versoPreviewUrl}
-                    onImport={() => versoInputRef.current?.click()}
+                    onImport={() => selection.ouvrir(versoInputRef)}
                     onCamera={() => openCamera("verso")}
                     onScan={() => handleScan("verso")}
                     isScanning={scanningTarget === "verso"}
-                    inputRef={versoInputRef}
-                    onSelect={handleVersoSelect}
+                    isProcessing={recadrageEnCours === "verso"}
+                    statut={statuts.verso}
                   />
                 )}
               </div>
@@ -502,12 +537,26 @@ export default function ScanPiece() {
             {/* Statut d'analyse IA */}
             <div className="border border-border-light rounded-xl p-6 flex flex-col mb-5">
               <h4 className="font-bold text-text-main mb-4">{t.aiAnalysis}</h4>
-              {canContinue ? (
+              {canContinue && pieceIntrouvable ? (
+                <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 flex items-start gap-3">
+                  <AlertTriangle className="w-6 h-6 text-warning flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-amber-700">{t.notFound}</p>
+                    <p className="text-sm text-amber-700/90 mt-1">{t.notFoundHelp}</p>
+                  </div>
+                </div>
+              ) : canContinue ? (
                 <>
                   <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center gap-3 mb-4">
                     <CheckCircle2 className="w-6 h-6 text-primary" />
                     <span className="font-bold text-primary text-lg">{lang === "en" ? "Ready for analysis" : "Prêt pour l'analyse"}</span>
                   </div>
+                  {lancementDans !== null && (
+                    <div className="flex items-center gap-2 text-sm text-primary font-semibold mb-3">
+                      <Loader2 className="w-4 h-4 animate-spin" /> <span className="animate-pulse">{t.autoLaunch(lancementDans)}</span>
+                <button type="button" onClick={annulerLancement} className="ml-auto text-xs font-semibold text-text-muted underline hover:text-primary">{t.cancelAuto}</button>
+                    </div>
+                  )}
                   <div className="flex flex-col gap-3 flex-grow">
                     <div className="flex items-center gap-3 text-sm text-text-main">
                       <CheckCircle2 className="w-5 h-5 text-success" /> {lang === "en" ? "Photos saved" : "Photos enregistrées"}
