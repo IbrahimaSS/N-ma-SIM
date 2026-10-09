@@ -32,11 +32,17 @@ export async function scannerDocument(): Promise<Buffer> {
     }, TIMEOUT_MS);
 
     let stderr = "";
+    let stdout = "";
     proc.stderr.on("data", (d) => { stderr += d.toString(); });
+    proc.stdout.on("data", (d) => { stdout += d.toString(); });
 
     proc.on("close", (code) => {
       clearTimeout(timeout);
       if (code === 0) {
+        // Diagnostic : taille et résolution réellement obtenues (« OK 2550x3507 300dpi »),
+        // plus les avertissements du pilote (résolution refusée, etc.).
+        console.log(`[SCANNER] ${stdout.trim() || "OK"} (demandé : ${DPI} DPI)`);
+        if (stderr.trim()) console.warn(`[SCANNER] ${stderr.trim()}`);
         resolve();
       } else {
         reject(new Error(stderr.trim() || `Le scan a échoué (code ${code}).`));
