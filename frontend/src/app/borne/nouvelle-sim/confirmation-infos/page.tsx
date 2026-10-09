@@ -175,11 +175,11 @@ export default function ConfirmationInfos() {
 
     if (decisionUpper.includes("ATTENTE DU SELFIE")) {
       return (
-        <div className="mb-5 p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+        <div className="mb-5 p-4 bg-success/10 border border-success/30 rounded-xl flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold text-primary">{t.decisionPendingSelfie}</p>
-            <p className="text-sm text-text-muted mt-1">{t.decisionPendingSelfieDetail}</p>
+            <p className="font-bold text-success">{t.decisionPendingSelfie}</p>
+            <p className="text-sm text-green-800 mt-1">{t.decisionPendingSelfieDetail}</p>
           </div>
         </div>
       );
