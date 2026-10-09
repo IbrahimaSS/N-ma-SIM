@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2 } from "lucide-react";
 import { SuccessScreen } from "@/components/borne/SuccessScreen";
+import { RecuImprimable } from "@/components/borne/RecuImprimable";
 
 export default function RecuReactivation() {
   return (
@@ -27,6 +28,7 @@ function RecuContent() {
   const [isFinishing, setIsFinishing] = useState(false);
   const [lang, setLang] = useState("fr");
   const [montantPaye, setMontantPaye] = useState("10 000");
+  const [dateRecu, setDateRecu] = useState("");
 
   useEffect(() => {
     setTicketRef(sessionStorage.getItem("ticket_ref") || "NMA-RE-0000");
@@ -34,6 +36,7 @@ function RecuContent() {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
     const prixStr = sessionStorage.getItem("reactivation_montant_paye");
     if (prixStr) setMontantPaye(Number(prixStr).toLocaleString('fr-FR'));
+    setDateRecu(new Date().toLocaleString(sessionStorage.getItem("kiosk_lang") === "en" ? "en-US" : "fr-FR", { dateStyle: "short", timeStyle: "short" }));
   }, []);
 
   const handleFinish = async () => {
@@ -170,29 +173,24 @@ function RecuContent() {
         </div>
       </div>
       
-      <style dangerouslySetInnerHTML={{__html: `
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #receipt-content, #receipt-content * {
-            visibility: visible;
-          }
-          #receipt-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px;
-            box-shadow: none !important;
-            border: none !important;
-          }
-          @page {
-            margin: 0;
-          }
-        }
-      `}} />
+      <RecuImprimable
+        lang={lang}
+        service={lang === "en" ? "SIM reactivation" : "Réactivation SIM"}
+        reference={ticketRef}
+        date={dateRecu}
+        statut={lang === "en" ? "Validated" : "Validée"}
+        lignes={[
+          { label: lang === "en" ? "Service" : "Service", value: lang === "en" ? "Reactivation" : "Réactivation" },
+          { label: lang === "en" ? "Ticket number" : "Numéro de ticket", value: ticketRef },
+          { label: lang === "en" ? "Date" : "Date", value: dateRecu },
+        ]}
+        montant={`${montantPaye} GNF`}
+        qrData={`Ticket:${ticketRef}|Service:Reactivation|Montant:${montantPaye}`}
+        qrLegende={lang === "en" ? "Scan to verify this receipt" : "Scannez pour vérifier l'authenticité du reçu"}
+        note={lang === "en"
+          ? "Your network will be available within 5 minutes. Keep this receipt for any request."
+          : "Votre réseau sera disponible dans les 5 prochaines minutes. Conservez ce reçu pour toute réclamation."}
+      />
     </div>
   );
 }

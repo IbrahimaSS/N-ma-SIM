@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Home, Mail, Printer, ShieldCheck, CheckCircle2, Smartphone, Loader2 } from "lucide-react";
 import { resetKioskSession } from "@/lib/kiosk-guard";
+import { RecuImprimable } from "@/components/borne/RecuImprimable";
 
 export default function EsimQrCodeReactivation() {
   const router = useRouter();
@@ -83,13 +84,27 @@ export default function EsimQrCodeReactivation() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
-        @media print {
-          body * { visibility: hidden; }
-          #esim-receipt, #esim-receipt * { visibility: visible; }
-          #esim-receipt { position: absolute; left: 0; top: 0; width: 100%; }
-        }
-      `}} />
+      <RecuImprimable
+        service="eSIM — Réactivation"
+        reference={profile.reference}
+        date={new Date().toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
+        statut="eSIM prête"
+        lignes={[
+          { label: "Client", value: profile.nomClient },
+          { label: "Numéro de dossier", value: profile.numeroDossier },
+          { label: "Référence eSIM", value: profile.reference },
+          { label: "Validité du QR code", value: "48 heures" },
+        ]}
+        qrData={profile.qrString}
+        qrLegende="QR code d'installation — unique et à usage unique"
+        etapes={[
+          "Ouvrez les Paramètres de votre téléphone.",
+          "Sélectionnez Réseau mobile (ou Données cellulaires), puis Ajouter une eSIM.",
+          "Scannez le QR code ci-dessus.",
+          "Suivez les instructions à l'écran pour finaliser l'activation.",
+        ]}
+        note="Ne partagez pas ce QR code : il donne accès à votre ligne. Il expire 48 heures après sa génération."
+      />
       <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

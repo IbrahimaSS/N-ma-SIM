@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { SuccessScreen } from "@/components/borne/SuccessScreen";
 import { OrangeMoneyChoice } from "@/components/borne/OrangeMoneyChoice";
+import { RecuImprimable } from "@/components/borne/RecuImprimable";
 import { getKycResult } from "@/lib/kyc.storage";
 import { identiteValidee } from "@/lib/kyc.decision";
 import { lireDemandeSoumise, memoriserDemande } from "@/lib/kiosk-demande";
@@ -217,29 +218,22 @@ function RecuContent() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #receipt-content, #receipt-content * {
-            visibility: visible;
-          }
-          #receipt-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px;
-            box-shadow: none;
-            border: none;
-          }
-          @page {
-            margin: 0;
-          }
-        }
-      `}} />
+      <RecuImprimable
+        service="Nouvelle carte SIM"
+        reference={numeroDossier}
+        date={currentDate}
+        statut="Demande enregistrée"
+        lignes={[
+          { label: "Client", value: nomClient },
+          { label: "Offre choisie", value: titreOffre },
+          { label: "Moyen de paiement", value: paymentInfo.method },
+          { label: "Référence de paiement", value: paymentInfo.reference },
+          { label: "Numéro de dossier", value: numeroDossier },
+        ]}
+        montant={`${prixAffiche} GNF`}
+        qrData={`Ticket:${numeroDossier}|Client:${nomClient}|Montant:${offer?.prixGNF ?? 0}`}
+        qrLegende="Scannez pour vérifier l'authenticité du reçu"
+      />
       <div className="flex flex-col w-full pb-8 animate-in fade-in zoom-in-95 duration-500">
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 print:block">
@@ -376,7 +370,7 @@ function RecuContent() {
       {/* Footer Actions - caché à l'impression */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:hidden">
         <div className="flex gap-4">
-           <Button variant="outline" className="flex-1 bg-white h-12">
+           <Button variant="outline" className="flex-1 bg-white h-12" onClick={() => document.getElementById("receipt-content")?.scrollIntoView({ behavior: "smooth" })}>
              <Eye className="w-5 h-5 mr-2" /> Voir le reçu
            </Button>
            <Button variant="primary" className="flex-1 h-12" onClick={() => router.push("/borne/accueil")}>
