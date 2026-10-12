@@ -36,10 +36,7 @@ export function ExtractionOverlay({ visible, lang = "fr", title, subtitle }: Ext
 
   if (!visible) return null;
 
-  const resolvedTitle = title ?? (lang === "en" ? "Extracting information..." : "Extraction des informations...");
-  const resolvedSubtitle = subtitle ?? (lang === "en"
-    ? "Please wait, AI is analyzing your document."
-    : "Merci de patienter, l'IA analyse votre document.");
+  const resolvedTitle = title ?? (lang === "en" ? "Analyzing information..." : "Analyse des informations...");
 
   return (
     <div style={{
@@ -62,8 +59,8 @@ export function ExtractionOverlay({ visible, lang = "fr", title, subtitle }: Ext
           <ScanLine size={32} color="#F5BB02" />
         </div>
 
-        <p style={{ fontSize: 19, fontWeight: 900, color: "#2656A2", margin: "0 0 6px" }}>{resolvedTitle}</p>
-        <p style={{ fontSize: 13, color: "#9CA3AF", margin: "0 0 28px" }}>{resolvedSubtitle}</p>
+        <p style={{ fontSize: 19, fontWeight: 900, color: "#2656A2", margin: subtitle ? "0 0 6px" : "0 0 28px" }}>{resolvedTitle}</p>
+        {subtitle && <p style={{ fontSize: 13, color: "#9CA3AF", margin: "0 0 28px" }}>{subtitle}</p>}
 
         <div style={{ fontSize: 44, fontWeight: 900, color: "#2656A2", marginBottom: 14, fontVariantNumeric: "tabular-nums" }}>
           {Math.round(progress)}%
