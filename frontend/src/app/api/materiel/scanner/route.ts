@@ -1,15 +1,19 @@
-import { NextResponse } from "next/server";
-import { scannerDocument } from "@/lib/materiel/scanner";
+import { NextRequest, NextResponse } from "next/server";
+import { scannerPiece, type TypePiece } from "@/lib/materiel/scanner";
 
-// spawn(powershell) nécessite le runtime Node (pas edge).
+// spawn(powershell) / appel de l'API locale nécessitent le runtime Node (pas edge).
 export const runtime = "nodejs";
 
-export async function POST() {
+const TYPES: TypePiece[] = ["cni", "passeport", "carte_electeur", "permis"];
+
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => ({}));
+  const typePiece = TYPES.includes(body?.typePiece) ? (body.typePiece as TypePiece) : undefined;
   try {
-    const buffer = await scannerDocument();
-    return new NextResponse(new Uint8Array(buffer), {
+    const { image, decoupe } = await scannerPiece(typePiece);
+    return new NextResponse(new Uint8Array(image), {
       status: 200,
-      headers: { "Content-Type": "image/jpeg" },
+      headers: { "Content-Type": "image/jpeg", "X-Decoupe": decoupe ? "oui" : "non" },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur inconnue";

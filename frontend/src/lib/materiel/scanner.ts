@@ -8,6 +8,46 @@ const SCRIPT_PATH = path.join(process.cwd(), "scripts", "wia-scan.ps1");
 const DPI = Number(process.env.SCANNER_DPI) || 300;
 // Un scan couleur à 300 DPI prend généralement 5-15s selon le matériel ; on laisse de la marge.
 const TIMEOUT_MS = Number(process.env.SCANNER_TIMEOUT_MS) || 30000;
+// API Python locale (dossier Scanner/, api_scanner.py) : scan + découpe + redressement OpenCV
+const SCANNER_API_URL = (process.env.SCANNER_API_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+
+export type TypePiece = "cni" | "passeport" | "carte_electeur" | "permis";
+
+export interface ResultatScan {
+  image: Buffer;
+  /** true : pièce déjà découpée et redressée par l'API ; false : scan pleine vitre */
+  decoupe: boolean;
+}
+
+/**
+ * Scan pour la borne : d'abord via l'API Python (pièce découpée + redressée, même si elle est
+ * posée de travers), sinon — API non lancée — via wia-scan.ps1 (scan pleine vitre, recadré
+ * ensuite dans le navigateur). Une erreur du SCANNER lui-même (503) n'est pas masquée.
+ */
+export async function scannerPiece(typePiece?: TypePiece): Promise<ResultatScan> {
+  let res: Response;
+  try {
+    const form = new FormData();
+    form.set("type_carte", typePiece || "cni");
+    form.set("format_retour", "image");
+    form.set("brut_si_echec", "true");
+    res = await fetch(`${SCANNER_API_URL}/scan`, {
+      method: "POST",
+      body: form,
+      signal: AbortSignal.timeout(TIMEOUT_MS + 15000),
+    });
+  } catch {
+    console.warn(`[SCANNER] API ${SCANNER_API_URL} injoignable → repli sur wia-scan.ps1`);
+    return { image: await scannerDocument(), decoupe: false };
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || `Le scan a échoué (code ${res.status}).`);
+  }
+  const decoupe = res.headers.get("x-decoupe") === "oui";
+  console.log(`[SCANNER] API : ${res.headers.get("x-largeur")}x${res.headers.get("x-hauteur")} (${decoupe ? "pièce découpée" : "scan complet, pièce non trouvée"})`);
+  return { image: Buffer.from(await res.arrayBuffer()), decoupe };
+}
 
 /**
  * Déclenche un scan via le script PowerShell WIA (wia-scan.ps1) et retourne

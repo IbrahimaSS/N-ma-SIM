@@ -87,6 +87,10 @@ export async function recadrerPiece(file: File): Promise<ResultatRecadrage> {
   }
 
   try {
+    // Pièce déjà découpée et redressée par l'API du scanner (scanner.client.ts) : pas de
+    // nouvelle découpe, seulement la mise à l'échelle pour l'OCR.
+    if (file.name.endsWith("_decoupe.jpg")) return await exporter(image, file, "deja_cadre");
+
     // 1) Image réduite pour l'analyse
     const echelle = Math.min(1, TAILLE_ANALYSE / Math.max(image.width, image.height));
     const W = Math.max(1, Math.round(image.width * echelle));
