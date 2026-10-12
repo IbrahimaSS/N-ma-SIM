@@ -9,7 +9,7 @@ const DPI = Number(process.env.SCANNER_DPI) || 300;
 // Un scan couleur à 300 DPI prend généralement 5-15s selon le matériel ; on laisse de la marge.
 const TIMEOUT_MS = Number(process.env.SCANNER_TIMEOUT_MS) || 30000;
 // API Python locale (dossier Scanner/, api_scanner.py) : scan + découpe + redressement OpenCV
-const SCANNER_API_URL = (process.env.SCANNER_API_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+const SCANNER_API_URL = (process.env.SCANNER_API_URL || "http://127.0.0.1:8010").replace(/\/+$/, "");
 
 export type TypePiece = "cni" | "passeport" | "carte_electeur" | "permis";
 
@@ -20,25 +20,33 @@ export interface ResultatScan {
 }
 
 /**
- * Scan pour la borne : d'abord via l'API Python (pièce découpée + redressée, même si elle est
- * posée de travers), sinon — API non lancée — via wia-scan.ps1 (scan pleine vitre, recadré
- * ensuite dans le navigateur). Une erreur du SCANNER lui-même (503) n'est pas masquée.
+ * Scan pour la borne : appelle l'API Python Scanner locale (pièce découpée + redressée,
+ * même si elle est posée de travers). Si l'API est injoignable, remonte l'erreur
+ * au lieu de tenter un repli PowerShell (souvent introuvable sur certains environnements).
  */
 export async function scannerPiece(typePiece?: TypePiece): Promise<ResultatScan> {
+  const url = `${SCANNER_API_URL}/scan`;
+  console.log(`[SCANNER] Appel API Scanner : ${url} (type: ${typePiece || "cni"})`);
+
   let res: Response;
   try {
     const form = new FormData();
     form.set("type_carte", typePiece || "cni");
     form.set("format_retour", "image");
     form.set("brut_si_echec", "true");
-    res = await fetch(`${SCANNER_API_URL}/scan`, {
+    res = await fetch(url, {
       method: "POST",
       body: form,
       signal: AbortSignal.timeout(TIMEOUT_MS + 15000),
     });
-  } catch {
-    console.warn(`[SCANNER] API ${SCANNER_API_URL} injoignable → repli sur wia-scan.ps1`);
-    return { image: await scannerDocument(), decoupe: false };
+  } catch (fetchErr) {
+    const msg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+    console.error(`[SCANNER] API ${url} injoignable : ${msg}`);
+    throw new Error(
+      `Le scanner n'est pas joignable (${url}). ` +
+      `Vérifiez que "python api_scanner.py" tourne dans le dossier Scanner/. ` +
+      `Détail : ${msg}`
+    );
   }
   if (!res.ok) {
     const data = await res.json().catch(() => null);
@@ -56,15 +64,18 @@ export async function scannerPiece(typePiece?: TypePiece): Promise<ResultatScan>
  */
 export async function scannerDocument(): Promise<Buffer> {
   const outputPath = path.join(os.tmpdir(), `nma-scan-${randomUUID()}.jpg`);
+  const psExe = process.env.SYSTEMROOT
+    ? path.join(process.env.SYSTEMROOT, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+    : "powershell.exe";
 
   await new Promise<void>((resolve, reject) => {
-    const proc = spawn("powershell.exe", [
+    const proc = spawn(psExe, [
       "-NoProfile",
       "-ExecutionPolicy", "Bypass",
       "-File", SCRIPT_PATH,
       "-OutputPath", outputPath,
       "-DPI", String(DPI),
-    ]);
+    ], { windowsHide: true, shell: true });
 
     const timeout = setTimeout(() => {
       proc.kill();

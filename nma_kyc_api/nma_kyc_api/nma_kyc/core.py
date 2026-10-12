@@ -316,6 +316,7 @@ MOTS_CLES = {
     "CNI":            ["CARTE D IDENTITE", "CEDEAO", "ECOWAS IDENTITY CARD",
                        "IDENTITY CARD", "BILHETE DE IDENTIDADE"],
     "CARTE_ELECTEUR": ["CARTE D ELECTEUR", "ELECTEUR", "CENI", "BUREAU DE VOTE"],
+    "PERMIS":         ["PERMIS DE CONDUIRE", "PERMIS", "PERMIS DE CONDUIRE BIOMETRIQUE", "DRIVING LICENSE"],
 }
 
 def identifier_type(zones, type_mrz=None):
@@ -734,6 +735,9 @@ def extraire_champs(type_piece, zones_recto, zones_verso, champs_mrz):
         # Champs visuels (valeur en MAJUSCULES sous le libellé bilingue)
         champs["lieu_naissance"] = valeur_sous_libelle(zones_recto, ["PLACE OF BIRTH","LIEU DE NAISSANCE"])
         champs["autorite"]       = valeur_sous_libelle(zones_recto, ["AUTHORITY","AUTORITE"])
+    elif type_piece == "PERMIS":
+        # Extracteur dédié pour le Permis de Conduire Biométrique
+        champs.update(extraire_permis(zones_recto, zones_verso))
 
     return champs
 
@@ -816,6 +820,141 @@ def extraire_electeur(zones):
     elif re.search(r"MASCULIN", nb): champs["sexe"] = "Masculin"
     m_lieu = re.search(r"\d{2}/\d{2}/\d{4}\s+[àa]\s+([A-Za-zÀ-ÿ]+)", blob)
     champs["lieu_naissance"] = m_lieu.group(1) if m_lieu else None
+
+    return champs
+ 
+def extraire_permis(zones_recto, zones_verso=None):
+    """Extrait les champs spécifiques du Permis de Conduire Biométrique.
+    Structure typique du recto guinéen :
+      - Nom: NOM_DE_FAMILLE
+      - Prénoms: PRENOMS
+      - Date de naissance: JJ/MM/AAAA
+      - Lieu de naissance: LIEU
+      - Date de délivrance: JJ/MM/AAAA
+      - Date d'expiration (ou Date de validité): JJ/MM/AAAA
+      - Numéro de PC: XXXXXXXXXXX (ex: 00241169184 ou similaire)
+      - Groupe sanguin: O+, A+, etc.
+    """
+    champs = {}
+    blob_recto = joindre(zones_recto)
+    nb_recto = norm(blob_recto)
+    dates = trouver_dates(blob_recto)
+
+    # 1. Extraction par libellés directs dans les fragments (avec tolérance OCR)
+    for z in sorted(zones_recto, key=lambda x: (round(x["ry"] / 0.03), x["rx"])):
+        txt = z["texte"].strip()
+        ntxt = norm(txt)
+
+        # Extraction Nom
+        if re.search(r"\bNOM\b", ntxt) and not re.search(r"PRENOM", ntxt):
+            # Soit "Nom: BARRY" dans le même texte, soit juste après
+            m = re.search(r"\bNOM\s*[:\.-]?\s*([A-Za-zÀ-ÿ\-]{2,})", txt, re.I)
+            if m:
+                val = m.group(1).strip()
+                if val and val.upper() not in ("PRENOM", "PRENOMS", "DATE", "NE"):
+                    champs.setdefault("nom", val)
+
+        # Extraction Prénom(s)
+        if re.search(r"\bPRENOM", ntxt):
+            m = re.search(r"\bPRENOMS?\s*[:\.-]?\s*([A-Za-zÀ-ÿ\s\-]{2,})", txt, re.I)
+            if m:
+                val = m.group(1).strip()
+                if val:
+                    champs.setdefault("prenom", val)
+
+        # Lieu de naissance
+        if re.search(r"LIEU\s*(DE)?\s*NAISS", ntxt):
+            m = re.search(r"NAISS[A-Za-z]*\s*[:\.-]?\s*([A-Za-zÀ-ÿ\s\-]{3,})", txt, re.I)
+            if m:
+                val = m.group(1).strip()
+                if val:
+                    champs.setdefault("lieu_naissance", val)
+
+    # 2. Compléments Nom / Prénom par balayage de voisinage si non trouvés
+    seq = [z["texte"] for z in sorted(zones_recto, key=lambda z: (round(z["ry"] / 0.03), z["rx"]))]
+    for idx, t in enumerate(seq):
+        nt = norm(t).replace(" ", "")
+        if "NOM:" in nt or nt == "NOM" or nt.startswith("NOM:"):
+            if not champs.get("nom"):
+                if ":" in t and len(t.split(":", 1)[1].strip()) >= 2:
+                    champs["nom"] = t.split(":", 1)[1].strip()
+                elif idx + 1 < len(seq) and len(seq[idx + 1].strip()) >= 2:
+                    cand = seq[idx + 1].strip()
+                    if not re.search(r"PRENOM|DATE|REPUBLIQUE", norm(cand)):
+                        champs["nom"] = cand
+        if "PRENOM" in nt:
+            if not champs.get("prenom"):
+                if ":" in t and len(t.split(":", 1)[1].strip()) >= 2:
+                    champs["prenom"] = t.split(":", 1)[1].strip()
+                elif idx + 1 < len(seq) and len(seq[idx + 1].strip()) >= 2:
+                    cand = seq[idx + 1].strip()
+                    if not re.search(r"NOM|DATE|NAISS|REPUBLIQUE", norm(cand)):
+                        champs["prenom"] = cand
+
+    # 3. Numéro de permis (ex: 00241169184 ou étiquette "Numéro de PC" / "N° PC" / "PC")
+    m_pc = re.search(r"(?:NUMERO|N[°O]?)\s*(?:DE)?\s*PC\D{0,8}([A-Z0-9]{8,15})", nb_recto)
+    if m_pc:
+        champs["numero_identite"] = m_pc.group(1)
+        champs["numero_permis"] = m_pc.group(1)
+    else:
+        # Recherche directe d'une séquence de 9 à 14 chiffres isolée
+        for tok in re.findall(r"\b\d{9,14}\b", blob_recto.replace(" ", "")):
+            champs["numero_identite"] = tok
+            champs["numero_permis"] = tok
+            break
+
+    # 4. Dates : naissance, délivrance, expiration
+    # Recherche précise par libellé d'abord
+    for z in sorted(zones_recto, key=lambda x: (round(x["ry"] / 0.03), x["rx"])):
+        txt = z["texte"].strip()
+        ntxt = norm(txt)
+        d_cand = trouver_dates(txt)
+        if d_cand:
+            d_val = d_cand[0]
+            if re.search(r"NAISS", ntxt):
+                champs["date_naissance"] = d_val
+            elif re.search(r"DELIVRANCE|EMISSION", ntxt):
+                champs["date_emission"] = d_val
+            elif re.search(r"EXPIR|VALID", ntxt):
+                champs["date_expiration"] = d_val
+
+    # Si la date de naissance n'a pas été trouvée par libellé
+    if not champs.get("date_naissance") and dates:
+        champs["date_naissance"] = dates[0]
+
+    # Pour l'expiration : sur le permis guinéen, la validité est généralement de 5 ans après la délivrance.
+    # Si plus de 2 dates sont présentes :
+    # dates[0] = naissance, dates[1] = délivrance (ex: 2024), dates[2] = expiration (ex: 2029)
+    if len(dates) >= 3:
+        if not champs.get("date_emission"):
+            champs["date_emission"] = dates[1]
+        if not champs.get("date_expiration"):
+            champs["date_expiration"] = dates[2]
+    elif len(dates) == 2:
+        # Seulement 2 dates : naissance (dates[0]) et délivrance (dates[1])
+        # Ne PAS assigner la date de délivrance comme date d'expiration car elle est passée !
+        if not champs.get("date_emission"):
+            champs["date_emission"] = dates[1]
+        if not champs.get("date_expiration"):
+            # Calculer expiration = délivrance + 5 ans si possible
+            d_em = _parse_date(dates[1])
+            if d_em:
+                champs["date_expiration"] = f"{d_em.day:02d}/{d_em.month:02d}/{d_em.year + 5}"
+
+    # Si expiration a été confondue avec la date de délivrance (antérieure à aujourd'hui alors qu'une émission existe)
+    exp_parsed = _parse_date(champs.get("date_expiration"))
+    emi_parsed = _parse_date(champs.get("date_emission"))
+    if exp_parsed and emi_parsed and exp_parsed <= emi_parsed:
+        champs["date_expiration"] = f"{emi_parsed.day:02d}/{emi_parsed.month:02d}/{emi_parsed.year + 5}"
+    elif exp_parsed and exp_parsed < AUJOURD_HUI and emi_parsed is None:
+        # Si la date trouvée est récente (ex: 2024) c'est très probablement la date de délivrance !
+        champs["date_emission"] = champs["date_expiration"]
+        champs["date_expiration"] = f"{exp_parsed.day:02d}/{exp_parsed.month:02d}/{exp_parsed.year + 5}"
+
+    # 5. Adresse : sur le permis biométrique, l'adresse ou lieu de délivrance / naissance
+    if not champs.get("adresse"):
+        if champs.get("lieu_naissance"):
+            champs["adresse"] = champs["lieu_naissance"]
 
     return champs
 
@@ -1112,6 +1251,10 @@ def kyc_complet(chemin_recto, chemin_verso=None, chemin_selfie=None, type_force=
     if type_piece == "CARTE_ELECTEUR":
         problemes_electeur = valider_electeur(champs)      # contrôles (identifiant, numéro, dates)
         cle = cle_composite_electeur(champs)               # clé unique = identifiant + numéro
+    elif type_piece == "PERMIS":
+        num_p = champs.get("numero_permis") or champs.get("numero_identite")
+        if num_p:
+            cle = f"PERMIS|{num_p}"
 
     # 6) Vérification faciale
     if chemin_selfie:

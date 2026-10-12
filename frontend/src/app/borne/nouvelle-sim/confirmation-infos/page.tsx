@@ -79,9 +79,11 @@ export default function ConfirmationInfos() {
           else setTypePiece("cni");
         }
 
-        // Numéro : pour carte d'électeur on prend numero_carte, sinon numero_identite / nin
+        // Numéro : pour permis on prend numero_permis ou numero_identite, pour carte d'électeur numero_carte
         if (sessionDocType === "carte_electeur") {
           setNumeroPiece(c.numero_carte ?? c.numero_identite ?? c.nin ?? "");
+        } else if (sessionDocType === "permis") {
+          setNumeroPiece(c.numero_permis ?? c.numero_identite ?? "");
         } else {
           setNumeroPiece(c.numero_identite ?? c.numero_carte ?? c.nin ?? "");
         }

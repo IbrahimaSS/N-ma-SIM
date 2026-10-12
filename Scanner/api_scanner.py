@@ -31,7 +31,7 @@ from scanner import decouper, normaliser_type
 # ---------- Config ----------
 # 127.0.0.1 : seul le PC de la borne peut déclencher le scanner (pas le reste du réseau)
 HOST = os.environ.get("SCANNER_API_HOST", "127.0.0.1")
-PORT = int(os.environ.get("SCANNER_API_PORT", "8000"))
+PORT = int(os.environ.get("SCANNER_API_PORT", "8010"))
 
 ORIGINES_AUTORISEES = [
     "http://localhost:3000",
