@@ -1,0 +1,211 @@
+"""scanner.py – Scan + découpe de pièce d'identité (capot fermé).
+
+Fonctions publiques :
+    scanner()                         → image BGR brute (pleine vitre)
+    decouper(img, dpi, type_carte)    → image de la pièce seule (redressée) ou None
+    normaliser_type(type_carte)       → nom interne du type (identite | electeur | passeport | permis)
+    envoyer(carte, face)              → réponse du serveur OCR (mode ligne de commande)
+    traiter_face(face, type_carte)    → enchaîne scanner / découper / envoyer
+
+Les algorithmes de découpe sont dans les fichiers dédiés (un par type de pièce) :
+c'est la SEULE copie de chaque algorithme — les modifier là-bas suffit.
+"""
+
+import gc
+import os
+import shutil
+import tempfile
+import threading
+
+import cv2
+import requests
+import win32com.client
+
+# Algorithmes de découpe (fichiers dédiés)
+from scanner_carte_identite import decouper_identite
+from scanner_carte_electeur import decouper_electeur, _reduire, _ordonner_quad  # noqa: F401 (utilisés par borne.py)
+from scanner_passeport import decouper_passeport
+from scanner_permis import decouper_permis
+
+# ---------- RÉGLAGES ----------
+NOM_SCANNER = "DeskJet"     # partie du nom du scanner WIA ("" = premier scanner trouvé)
+DPI = 300
+
+# Mode ligne de commande uniquement (la borne N'ma SIM passe par api_scanner.py)
+URL_MODELE = os.environ.get("URL_MODELE", "")
+CHAMP_FICHIER = "file"      # nom du champ attendu par le modèle
+
+# Vitre A4 (mm)
+VITRE_LARGEUR_MM = 216
+VITRE_HAUTEUR_MM = 297
+# --------------------------------
+
+FORMAT_PNG = "{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"
+
+# Propriétés WIA de l'item de scan
+WIA_INTENT, WIA_XRES, WIA_YRES = 6146, 6147, 6148
+WIA_XPOS, WIA_YPOS, WIA_XEXTENT, WIA_YEXTENT = 6149, 6150, 6151, 6152
+WIA_INTENT_COULEUR = 2
+WIA_SUBTYPE_RANGE, WIA_SUBTYPE_LIST = 1, 2
+
+# Un seul scan à la fois (le scanner est une ressource unique)
+_VERROU_SCAN = threading.Lock()
+
+# Noms acceptés → nom interne (la borne envoie cni / carte_electeur / passeport / permis)
+_TYPES = {
+    "identite": "identite", "cni": "identite",
+    "electeur": "electeur", "carte_electeur": "electeur",
+    "passeport": "passeport",
+    "permis": "permis",
+}
+
+
+def normaliser_type(type_carte):
+    """Nom interne du type de pièce ; inconnu → 'identite'."""
+    return _TYPES.get((type_carte or "").strip().lower(), "identite")
+
+
+def mm_to_px(mm, dpi=DPI):
+    """Convertit des millimètres en pixels à la résolution donnée."""
+    return int(mm / 25.4 * dpi)
+
+
+def _propriete(item, prop_id):
+    for p in item.Properties:
+        if p.PropertyID == prop_id:
+            return p
+    return None
+
+
+def set_prop(item, prop_id, value):
+    """Modifie une propriété WIA, en respectant la plage ou la liste de valeurs acceptées.
+    Retourne la valeur réellement écrite (ou None si la propriété n'existe pas)."""
+    p = _propriete(item, prop_id)
+    if p is None:
+        return None
+    try:
+        if p.SubType == WIA_SUBTYPE_RANGE:
+            value = max(p.SubTypeMin, min(p.SubTypeMax, value))
+        elif p.SubType == WIA_SUBTYPE_LIST:
+            valeurs = [int(v) for v in p.SubTypeValues]
+            if valeurs and value not in valeurs:
+                value = min(valeurs, key=lambda v: abs(v - value))
+    except Exception:
+        pass
+    p.Value = value
+    return value
+
+
+def scanner():
+    """Scanne la vitre entière et retourne l'image en mémoire (aucun fichier gardé)."""
+    import pythoncom
+    with _VERROU_SCAN:
+        pythoncom.CoInitialize()
+        dm = device = item = image = None
+        dossier = tempfile.mkdtemp()
+        try:
+            dm = win32com.client.Dispatch("WIA.DeviceManager")
+            for info in dm.DeviceInfos:
+                if info.Type == 1 and NOM_SCANNER in info.Properties("Name").Value:
+                    device = info.Connect()
+                    break
+            if device is None:
+                raise RuntimeError("Scanner introuvable. Vérifiez que l'imprimante est branchée et allumée.")
+
+            item = device.Items.Item(1)
+            set_prop(item, WIA_INTENT, WIA_INTENT_COULEUR)
+            dpi = set_prop(item, WIA_XRES, DPI) or DPI   # résolution acceptée la plus proche
+            set_prop(item, WIA_YRES, dpi)
+            # Zone = toute la vitre, calculée à la résolution réellement appliquée
+            set_prop(item, WIA_XPOS, 0)
+            set_prop(item, WIA_YPOS, 0)
+            set_prop(item, WIA_XEXTENT, mm_to_px(VITRE_LARGEUR_MM, dpi))
+            set_prop(item, WIA_YEXTENT, mm_to_px(VITRE_HAUTEUR_MM, dpi))
+
+            chemin = os.path.join(dossier, "scan.png")
+            image = item.Transfer(FORMAT_PNG)
+            image.SaveFile(chemin)
+            img = cv2.imread(chemin)
+            if img is None:
+                raise RuntimeError("Impossible de lire l'image scannée")
+            return img
+        finally:
+            shutil.rmtree(dossier, ignore_errors=True)
+            # Libérer les objets COM AVANT CoUninitialize (sinon messages
+            # « Win32 exception occurred releasing IUnknown » à la fermeture)
+            del dm, device, item, image
+            gc.collect()
+            pythoncom.CoUninitialize()
+
+
+def decouper(img, dpi=DPI, type_carte="identite"):
+    """Aiguille vers l'algorithme adapté selon le type de carte.
+
+    type_carte : identite | electeur | passeport | permis
+                 (ou cni | carte_electeur, noms utilisés par la borne)
+    """
+    t = normaliser_type(type_carte)
+    if t == "electeur":
+        return decouper_electeur(img, dpi)
+    if t == "passeport":
+        return decouper_passeport(img, dpi)
+    if t == "permis":
+        return decouper_permis(img, dpi)
+    return decouper_identite(img, dpi)
+
+
+# -----------------------------------------------------------------------
+#  Mode ligne de commande : envoi au modèle OCR
+# -----------------------------------------------------------------------
+
+def envoyer(carte, face):
+    """Envoie l'image au modèle OCR, directement depuis la mémoire."""
+    if not URL_MODELE:
+        raise RuntimeError("URL_MODELE non configurée (variable d'environnement URL_MODELE).")
+    ok, tampon = cv2.imencode(".jpg", carte, [cv2.IMWRITE_JPEG_QUALITY, 95])
+    if not ok:
+        raise RuntimeError("Encodage de l'image impossible")
+    reponse = requests.post(
+        URL_MODELE,
+        files={CHAMP_FICHIER: (f"{face}.jpg", tampon.tobytes(), "image/jpeg")},
+        data={"face": face},
+        timeout=30,
+    )
+    reponse.raise_for_status()
+    return reponse.text
+
+
+def traiter_face(face, type_carte="identite"):
+    """Scanne une face, la découpe, l'envoie. Retourne la réponse ou None."""
+    input(f"\nPosez le {face.upper()} sur la vitre, fermez le capot, "
+          f"puis Entrée... ")
+    try:
+        img = scanner()
+    except Exception as e:
+        print("Scanner indisponible :", e)
+        return None
+
+    carte = decouper(img, type_carte=type_carte)
+    if carte is None:
+        print("Pièce non détectée. Replacez-la et réessayez.")
+        return None
+
+    try:
+        return envoyer(carte, face)
+    except Exception as e:
+        print("Envoi impossible :", e)
+        return None
+
+
+if __name__ == "__main__":
+    import sys
+    type_cli = sys.argv[1] if len(sys.argv) > 1 else "identite"
+    for face in ("recto", "verso"):
+        for essai in range(3):
+            reponse = traiter_face(face, type_cli)
+            if reponse is not None:
+                print(f"{face} envoyé. Réponse :", reponse)
+                break
+        else:
+            print(f"Échec sur le {face}.")
+            break

@@ -156,7 +156,7 @@ export default function ReactivationPieceIdentite() {
   const handleScan = async (target: CameraTarget) => {
     setScanError(null); setScanningTarget(target);
     try {
-      const file = await scannerViaImprimante(`${target}_scan.jpg`);
+      const file = await scannerViaImprimante(`${target}_scan.jpg`, docType);
       await definirImage(target, file);
     } catch (err) {
       setScanError(err instanceof Error ? err.message : "Erreur de scan.");

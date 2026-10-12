@@ -1,0 +1,8 @@
+pywin32
+opencv-python
+numpy
+requests
+fastapi
+uvicorn
+python-multipart
+pillow
