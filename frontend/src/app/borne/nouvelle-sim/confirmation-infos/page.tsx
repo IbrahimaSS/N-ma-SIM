@@ -12,6 +12,7 @@ import { getKycResult } from "@/lib/kyc.storage";
 import { libelleNumeroPiece, libelleNumeroPersonnel } from "@/lib/piece";
 import { expliquerDecision } from "@/lib/kyc.decision";
 import type { KycReponse } from "@/types/kyc";
+import { lireReservation } from "@/lib/reservation.client";
 
 export default function ConfirmationInfos() {
   const router = useRouter();
@@ -32,11 +33,14 @@ export default function ConfirmationInfos() {
   const [typePiece, setTypePiece] = useState("cni");
   const [numeroPiece, setNumeroPiece] = useState("");
   const [numeroPersonnel, setNumeroPersonnel] = useState("");
+  // SIM réservée : le numéro de passeport a été contrôlé contre la réservation → non modifiable
+  const [avecReservation, setAvecReservation] = useState(false);
 
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
     setProfile(sessionStorage.getItem("kiosk_profile") || "resident");
+    setAvecReservation(!!lireReservation());
 
     // Charger le résultat KYC depuis IndexedDB
     getKycResult().then((result) => {
@@ -360,8 +364,8 @@ export default function ConfirmationInfos() {
             required
             value={numeroPiece}
             onChange={(e) => setNumeroPiece(e.target.value)}
-            disabled={isLocked}
-            readOnly={isLocked}
+            disabled={isLocked || avecReservation}
+            readOnly={isLocked || avecReservation}
           />
           {typePiece === "passeport" && (
             <Input

@@ -29,6 +29,7 @@ function RoleBadge({ role }: { role: string }) {
     "Agent": { bg: "#E0F2FE", color: "#0369A1" },
     "Technicien": { bg: "#DCFCE7", color: "#166534" },
     "Lecture seule": { bg: "#F3F4F6", color: "#4B5563" },
+    "Partenaire": { bg: "#FEF3C7", color: "#92400E" },
   };
   const s = map[role] || { bg: "#F3F4F6", color: "#374151" };
   return <span style={{ ...s, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>{role}</span>;
@@ -51,6 +52,8 @@ export default function Utilisateurs() {
   const [service, setService] = useState("");
   const [photoProfil, setPhotoProfil] = useState<string | null>(null);
   const [role, setRole] = useState("");
+  // Rôle Partenaire : nom de l'hôtel / agence (affiché sur ses réservations SIM)
+  const [partenaireNom, setPartenaireNom] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -85,7 +88,7 @@ export default function Utilisateurs() {
       setUsers(raw.map((u: any) => ({
         ...u,
         tel: u.telephone || u.tel || "",
-        role: u.role === "ADMIN" ? "Admin" : u.role === "AGENT" ? "Agent" : u.role === "TECHNICIEN" ? "Technicien" : "Lecture seule",
+        role: u.role === "ADMIN" ? "Admin" : u.role === "AGENT" ? "Agent" : u.role === "TECHNICIEN" ? "Technicien" : u.role === "PARTENAIRE" ? "Partenaire" : "Lecture seule",
         statut: u.statut === "ACTIF" ? "Actif" : u.statut === "BLOQUE" ? "Bloqué" : "Inactif",
         derniereConnexion: u.derniereConnexion || (u.derniereConnexionAt ? new Date(u.derniereConnexionAt).toLocaleDateString("fr-FR") : "Jamais connecté"),
         permissions: u.permissions || [],
@@ -154,6 +157,8 @@ export default function Utilisateurs() {
         return ["Gestion des bornes SIM", "Consultation des logs système", "Configuration des offres"];
       case "Lecture seule":
         return ["Consultation uniquement des statistiques", "Consultation des demandes SIM"];
+      case "Partenaire":
+        return ["Espace partenaire uniquement (aucun accès à l'administration)", "Création des réservations SIM de ses clients", "Suivi de ses propres réservations"];
       default:
         return [];
     }
@@ -186,6 +191,7 @@ export default function Utilisateurs() {
     setEmail(userToEdit.email);
     setService("");
     setRole(userToEdit.role);
+    setPartenaireNom((userToEdit as any).partenaireNom || "");
     setPhotoProfil((userToEdit as any).photoProfil || null);
     setUsername(userToEdit.email.split("@")[0] || userToEdit.nom.toLowerCase().replace(/\s+/g, "."));
     setPassword("password123");
@@ -207,24 +213,29 @@ export default function Utilisateurs() {
       return;
     }
 
-    const roleMap: Record<string, string> = { "Admin": "ADMIN", "Agent": "AGENT", "Technicien": "TECHNICIEN", "Lecture seule": "LECTURE_SEULE" };
+    const roleMap: Record<string, string> = { "Admin": "ADMIN", "Agent": "AGENT", "Technicien": "TECHNICIEN", "Lecture seule": "LECTURE_SEULE", "Partenaire": "PARTENAIRE" };
+    if (role === "Partenaire" && partenaireNom.trim().length < 2) {
+      alert("Indiquez le nom de l'établissement partenaire (hôtel, agence).");
+      return;
+    }
+    const champPartenaire = role === "Partenaire" ? { partenaireNom: partenaireNom.trim() } : {};
 
     setSaving(true);
     try {
       if (editingUser) {
         await apiFetch(`/api/utilisateurs/${editingUser.id}`, {
           method: "PATCH",
-          body: JSON.stringify({ nom: nomComplet, email, telephone, role: roleMap[role] || role, photoProfil }),
+          body: JSON.stringify({ nom: nomComplet, email, telephone, role: roleMap[role] || role, photoProfil, ...champPartenaire }),
         });
       } else {
         await apiFetch("/api/utilisateurs", {
           method: "POST",
-          body: JSON.stringify({ nom: nomComplet, email, telephone, motDePasse: password, role: roleMap[role] || role, photoProfil }),
+          body: JSON.stringify({ nom: nomComplet, email, telephone, motDePasse: password, role: roleMap[role] || role, photoProfil, ...champPartenaire }),
         });
       }
       // Reset fields
       setNomComplet(""); setTelephone(""); setEmail(""); setService("");
-      setPhotoProfil(null); setRole(""); setUsername(""); setPassword("");
+      setPhotoProfil(null); setRole(""); setPartenaireNom(""); setUsername(""); setPassword("");
       setConfirmPassword(""); setSendEmail(true); setSendSms(false);
       setEditingUser(null); setIsAddingUser(false);
       fetchUsers();
@@ -351,6 +362,7 @@ export default function Utilisateurs() {
                         <option value="Agent">Agent</option>
                         <option value="Technicien">Technicien</option>
                         <option value="Lecture seule">Lecture seule</option>
+                        <option value="Partenaire">Partenaire</option>
                       </select>
                     </div>
                     <div>
@@ -719,9 +731,22 @@ export default function Utilisateurs() {
                       <option value="Agent">Agent</option>
                       <option value="Technicien">Technicien</option>
                       <option value="Lecture seule">Lecture seule</option>
+                      <option value="Partenaire">Partenaire (hôtel / agence)</option>
                     </select>
                     <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
+                  {role === "Partenaire" && (
+                    <div style={{ marginTop: 14 }}>
+                      <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#2656A2", marginBottom: 6 }}>Nom de l'établissement <span style={{ color: "#EF4444" }}>*</span></label>
+                      <input
+                        value={partenaireNom}
+                        onChange={e => setPartenaireNom(e.target.value)}
+                        placeholder="Ex : Hôtel de Kaloum"
+                        style={{ width: "100%", padding: "10px 12px", border: "1px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      />
+                      <div style={{ fontSize: 11, color: "#6B7280", marginTop: 6 }}>Ce compte n'aura accès qu'à l'Espace partenaire (réservations SIM).</div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Selected permissions info */}

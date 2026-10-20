@@ -47,6 +47,7 @@ export default function AdminLogin() {
         name: data.data.user.nom,
         email: data.data.user.email,
         role: data.data.user.role,
+        partenaireNom: data.data.user.partenaireNom || null,
         loginAt: new Date().toLocaleString("fr-FR", {
           day: "2-digit", month: "2-digit", year: "numeric",
           hour: "2-digit", minute: "2-digit", second: "2-digit"
@@ -55,7 +56,9 @@ export default function AdminLogin() {
       localStorage.setItem("admin_session", JSON.stringify(adminSession));
 
       setIsSuccess(true);
-      setTimeout(() => router.push("/admin"), 1000);
+      // Compte partenaire (hôtel) : uniquement son espace de réservations SIM
+      const destination = data.data.user.role === "PARTENAIRE" ? "/partenaire" : "/admin";
+      setTimeout(() => router.push(destination), 1000);
     } catch (err) {
       console.error("[LOGIN]", err);
       setError("Impossible de joindre le serveur. Vérifiez que le backend est démarré.");

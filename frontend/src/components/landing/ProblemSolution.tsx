@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ArrowDown, ScanFace, Bot, Mic, ShieldCheck, Smartphone } from "lucide-react";
 import { Reveal } from "./Reveal";
+import { BornePhoto } from "./BornePhoto";
 
 const PROBLEM_PHOTOS = [
   { src: "/probleme-1.jpg", width: 794, height: 538, alt: "File d'attente à un guichet Orange Money à l'aéroport de Conakry" },
@@ -73,10 +74,8 @@ export function ProblemSolution() {
           </Reveal>
 
           <div className="grid lg:grid-cols-[0.75fr_1fr] gap-10 lg:gap-14 items-center">
-            <Reveal className="order-2 lg:order-1 flex justify-center">
-              <div className="rounded-2xl overflow-hidden border border-border-light shadow-sm bg-white" style={{ width: "min(65vw, 280px)" }}>
-                <Image src="/borne-maquette.png" alt="La borne N'ma SIM" width={640} height={1068} className="w-full h-auto" />
-              </div>
+            <Reveal className="order-2 lg:order-1 flex justify-center pb-4">
+              <BornePhoto hauteur="min(110vw, 500px)" />
             </Reveal>
 
             <Reveal stagger={0.08} className="order-1 lg:order-2 grid sm:grid-cols-2 gap-4">

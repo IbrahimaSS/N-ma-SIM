@@ -12,6 +12,7 @@ import { SuccessOverlay } from "@/components/borne/SuccessOverlay";
 import { ErrorOverlay } from "@/components/borne/ErrorOverlay";
 import { verifierKYC } from "@/lib/kyc.client";
 import { interpreterDecisionSelfie } from "@/lib/kyc.decision";
+import { lireReservation, preparerReservationPrepayee } from "@/lib/reservation.client";
 import { getKycImage, saveKycImage, saveKycResult } from "@/lib/kyc.storage";
 import type { KycReponse, KycError } from "@/types/kyc";
 
@@ -137,7 +138,14 @@ export default function Selfie() {
       // Visage validé : afficher le message de succès, la navigation suit dans 4s (SuccessOverlay)
       const isEsim = sessionStorage.getItem("kiosk_flow") === "esim";
       sessionStorage.setItem("kiosk_selfie_ok", "1");
-      setSuccessTarget(isEsim ? "/borne/nouvelle-sim/esim/recapitulatif" : "/borne/nouvelle-sim/offres");
+      // SIM physique réservée : offre et paiement déjà réglés → directement au reçu
+      const reservation = lireReservation();
+      if (reservation && !isEsim) {
+        preparerReservationPrepayee(reservation);
+        setSuccessTarget("/borne/nouvelle-sim/recu");
+      } else {
+        setSuccessTarget(isEsim ? "/borne/nouvelle-sim/esim/recapitulatif" : "/borne/nouvelle-sim/offres");
+      }
     } catch (err) {
       const kycErr = err as KycError;
       setKycError(kycErr.message || (lang === "en" ? "Unknown error." : "Erreur inconnue."));

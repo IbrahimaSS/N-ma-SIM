@@ -6,7 +6,7 @@ import { z } from 'zod'
 const createPaiementSchema = z.object({
   demandeId: z.string(),
   montant: z.number().positive(),
-  methodePaiement: z.enum(['ORANGE_MONEY', 'MTN_MOBILE_MONEY', 'WAVE', 'CARTE_BANCAIRE', 'ESPECES']),
+  methodePaiement: z.enum(['ORANGE_MONEY', 'MTN_MOBILE_MONEY', 'WAVE', 'CARTE_BANCAIRE', 'ESPECES', 'PREPAYE']),
   numeroPaieur: z.string().optional(),
   referenceExterne: z.string().optional(),
   statut: z.enum(['EN_ATTENTE', 'CONFIRME', 'ECHOUE', 'REMBOURSE']).optional(),

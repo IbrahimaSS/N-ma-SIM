@@ -63,6 +63,7 @@ export function AgentIA({
     if (pathname === "/borne" || pathname === "/borne/")         currentStep = "choix-langue";
     else if (pathname.includes("/borne/accueil"))               currentStep = "accueil-conditions";
     else if (pathname.includes("/borne/services"))              { currentStep = "choix-service"; currentTerms = true; }
+    else if (pathname.includes("/borne/reservation"))           { currentStep = "reservation-code"; currentService = "nouvelle-sim"; currentTerms = true; }
     // eSIM (extension de Nouvelle SIM)
     else if (pathname.includes("/nouvelle-sim/format"))              { currentStep = "esim-format"; currentService = "nouvelle-sim"; }
     else if (pathname.includes("/nouvelle-sim/esim/forfait"))        { currentStep = "esim-forfait"; currentService = "nouvelle-sim"; }

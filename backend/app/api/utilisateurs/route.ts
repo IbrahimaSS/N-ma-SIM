@@ -8,9 +8,11 @@ const createUserSchema = z.object({
   email: z.string().email(),
   telephone: z.string().optional(),
   motDePasse: z.string().min(6),
-  role: z.enum(['ADMIN', 'AGENT', 'TECHNICIEN', 'LECTURE_SEULE']),
+  role: z.enum(['ADMIN', 'AGENT', 'TECHNICIEN', 'LECTURE_SEULE', 'PARTENAIRE']),
   permissions: z.array(z.string()).optional(),
   photoProfil: z.string().optional(),
+  // Obligatoire pour le rôle PARTENAIRE (nom de l'hôtel / agence)
+  partenaireNom: z.string().trim().min(2).optional(),
 })
 
 /**
@@ -80,6 +82,7 @@ export async function GET(request: NextRequest) {
         statut: true,
         photoProfil: true,
         permissions: true,
+        partenaireNom: true,
         derniereConnexion: true,
         createdAt: true,
       },
@@ -154,7 +157,10 @@ export async function POST(request: NextRequest) {
       return apiError('Données invalides', 400, parsed.error.flatten())
     }
 
-    const { nom, email, telephone, motDePasse, role, permissions, photoProfil } = parsed.data
+    const { nom, email, telephone, motDePasse, role, permissions, photoProfil, partenaireNom } = parsed.data
+    if (role === 'PARTENAIRE' && !partenaireNom) {
+      return apiError("Le nom de l'établissement partenaire est obligatoire", 400)
+    }
 
     // Vérifier si l'email existe déjà
     const exists = await prisma.utilisateur.findUnique({ where: { email } })
@@ -171,10 +177,11 @@ export async function POST(request: NextRequest) {
         role,
         permissions: permissions || [],
         photoProfil,
+        partenaireNom: role === 'PARTENAIRE' ? partenaireNom : null,
       },
       select: {
         id: true, nom: true, email: true, telephone: true,
-        role: true, statut: true, createdAt: true, photoProfil: true,
+        role: true, statut: true, createdAt: true, photoProfil: true, partenaireNom: true,
       }
     })
 

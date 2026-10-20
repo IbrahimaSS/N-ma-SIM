@@ -13,6 +13,7 @@ import { RecuImprimable } from "@/components/borne/RecuImprimable";
 import { getKycResult } from "@/lib/kyc.storage";
 import { identiteValidee } from "@/lib/kyc.decision";
 import { lireDemandeSoumise, memoriserDemande } from "@/lib/kiosk-demande";
+import { lireReservation } from "@/lib/reservation.client";
 import type { Offer } from "@/types";
 
 // Type local minimal pour l'offre sauvegardée en sessionStorage
@@ -47,6 +48,8 @@ function RecuContent() {
   const [isTerminating, setIsTerminating] = useState(false);
   const [dispenserError, setDispenserError] = useState<string | null>(null);
   const [kycRejete, setKycRejete] = useState(false);
+  // SIM réservée refusée par le serveur (code déjà utilisé, passeport différent…) : pas de délivrance
+  const [reservationErreur, setReservationErreur] = useState<string | null>(null);
 
   // ✅ Anti-double-submit : on utilise une ref persistante entre les re-renders (imperméable au StrictMode)
   const hasSubmitted = useRef(false);
@@ -112,6 +115,7 @@ function RecuContent() {
       }
 
       setIsSubmitting(true);
+      const reservation = lireReservation();
       try {
         // ✅ Correspondance correcte des champs KYC
         const res = await fetch("/api/soumettre-demande", {
@@ -137,6 +141,11 @@ function RecuContent() {
             kyc_result: kycResult
               ? { decision: kycResult.decision, details: kycResult.details, champs: kycResult.champs, face: kycResult.face ?? kycResult.visage }
               : undefined,
+            // Numéro LU sur le passeport (contrôlé contre la réservation), pas la saisie modifiable
+            ...(reservation ? {
+              reservation: { code: reservation.code },
+              client_info_numero_lu: sessionStorage.getItem("kiosk_reservation_passeport") || undefined,
+            } : {}),
           }),
         });
 
@@ -145,6 +154,15 @@ function RecuContent() {
           if (data.numeroDossier) setNumeroDossier(data.numeroDossier);
           if (data.demandeId) setDemandeId(data.demandeId);
           memoriserDemande({ numeroDossier: data.numeroDossier, demandeId: data.demandeId });
+          if (data.reservation) {
+            // Montant réellement prépayé (fixé par le serveur à partir de la réservation)
+            setOffer((o) => (o ? { ...o, prixGNF: data.reservation.montant } : o));
+          }
+        } else if (reservation) {
+          const err = await res.json().catch(() => null);
+          setReservationErreur(err?.error || "Réservation refusée.");
+          setDispenserError(err?.error || "Réservation refusée.");
+          setNumeroDossier("—");
         } else {
           console.error("[RECU] Erreur soumission", await res.text());
           setNumeroDossier("NMA-" + Date.now().toString().slice(-6));
@@ -173,6 +191,10 @@ function RecuContent() {
     if (isTerminating) return;
     // Garde-fou final avant délivrance physique : une identité REJETÉE par le KYC ne doit
     // jamais aboutir à l'éjection d'une puce SIM, quel que soit l'état atteint en amont.
+    if (reservationErreur) {
+      setDispenserError(reservationErreur);
+      return;
+    }
     if (kycRejete) {
       setDispenserError("Vérification d'identité refusée par le contrôle KYC — la puce ne peut pas être délivrée. Veuillez contacter un agent.");
       return;
@@ -381,7 +403,7 @@ function RecuContent() {
            <Button variant="outline" className="flex-1 bg-white h-12" onClick={handlePrintPDF}>
              <Printer className="w-5 h-5 mr-2" /> Imprimer
            </Button>
-           <Button variant="primary" className="flex-1 h-12" onClick={handleTerminer} disabled={isTerminating || kycRejete}>
+           <Button variant="primary" className="flex-1 h-12" onClick={handleTerminer} disabled={isTerminating || kycRejete || !!reservationErreur}>
              {isTerminating
                ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Validation...</>
                : <><CheckCircle2 className="w-5 h-5 mr-2" /> Terminer</>

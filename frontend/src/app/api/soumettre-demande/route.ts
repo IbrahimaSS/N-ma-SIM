@@ -36,7 +36,7 @@ function parseOcrDate(dateStr: string | undefined): string | undefined {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { client_info, offre_id, format_sim, paiement, kyc_result } = body;
+    const { client_info, offre_id, format_sim, paiement, kyc_result, reservation, client_info_numero_lu } = body;
     // Défense en profondeur : si la décision KYC est un REJET (visage, mineur, document
     // expiré, anti-spoofing...), on ne force PAS la validation automatique plus bas, même
     // si le paiement a été confirmé côté borne. Filet de sécurité au cas où le blocage
@@ -66,6 +66,27 @@ export async function POST(request: Request) {
         // réseau — la limite reste de toute façon vérifiée à nouveau à l'étape 2 ci-dessous.
         console.error("[SOUMISSION] Vérification limite SIM indisponible", e);
       }
+    }
+
+    // ─── 0bis. SIM réservée (voyageur) : le SERVEUR consomme le code ────────
+    // Le code n'est utilisable qu'une fois et seulement si le passeport scanné correspond.
+    // Le montant, le format et l'offre viennent de la réservation, jamais de la borne.
+    let resa: { code: string; formatSim: string; offreId: string | null; montant: number } | null = null;
+    if (reservation?.code) {
+      if (kycRejete) {
+        return NextResponse.json({ error: "Identité non validée : la réservation ne peut pas être utilisée." }, { status: 403 });
+      }
+      const consoRes = await fetch(`${BACKEND_URL}/api/reservations/consommer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-internal-service": "kiosk-borne" },
+        // Numéro LU sur le passeport scanné en priorité (la saisie à l'écran est modifiable)
+        body: JSON.stringify({ code: reservation.code, numeroPasseport: client_info_numero_lu || client_info?.numero_piece }),
+      });
+      const consoData = await consoRes.json().catch(() => null);
+      if (!consoRes.ok) {
+        return NextResponse.json({ error: consoData?.message || "Réservation inutilisable." }, { status: consoRes.status });
+      }
+      resa = consoData.data;
     }
 
     // ─── 1. Créer le client ───────────────────────────────────────────────
@@ -106,8 +127,8 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         clientId,
         type: "NOUVELLE_SIM",
-        offreId: offre_id || undefined,
-        formatSim: format_sim === "ESIM" ? "ESIM" : "PHYSIQUE",
+        offreId: (resa ? resa.offreId : offre_id) || undefined,
+        formatSim: (resa ? resa.formatSim : format_sim) === "ESIM" ? "ESIM" : "PHYSIQUE",
       }),
     });
 
@@ -140,8 +161,17 @@ export async function POST(request: Request) {
       "espèces":          "ESPECES",
       "ESPECES":          "ESPECES",
     };
-    const rawMethode = (paiement.methode || "ORANGE_MONEY").toString();
-    const methodePaiement = methodMap[rawMethode] || methodMap[rawMethode.toLowerCase()] || "ORANGE_MONEY";
+    const rawMethode = (paiement?.methode || "ORANGE_MONEY").toString();
+    const methodePaiement = resa ? "PREPAYE" : (methodMap[rawMethode] || methodMap[rawMethode.toLowerCase()] || "ORANGE_MONEY");
+
+    // Rattacher la demande à la réservation consommée (traçabilité back-office)
+    if (resa) {
+      await fetch(`${BACKEND_URL}/api/reservations/consommer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-internal-service": "kiosk-borne" },
+        body: JSON.stringify({ code: resa.code, demandeId }),
+      }).catch((e) => console.error("[SOUMISSION] Rattachement réservation", e));
+    }
 
     // ─── 3. Enregistrer le paiement ──────────────────────────────────────
     const paiementRes = await fetch(`${BACKEND_URL}/api/paiements`, {
@@ -149,10 +179,10 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         demandeId,
-        montant: Number(paiement.montant) || Number(paiement.prix) || 0,
+        montant: resa ? resa.montant : (Number(paiement?.montant) || Number(paiement?.prix) || 0),
         devise: "GNF",
         methodePaiement,
-        referenceExterne: paiement.reference || paiement.pay_id || undefined,
+        referenceExterne: resa ? resa.code : (paiement?.reference || paiement?.pay_id || undefined),
         statut: "CONFIRME",
       }),
     });
@@ -185,6 +215,7 @@ export async function POST(request: Request) {
       clientId,
       demandeId,
       kycRejete,
+      reservation: resa ? { code: resa.code, montant: resa.montant } : undefined,
     });
 
   } catch (error) {

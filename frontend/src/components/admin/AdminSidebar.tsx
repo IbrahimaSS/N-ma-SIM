@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard, FileText, CreditCard, Users, Tag,
-  UserCog, ScrollText, Settings, LogOut, ChevronRight, MonitorSmartphone, User
+  UserCog, ScrollText, Settings, LogOut, ChevronRight, MonitorSmartphone, User, Ticket, Building2
 } from "lucide-react";
 
 const navItems = [
@@ -14,6 +14,8 @@ const navItems = [
   { href: "/admin/paiements", label: "Paiements", icon: CreditCard },
   { href: "/admin/clients", label: "Clients", icon: Users },
   { href: "/admin/offres", label: "Offres", icon: Tag },
+  { href: "/admin/reservations", label: "Réservations SIM", icon: Ticket },
+  { href: "/admin/partenaires", label: "Partenaires", icon: Building2 },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: UserCog },
   { href: "/admin/logs", label: "Logs & Historique", icon: ScrollText },
   { href: "/admin/parametres", label: "Paramètres", icon: Settings },

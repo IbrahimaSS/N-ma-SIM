@@ -18,6 +18,8 @@ interface RecuImprimableProps {
   qrLegende?: string;
   /** Étapes numérotées (ex. installation de l'eSIM). */
   etapes?: string[];
+  /** Titre au-dessus des étapes (par défaut : installation de l'eSIM). */
+  titreEtapes?: string;
   note?: string;
   lang?: string;
 }
@@ -32,7 +34,7 @@ const GRIS = "#6B7280";
  * l'imprimante ne les supprime pas.
  */
 export function RecuImprimable({
-  service, reference, date, statut, lignes, montant, qrData, qrLegende, etapes, note, lang = "fr",
+  service, reference, date, statut, lignes, montant, qrData, qrLegende, etapes, titreEtapes, note, lang = "fr",
 }: RecuImprimableProps) {
   const en = lang === "en";
 
@@ -129,7 +131,7 @@ export function RecuImprimable({
       {etapes && etapes.length > 0 && (
         <div className="bloc" style={{ marginTop: 20 }}>
           <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 800, color: BLEU }}>
-            {en ? "How to install your eSIM" : "Installer votre eSIM"}
+            {titreEtapes ?? (en ? "How to install your eSIM" : "Installer votre eSIM")}
           </p>
           {etapes.map((e, i) => (
             <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 8, fontSize: 13 }}>

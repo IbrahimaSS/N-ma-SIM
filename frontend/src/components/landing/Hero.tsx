@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import gsap from "gsap";
 import { ArrowRight, PlayCircle } from "lucide-react";
+import { BornePhoto } from "./BornePhoto";
 
 export function Hero() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -24,7 +24,7 @@ export function Hero() {
         ease: "sine.inOut",
         repeat: -1,
         yoyo: true,
-        transformOrigin: "center center",
+        transformOrigin: "center bottom",
       });
     }, rootRef);
 
@@ -58,7 +58,7 @@ export function Hero() {
           </h1>
 
           <p className="hero-sub text-lg sm:text-xl text-white/60 font-medium mb-8 max-w-xl mx-auto lg:mx-0">
-            Votre SIM, en toute simplicité.
+            Votre SIM en toute simplicité.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-9">
@@ -86,17 +86,8 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="hero-kiosk flex justify-center">
-          <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-white/10 bg-white" style={{ width: "min(74vw, 320px)" }}>
-            <Image
-              src="/borne-maquette.png"
-              alt="Maquette de la borne N'ma SIM"
-              width={640}
-              height={1068}
-              className="hero-kiosk-img w-full h-auto"
-              priority
-            />
-          </div>
+        <div className="hero-kiosk flex justify-center pb-4">
+          <BornePhoto hauteur="min(120vw, 560px)" priority imgClassName="hero-kiosk-img" />
         </div>
       </div>
     </section>

@@ -46,6 +46,7 @@ function ModeBadge({ mode }: { mode: string }) {
     "VISA": { bg: "#1434CB", color: "white", label: "VISA" },
     "CARTE_BANCAIRE": { bg: "#1434CB", color: "white", label: "VISA" },
     "ESPECES": { bg: "#059669", color: "white", label: "💵" },
+    "PREPAYE": { bg: "#2656A2", color: "white", label: "PRÉPAYÉ" },
     "WAVE": { bg: "#12B8FF", color: "white", label: "WAV" },
   };
   const c = colors[mode] || { bg: "#6B7280", color: "white", label: "?" };
@@ -63,6 +64,7 @@ const MODE_INFO: Record<string, { label: string; color: string }> = {
   VISA: { label: "Visa", color: "#1434CB" },
   CARTE_BANCAIRE: { label: "Carte bancaire", color: "#1434CB" },
   ESPECES: { label: "Espèces", color: "#059669" },
+  PREPAYE: { label: "Payé par réservation", color: "#2656A2" },
   WAVE: { label: "Wave", color: "#12B8FF" },
 };
 const MODE_COLOR_FALLBACK = "#6B7280";

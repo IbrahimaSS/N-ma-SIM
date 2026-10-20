@@ -58,9 +58,13 @@ export function apiError(message: string, status = 400, details?: unknown) {
 // =============================================
 // GET AUTH USER FROM REQUEST
 // =============================================
-export function getAuthUser(request: Request) {
+// Les comptes PARTENAIRE (hôtels) n'ont accès qu'aux routes de réservation : par défaut leurs
+// jetons sont refusés partout. Seules les routes qui passent { autoriserPartenaire: true } les acceptent.
+export function getAuthUser(request: Request, options: { autoriserPartenaire?: boolean } = {}) {
   const authHeader = request.headers.get('authorization')
   if (!authHeader?.startsWith('Bearer ')) return null
   const token = authHeader.slice(7)
-  return verifyAccessToken(token)
+  const user = verifyAccessToken(token)
+  if (user?.role === 'PARTENAIRE' && !options.autoriserPartenaire) return null
+  return user
 }
