@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { MonitorSmartphone, Camera, Printer, CreditCard, ShieldCheck, Settings2 } from "lucide-react";
 import { Reveal } from "./Reveal";
+import { BornePhoto } from "./BornePhoto";
 
 const MATERIEL = [
   { icon: Camera, title: "Caméra HD", desc: "Capture du document d'identité et du selfie pour la vérification faciale." },
@@ -25,10 +25,8 @@ export function KioskHardware() {
         </Reveal>
 
         <div className="grid lg:grid-cols-[0.7fr_1fr] gap-10 lg:gap-14 items-center">
-          <Reveal className="flex justify-center">
-            <div className="rounded-2xl overflow-hidden border border-border-light shadow-sm bg-white" style={{ width: "min(70vw, 320px)" }}>
-              <Image src="/borne-maquette.png" alt="Matériel de la borne N'ma SIM" width={640} height={1068} className="w-full h-auto" />
-            </div>
+          <Reveal className="flex justify-center pb-4">
+            <BornePhoto hauteur="min(115vw, 540px)" alt="Matériel de la borne N'ma SIM" />
           </Reveal>
 
           <Reveal stagger={0.08} className="grid sm:grid-cols-2 gap-4">

@@ -341,6 +341,7 @@ function fallbackResponse(lang: string | null, step: string, isFr: boolean) {
     'felicitations':         ["Félicitations ! Votre opération est réussie. Merci d'avoir utilisé N'ma SIM !", "Congratulations! Your operation was successful. Thank you for using N'ma SIM!"],
     'numero-reactivation':   ["Saisissez le numéro à réactiver, le motif et vos deux numéros fréquents.", "Enter the number to reactivate, the reason, and your two frequent numbers."],
     'piece-identite':        ["Veuillez scanner votre pièce d'identité pour continuer.", "Please scan your ID document to continue."],
+    'reservation-code':      ["Scannez le QR code de votre reçu de réservation, ou saisissez votre code.", "Scan the QR code on your reservation receipt, or type your code."],
     'verification':          ["Vérifiez le récapitulatif de votre réactivation, puis dites continuer.", "Check your reactivation summary, then say continue."],
     'recharge-numero':       ["Saisissez le numéro de téléphone à recharger.", "Enter the phone number you wish to recharge."],
     'recharge-montant':      ["Choisissez le montant de votre recharge.", "Choose the amount for your recharge."],

@@ -14,6 +14,7 @@ import { scannerViaImprimante } from "@/lib/materiel/scanner.client";
 import { jouerAudioLocal } from "@/lib/soussou-audio";
 import { recadrerPiece, type StatutRecadrage } from "@/lib/kyc.recadrage";
 import { useLancementAuto, useSelectionFichier } from "@/lib/useLancementAuto";
+import { lireReservation, verifierReservation } from "@/lib/reservation.client";
 
 // Helper pour déclencher l'audio local (Soussou / Malinké) des instructions recto/verso
 function direInstructions(lang: string, type: "recto" | "verso", service: "nouvelle-sim" | "reactivation") {
@@ -280,6 +281,21 @@ export default function ScanPiece() {
       // Appel de l'API pour extraire les informations (sans selfie)
       const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       await saveKycResult(result);
+
+      // SIM réservée : le passeport scanné doit correspondre à la réservation (numéro LU sur la
+      // pièce, pas celui modifiable à l'écran suivant). Le serveur le revérifie à la délivrance.
+      const reservation = lireReservation();
+      if (reservation) {
+        const numeroLu = result.champs?.numero_identite || "";
+        try {
+          await verifierReservation(reservation.code, numeroLu);
+          sessionStorage.setItem("kiosk_reservation_passeport", numeroLu);
+        } catch (e) {
+          setSaveError(e instanceof Error ? e.message : String(e));
+          setIsSaving(false);
+          return;
+        }
+      }
 
       // Limite anti-abus : max 5 SIM (physique + eSIM) achetées avec la même pièce d'identité.
       const champs = result.champs || {};

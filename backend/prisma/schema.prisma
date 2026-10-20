@@ -6,30 +6,33 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 // =============================================
 // UTILISATEURS (Admin, Agent, Technicien...)
 // =============================================
 model Utilisateur {
-  id                String      @id @default(cuid())
+  id                String     @id @default(cuid())
   nom               String
-  email             String      @unique
+  email             String     @unique
   telephone         String?
   motDePasse        String
-  role              Role        @default(AGENT)
-  statut            StatutUser  @default(ACTIF)
+  role              Role       @default(AGENT)
+  statut            StatutUser @default(ACTIF)
   photoProfil       String?
-  permissions       String[]    @default([])
+  permissions       String[]   @default([])
   derniereConnexion DateTime?
   refreshToken      String?
+  // Rôle PARTENAIRE : nom de l'établissement (hôtel, agence) affiché sur ses réservations
+  partenaireNom     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  logsCreated Log[]
+  logsCreated  Log[]
+  reservations ReservationSIM[]
 }
 
 enum Role {
@@ -37,6 +40,7 @@ enum Role {
   AGENT
   TECHNICIEN
   LECTURE_SEULE
+  PARTENAIRE // hôtel / agence : accès limité à ses propres réservations SIM
 }
 
 enum StatutUser {
@@ -49,29 +53,29 @@ enum StatutUser {
 // CLIENTS (créés via la borne SIM)
 // =============================================
 model Client {
-  id              String        @id @default(cuid())
-  numeroDossier   String        @unique @default(cuid())
-  nom             String
-  prenom          String
-  dateNaissance   DateTime?
-  lieuNaissance   String?
-  nationalite     String?       @default("Guinéenne")
-  profession      String?
-  typeClient      TypeClient    @default(RESIDENT)
+  id            String     @id @default(cuid())
+  numeroDossier String     @unique @default(cuid())
+  nom           String
+  prenom        String
+  dateNaissance DateTime?
+  lieuNaissance String?
+  nationalite   String?    @default("Guinéenne")
+  profession    String?
+  typeClient    TypeClient @default(RESIDENT)
 
   // Pièce d'identité
-  typePiece       String?
-  numeroPiece     String?
-  photoPiece      String?       // URL image stockée
+  typePiece   String?
+  numeroPiece String?
+  photoPiece  String? // URL image stockée
 
   // Selfie
-  photoSelfie     String?       // URL image stockée
+  photoSelfie String? // URL image stockée
 
   // Contact
-  telephone       String?
-  email           String?
+  telephone String?
+  email     String?
 
-  statut          StatutClient  @default(EN_ATTENTE)
+  statut StatutClient @default(EN_ATTENTE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,23 +99,24 @@ enum StatutClient {
 // OFFRES SIM
 // =============================================
 model Offre {
-  id          String      @id @default(cuid())
+  id          String    @id @default(cuid())
   nom         String
   description String?
   prix        Float
   type        TypeOffre
-  duree       String?     // "30 jours", "illimité"
-  data        String?     // "5 Go", "Illimité"
-  appels      String?     // "100 min", "Illimité"
-  sms         String?     // "50 SMS"
-  estActif    Boolean     @default(true)
-  couleur     String?     // Pour l'affichage frontend
+  duree       String? // "30 jours", "illimité"
+  data        String? // "5 Go", "Illimité"
+  appels      String? // "100 min", "Illimité"
+  sms         String? // "50 SMS"
+  estActif    Boolean   @default(true)
+  couleur     String? // Pour l'affichage frontend
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  demandes DemandeSIM[]
+  demandes     DemandeSIM[]
+  reservations ReservationSIM[]
 }
 
 enum TypeOffre {
@@ -129,21 +134,21 @@ enum TypeOffre {
 // DEMANDES SIM (Nouvelle SIM + Réactivation)
 // =============================================
 model DemandeSIM {
-  id              String          @id @default(cuid())
-  numeroDossier   String          @unique
-  type            TypeDemande
-  statut          StatutDemande   @default(EN_ATTENTE_VALIDATION)
+  id            String        @id @default(cuid())
+  numeroDossier String        @unique
+  type          TypeDemande
+  statut        StatutDemande @default(EN_ATTENTE_VALIDATION)
 
   // Infos client
-  clientId        String
-  client          Client          @relation(fields: [clientId], references: [id])
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
 
   // Offre choisie (pour nouvelle SIM)
-  offreId         String?
-  offre           Offre?          @relation(fields: [offreId], references: [id])
+  offreId String?
+  offre   Offre?  @relation(fields: [offreId], references: [id])
 
   // Format de la SIM (pour NOUVELLE_SIM : carte physique ou eSIM)
-  formatSim       FormatSim       @default(PHYSIQUE)
+  formatSim FormatSim @default(PHYSIQUE)
 
   // Choix du client (fait sur l'écran de confirmation finale) d'activer un
   // compte Orange Money sur ce numéro. null = pas encore demandé / non
@@ -156,19 +161,20 @@ model DemandeSIM {
   motifReactivation String?
 
   // Résultat vérification IA (à connecter plus tard)
-  scoreVerification Float?
-  verificationOCR   Boolean?
+  scoreVerification  Float?
+  verificationOCR    Boolean?
   verificationSelfie Boolean?
 
   // Commentaires admin
-  commentaireAdmin  String?
-  traitePar         String?       // nom de l'agent
+  commentaireAdmin String?
+  traitePar        String? // nom de l'agent
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  paiement  Paiement?
+  paiement    Paiement?
+  reservation ReservationSIM?
 }
 
 enum TypeDemande {
@@ -193,20 +199,20 @@ enum StatutDemande {
 // PAIEMENTS
 // =============================================
 model Paiement {
-  id            String         @id @default(cuid())
-  demandeId     String         @unique
-  demande       DemandeSIM     @relation(fields: [demandeId], references: [id])
+  id        String     @id @default(cuid())
+  demandeId String     @unique
+  demande   DemandeSIM @relation(fields: [demandeId], references: [id])
 
-  montant       Float
-  devise        String         @default("GNF")
+  montant         Float
+  devise          String          @default("GNF")
   methodePaiement MethodePaiement
-  statut        StatutPaiement @default(EN_ATTENTE)
+  statut          StatutPaiement  @default(EN_ATTENTE)
 
   // Référence paiement externe (Orange Money, etc.)
   referenceExterne String?
-  numeroPaieur     String?      // numéro de téléphone utilisé
+  numeroPaieur     String? // numéro de téléphone utilisé
 
-  confirmedAt   DateTime?
+  confirmedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -218,6 +224,7 @@ enum MethodePaiement {
   WAVE
   CARTE_BANCAIRE
   ESPECES
+  PREPAYE // payé à l'avance via une réservation (hôtel / agence partenaire)
 }
 
 enum StatutPaiement {
@@ -228,14 +235,73 @@ enum StatutPaiement {
 }
 
 // =============================================
+// RÉSERVATIONS SIM (voyageurs — créées par un hôtel/agence partenaire ou l'admin)
+// Le voyageur reçoit un code ; à la borne : code → passeport (doit correspondre) → selfie → SIM.
+// =============================================
+model ReservationSIM {
+  id     String            @id @default(cuid())
+  code   String            @unique // ex. NMA-7K4P-92QX (usage unique)
+  statut StatutReservation @default(ACTIVE)
+
+  // Voyageur
+  nom             String
+  prenom          String
+  nationalite     String?
+  numeroPasseport String // doit correspondre au passeport scanné
+  email           String?
+  telephone       String?
+
+  // Produit réservé
+  formatSim       FormatSim @default(PHYSIQUE)
+  offreId         String? // forfait eSIM / offre ajoutée
+  offre           Offre?    @relation(fields: [offreId], references: [id])
+  montantRecharge Float? // recharge incluse (SIM physique)
+  montant         Float // total prépayé (GNF)
+
+  // Validité
+  dateArrivee DateTime
+  expireLe    DateTime // dateArrivee + 30 jours
+
+  // Partenaire
+  partenaireNom String // copie du nom de l'établissement
+  creeParId     String
+  creePar       Utilisateur @relation(fields: [creeParId], references: [id])
+
+  // Utilisation à la borne
+  utiliseeLe DateTime?
+  demandeId  String?     @unique
+  demande    DemandeSIM? @relation(fields: [demandeId], references: [id])
+
+  // Reçu envoyé par e-mail au voyageur (dernier envoi réussi)
+  recuEnvoyeLe DateTime?
+
+  // Règlement : le partenaire a encaissé le voyageur, il reverse le montant à N'ma SIM
+  regleLe DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creeParId])
+  @@index([statut])
+  @@index([partenaireNom])
+}
+
+enum StatutReservation {
+  ACTIVE
+  UTILISEE
+  EXPIREE
+  ANNULEE
+}
+
+// =============================================
 // LOGS SYSTEME
 // =============================================
 model Log {
-  id          String   @id @default(cuid())
-  type        String   // "Connexion", "Validation", "Paiement confirmé"...
+  id          String  @id @default(cuid())
+  type        String // "Connexion", "Validation", "Paiement confirmé"...
   description String
-  entiteId    String?  // ID de la demande / client / user concerné
-  entiteType  String?  // "DemandeSIM", "Client", "Utilisateur"...
+  entiteId    String? // ID de la demande / client / user concerné
+  entiteType  String? // "DemandeSIM", "Client", "Utilisateur"...
 
   utilisateurId String?
   utilisateur   Utilisateur? @relation(fields: [utilisateurId], references: [id])
@@ -247,9 +313,9 @@ model Log {
 // PARAMETRES SYSTEME
 // =============================================
 model ParametreSysteme {
-  cle       String   @id
-  valeur    String
-  type      String   @default("STRING") // "BOOLEAN", "STRING", "NUMBER"
+  cle    String @id
+  valeur String
+  type   String @default("STRING") // "BOOLEAN", "STRING", "NUMBER"
 
   updatedAt DateTime @updatedAt
 }

@@ -104,6 +104,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         role: user.role,
         photoProfil: user.photoProfil,
+        partenaireNom: user.partenaireNom,
       },
     }, 'Connexion réussie')
 

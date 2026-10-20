@@ -16,8 +16,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!isLoginPage) {
       const session = localStorage.getItem("admin_session");
+      let role = "";
+      try { role = session ? JSON.parse(session).role : ""; } catch { /* session illisible */ }
       if (!session) {
         router.push("/admin/login");
+      } else if (role === "PARTENAIRE") {
+        // Un compte partenaire n'a jamais accès à l'administration
+        router.replace("/partenaire");
       } else {
         setAuthorized(true);
       }

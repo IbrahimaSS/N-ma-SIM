@@ -137,7 +137,7 @@ export function AboutCtaFooter() {
       <footer data-navbar-invert="true" className="bg-primary py-8">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/50 text-sm font-semibold text-center sm:text-left">
-            N&apos;ma SIM — Votre SIM, en toute simplicité.
+            N&apos;ma SIM — Votre SIM en toute simplicité.
           </p>
           <p className="text-white/30 text-xs">
             © {new Date().getFullYear()} N&apos;ma SIM. Tous droits réservés.

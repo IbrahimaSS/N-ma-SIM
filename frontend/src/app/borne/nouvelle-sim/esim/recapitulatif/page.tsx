@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { ArrowLeft, ArrowRight, User, Smartphone, CreditCard, ShieldCheck } from "lucide-react";
 import type { EsimForfait } from "@/data/esim-forfaits";
 import { libelleNumeroPiece, libelleNumeroPersonnel } from "@/lib/piece";
+import { lireReservation, preparerReservationPrepayee } from "@/lib/reservation.client";
 
 export default function EsimRecapitulatif() {
   const router = useRouter();
@@ -38,6 +39,13 @@ export default function EsimRecapitulatif() {
 
   const handleContinue = () => {
     sessionStorage.setItem("kiosk_esim_recap_ok", "true");
+    // eSIM réservée : déjà payée → génération directe du profil
+    const reservation = lireReservation();
+    if (reservation) {
+      preparerReservationPrepayee(reservation);
+      router.push("/borne/nouvelle-sim/esim/generation");
+      return;
+    }
     router.push("/borne/nouvelle-sim/esim/paiement");
   };
 

@@ -9,11 +9,13 @@ import { Loader2, Wifi, Smartphone, CheckCircle2 } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
 import { identiteValidee } from "@/lib/kyc.decision";
 import { lireDemandeSoumise, memoriserDemande } from "@/lib/kiosk-demande";
+import { lireReservation } from "@/lib/reservation.client";
 
 export default function EsimGeneration() {
   const router = useRouter();
   const [lang, setLang] = useState("fr");
   const [status, setStatus] = useState<"initializing" | "generating" | "finalizing" | "success" | "error">("initializing");
+  const [messageErreur, setMessageErreur] = useState<string | null>(null);
 
   // Garde contre la double exécution en Strict Mode
   const isGenerating = useRef(false);
@@ -59,6 +61,7 @@ export default function EsimGeneration() {
         }
 
         // 1. Enregistrer la demande dans le back-office (Client + DemandeSIM + Paiement, statut VALIDEE)
+        const reservation = lireReservation();
         const dejaSoumise = lireDemandeSoumise();
         let numeroDossier: string | undefined = dejaSoumise?.numeroDossier;
         let demandeId: string | undefined = dejaSoumise?.demandeId;
@@ -93,6 +96,10 @@ export default function EsimGeneration() {
               kyc_result: kyc
                 ? { decision: kyc.decision, details: kyc.details, champs: kyc.champs, face: kyc.face ?? kyc.visage }
                 : undefined,
+              ...(reservation ? {
+                reservation: { code: reservation.code },
+                client_info_numero_lu: sessionStorage.getItem("kiosk_reservation_passeport") || undefined,
+              } : {}),
             }),
           });
           if (res.ok) {
@@ -100,6 +107,13 @@ export default function EsimGeneration() {
             numeroDossier = data.numeroDossier;
             demandeId = data.demandeId;
             memoriserDemande({ numeroDossier, demandeId });
+          } else if (reservation) {
+            // Réservation refusée par le serveur (code déjà utilisé, passeport différent…) :
+            // aucun profil eSIM n'est généré
+            const err = await res.json().catch(() => null);
+            setMessageErreur(err?.error || "Réservation refusée.");
+            setStatus("error");
+            return;
           } else {
             console.error("[ESIM] Soumission demande échouée", await res.text());
           }
@@ -190,9 +204,14 @@ export default function EsimGeneration() {
           <span className="font-medium text-lg">{getStatusText()}</span>
         </div>
 
+        {status === "error" && messageErreur && (
+          <div className="mt-8 max-w-md p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm text-center">
+            {messageErreur}
+          </div>
+        )}
         {status === "error" && (
-          <Button onClick={() => window.location.reload()} className="mt-8">
-            {lang === "en" ? "Retry" : "Réessayer"}
+          <Button onClick={() => (messageErreur ? router.push("/borne/accueil") : window.location.reload())} className="mt-8">
+            {messageErreur ? (lang === "en" ? "Back to home" : "Retour à l'accueil") : (lang === "en" ? "Retry" : "Réessayer")}
           </Button>
         )}
 

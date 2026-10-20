@@ -294,6 +294,17 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
            "voter ID"→click btn-electeur | "licence"/"biometric licence"/"driving licence"→click btn-permis
            No mention of new SIM or offers.`;
 
+    case 'reservation-code':
+      return isFr
+        ? `ÉTAPE : SIM réservée — saisie du code de réservation (/borne/reservation).
+           Le voyageur a réservé sa SIM avec son hôtel ; son reçu contient un code NMA-XXXX-XXXX et un QR code.
+           ACTIONS : "scanner" | "QR code" → click "btn-scanner-qr-reservation" ; saisie du code → fill "input-code-reservation" ;
+           "vérifier" → click "btn-verifier-reservation" ; "continuer" (réservation trouvée) → click "btn-continuer-reservation".
+           Ensuite : scan du passeport (il doit correspondre à la réservation) puis selfie. Pas de paiement : la SIM est déjà payée.`
+        : `STEP: Reserved SIM — reservation code (/borne/reservation). The traveller booked the SIM with their hotel; the receipt has an NMA-XXXX-XXXX code and a QR code.
+           ACTIONS: "scan" → click btn-scanner-qr-reservation; code → fill input-code-reservation; "check" → click btn-verifier-reservation; "continue" → click btn-continuer-reservation.
+           Next: passport scan (must match the reservation) then selfie. No payment: already paid.`;
+
     case 'verification':
       return isFr
         ? `ÉTAPE : Récapitulatif de la réactivation avant paiement (/borne/reactivation/verification).

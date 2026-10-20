@@ -7,6 +7,8 @@ const LINKS = [
   { href: "#solution", label: "Solution" },
   { href: "#services", label: "Services" },
   { href: "#comment-ca-marche", label: "Comment ça marche" },
+  { href: "#voyageurs", label: "Voyageurs" },
+  { href: "#hotels", label: "Hôtels" },
   { href: "#securite", label: "Sécurité" },
   { href: "#borne", label: "La borne" },
   { href: "#operateurs", label: "Opérateurs" },

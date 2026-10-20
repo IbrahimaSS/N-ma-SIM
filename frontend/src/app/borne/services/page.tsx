@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, RefreshCcw, Microchip, Lock, Globe, User as UserIcon, Briefcase, BatteryCharging, ShieldCheck } from "lucide-react";
+import { ArrowRight, RefreshCcw, Microchip, Lock, Globe, User as UserIcon, Briefcase, BatteryCharging, ShieldCheck, Ticket } from "lucide-react";
 
 export default function Services() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function Services() {
       id: "nouvelle-sim",
       title: lang === "en" ? "New SIM" : "Nouvelle SIM",
       description: lang === "en" ? "Get a new SIM card in minutes." : "Obtenez une nouvelle carte SIM en quelques minutes.",
-      icon: <Microchip size={52} strokeWidth={1.5} style={{ color: "#2656A2", marginBottom: 20 }} />,
+      icon: <Microchip size={52} strokeWidth={1.5} style={{ color: "#2656A2" }} />,
       action: () => router.push("/borne/nouvelle-sim/format"),
       disabled: false,
     },
@@ -28,7 +28,7 @@ export default function Services() {
       id: "reactivation",
       title: lang === "en" ? "Reactivation" : "Réactivation",
       description: lang === "en" ? "Reactivate a disabled chip safely." : "Réactivez une puce désactivée en toute sécurité.",
-      icon: <RefreshCcw size={52} strokeWidth={1.5} style={{ color: "#2656A2", marginBottom: 20 }} />,
+      icon: <RefreshCcw size={52} strokeWidth={1.5} style={{ color: "#2656A2" }} />,
       action: () => router.push("/borne/reactivation/identification"),
       disabled: false,
     },
@@ -36,7 +36,7 @@ export default function Services() {
       id: "recharge",
       title: lang === "en" ? "Recharge" : "Recharge",
       description: lang === "en" ? "Top up your number quickly." : "Rechargez votre numéro rapidement.",
-      icon: <BatteryCharging size={52} strokeWidth={1.5} style={{ color: "#2656A2", marginBottom: 20 }} />,
+      icon: <BatteryCharging size={52} strokeWidth={1.5} style={{ color: "#2656A2" }} />,
       action: () => router.push("/borne/recharge/numero"),
       disabled: false,
     },
@@ -44,7 +44,7 @@ export default function Services() {
       id: "verification",
       title: lang === "en" ? "Verification" : "Vérification",
       description: lang === "en" ? "Check the information linked to your ID." : "Vérifiez les informations associées à votre pièce d'identité.",
-      icon: <ShieldCheck size={52} strokeWidth={1.5} style={{ color: "#2656A2", marginBottom: 20 }} />,
+      icon: <ShieldCheck size={52} strokeWidth={1.5} style={{ color: "#2656A2" }} />,
       action: () => router.push("/borne/verification/scan-piece"),
       disabled: false,
     },
@@ -88,7 +88,7 @@ export default function Services() {
               background: "white",
               borderRadius: "clamp(16px, 2vw, 24px)",
               /* Padding réduit sur petit écran borne */
-              padding: "clamp(20px, 2.5vw, 36px) clamp(16px, 2vw, 28px)",
+              padding: "clamp(16px, 2vw, 28px) clamp(16px, 2vw, 28px)",
               display: "flex", flexDirection: "column", alignItems: "center",
               textAlign: "center",
               cursor: service.disabled ? "not-allowed" : "pointer",
@@ -150,7 +150,22 @@ export default function Services() {
         ))}
       </div>
 
-      {/* Sélecteurs langue/profil */}
+      {/* Sélecteurs langue/profil + accès discret à la SIM réservée (voyageurs) */}
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: 12 }}>
+        <button
+          data-ai-action="btn-reservation"
+          onClick={() => router.push("/borne/reservation")}
+          style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: "#2656A2", padding: "10px 20px",
+            borderRadius: 999, border: "none", cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(38,86,162,0.25)",
+            fontSize: 14, fontWeight: 700, color: "white",
+          }}
+        >
+          <Ticket size={16} color="#F5BB02" />
+          {lang === "en" ? "I have a reservation code" : "J'ai un code de réservation"}
+        </button>
       <div style={{ display: "flex", gap: 12, opacity: 0.85 }}>
         <div style={{
           display: "flex", alignItems: "center", gap: 8,
@@ -169,6 +184,7 @@ export default function Services() {
           {profile === "etranger" ? <Briefcase size={15} color="#2656A2" /> : <UserIcon size={15} color="#2656A2" />}
           {profile === "etranger" ? (lang === "en" ? "Foreigner" : "Étranger") : (lang === "en" ? "Resident" : "Résident")}
         </div>
+      </div>
       </div>
 
     </div>
