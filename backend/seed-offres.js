@@ -15,10 +15,10 @@ async function run() {
 
   // Créer les vraies offres N'ma SIM
   const offres = [
-    { nom: 'SIM Standard', description: 'Carte SIM basique pour appels, SMS et services essentiels.', prix: 10000, type: 'SIM_STANDARD', actif: true },
+    { nom: 'SIM Standard', description: 'Carte SIM basique pour appels, SMS et services essentiels.', prix: 5000, type: 'SIM_STANDARD', actif: true },
     { nom: 'SIM + Internet', description: 'Carte SIM avec forfait data et services internet inclus.', prix: 20000, type: 'SIM_INTERNET', actif: true },
     { nom: 'SIM Étudiant', description: 'Offre spéciale étudiants avec tarifs préférentiels.', prix: 15000, type: 'SIM_ETUDIANT', actif: true },
-    { nom: 'Réactivation de puce', description: "Réactivation d'une SIM existante avec conservation du numéro.", prix: 10000, type: 'RECHARGE', actif: true },
+    { nom: 'Réactivation de puce', description: "Réactivation d'une SIM existante avec conservation du numéro.", prix: 3000, type: 'RECHARGE', actif: true },
   ];
 
   for (const offre of offres) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildSystemPrompt } from '@/lib/agent-context';
+import { lireTarifs, TARIFS_DEFAUT } from '@/lib/tarifs';
 
 export interface AgentAction {
   type: 'none' | 'navigate' | 'click' | 'fill';
@@ -259,7 +260,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Construire un prompt dynamique et ciblé sur l'étape actuelle
-    const systemPrompt = buildSystemPrompt(language, profile, termsAccepted, service, currentStep);
+    const tarifs = await lireTarifs().catch(() => TARIFS_DEFAUT);
+    const systemPrompt = buildSystemPrompt(language, profile, termsAccepted, service, currentStep, tarifs);
 
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -339,7 +341,7 @@ function fallbackResponse(lang: string | null, step: string, isFr: boolean) {
     'felicitations':         ["Félicitations ! Votre opération est réussie. Merci d'avoir utilisé N'ma SIM !", "Congratulations! Your operation was successful. Thank you for using N'ma SIM!"],
     'numero-reactivation':   ["Saisissez le numéro à réactiver, le motif et vos deux numéros fréquents.", "Enter the number to reactivate, the reason, and your two frequent numbers."],
     'piece-identite':        ["Veuillez scanner votre pièce d'identité pour continuer.", "Please scan your ID document to continue."],
-    'verification':          ["Nous vérifions vos informations. Dites continuer quand vous êtes prêt.", "We are verifying your information. Say continue when ready."],
+    'verification':          ["Vérifiez le récapitulatif de votre réactivation, puis dites continuer.", "Check your reactivation summary, then say continue."],
     'recharge-numero':       ["Saisissez le numéro de téléphone à recharger.", "Enter the phone number you wish to recharge."],
     'recharge-montant':      ["Choisissez le montant de votre recharge.", "Choose the amount for your recharge."],
     'verification-scan-piece': ["Scannez votre pièce d'identité pour consulter votre profil.", "Scan your ID to view your profile."],

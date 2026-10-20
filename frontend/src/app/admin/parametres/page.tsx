@@ -29,6 +29,9 @@ export default function Parametres() {
     "Clé secrète API (Token)": "secret_token_123456789",
     "Modèle par défaut": "Modèle Standard N'ma",
     "Langue principale": "Français (FR)",
+    // Tarifs de la borne (GNF) — lus par la borne via /api/parametres/tarifs
+    "tarif_nouvelle_sim": 5000,
+    "tarif_reactivation": 3000,
     // Toggles
     "2FA": false,
     "Nouvelles demandes SIM": true,
@@ -116,6 +119,7 @@ export default function Parametres() {
       setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
       console.error("Erreur sauvegarde", err);
+      alert(err instanceof Error && err.message ? err.message : "Erreur lors de l'enregistrement des paramètres.");
     } finally {
       setIsSaving(false);
     }
@@ -541,6 +545,30 @@ export default function Parametres() {
           <div style={{ maxWidth: 800, background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
             <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 20px", fontSize: 15 }}>Configuration des paiements</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              {/* Tarifs appliqués par la borne (nouvelle SIM physique, réactivation) */}
+              <div style={{ paddingBottom: 16, borderBottom: "1px solid #EAECF5" }}>
+                <h4 style={{ margin: "0 0 4px", fontSize: 13, color: "#111827", fontWeight: 600 }}>Tarifs de la borne</h4>
+                <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 12 }}>Prix appliqués immédiatement sur toutes les bornes après enregistrement.</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  {[
+                    { cle: "tarif_nouvelle_sim", label: "Prix d'une nouvelle carte SIM (GNF)" },
+                    { cle: "tarif_reactivation", label: "Prix d'une réactivation (GNF)" },
+                  ].map(({ cle, label }) => (
+                    <div key={cle}>
+                      <label style={{ display: "block", fontSize: 12, color: "#374151", fontWeight: 500, marginBottom: 8 }}>{label}</label>
+                      <input
+                        type="number"
+                        min={1}
+                        step={500}
+                        value={settings[cle] ?? ""}
+                        onChange={(e) => setSettings(prev => ({ ...prev, [cle]: e.target.value === "" ? "" : Number(e.target.value) }))}
+                        style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB", outline: "none", fontSize: 13 }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginBottom: 4 }}>Validation automatique</div>

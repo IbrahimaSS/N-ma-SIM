@@ -12,9 +12,7 @@ import {
 import { getKycResult } from "@/lib/kyc.storage";
 import { identiteValidee } from "@/lib/kyc.decision";
 import { lireDemandeSoumise, memoriserDemande } from "@/lib/kiosk-demande";
-
-// Prix par défaut si le backend ne répond pas
-const PRIX_DEFAUT = 10000;
+import { PRIX_REACTIVATION, chargerTarifs } from "@/lib/tarifs";
 
 export default function PaiementReactivation() {
   const router = useRouter();
@@ -24,8 +22,9 @@ export default function PaiementReactivation() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
-  // Données dynamiques
-  const [prix, setPrix] = useState<number>(PRIX_DEFAUT);
+  // Tarif de la réactivation réglé par l'administrateur (Paramètres → Paiements).
+  // (Auparavant lu sur l'offre « SIM Standard », c'est-à-dire le prix d'une NOUVELLE SIM.)
+  const [prix, setPrix] = useState<number>(PRIX_REACTIVATION);
   const [isLoadingPrice, setIsLoadingPrice] = useState(true);
   const [numero, setNumero] = useState("—");
   const [motif, setMotif] = useState("—");
@@ -59,20 +58,8 @@ export default function PaiementReactivation() {
     };
     setMotif(motifLabels[motifKey] || motifKey || "—");
 
-    // Charger le prix depuis l'offre SIM Standard configurée par l'admin
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-    fetch(`${BACKEND_URL}/api/offres?type=SIM_STANDARD`)
-      .then((r) => r.json())
-      .then((data) => {
-        const offres = data?.data ?? data ?? [];
-        const simStandard = Array.isArray(offres) ? offres[0] : null;
-        if (simStandard?.prix) {
-          setPrix(Number(simStandard.prix));
-        } else {
-          setPrix(PRIX_DEFAUT);
-        }
-      })
-      .catch(() => setPrix(PRIX_DEFAUT))
+    chargerTarifs()
+      .then((t) => setPrix(t.reactivation))
       .finally(() => setIsLoadingPrice(false));
   }, []);
 

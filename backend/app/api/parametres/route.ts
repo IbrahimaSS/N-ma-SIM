@@ -38,6 +38,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const keys = Object.keys(body)
 
+    // Tarifs de la borne : entiers strictement positifs (GNF), enregistrés en NUMBER
+    for (const cle of ['tarif_nouvelle_sim', 'tarif_reactivation']) {
+      if (cle in body) {
+        const n = Number(body[cle])
+        if (!Number.isInteger(n) || n <= 0) {
+          return apiError(`Tarif invalide (${cle}) : un montant entier supérieur à 0 est requis`, 400)
+        }
+        body[cle] = n
+      }
+    }
+
     // Start a transaction to update all parameters
     const operations = keys.map(key => {
       const val = body[key]

@@ -1,3 +1,4 @@
+import { TARIFS_DEFAUT, type TarifsBorne } from '@/lib/tarifs';
 /**
  * Génère un contexte IA DYNAMIQUE et ciblé selon l'étape actuelle.
  * Au lieu d'envoyer 270 lignes pour toutes les pages, on envoie UNIQUEMENT
@@ -199,7 +200,7 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
       return isFr
         ? `ÉTAPE : Choix d'une offre optionnelle pour la nouvelle SIM (/borne/nouvelle-sim/offres).
            L'utilisateur peut : acheter la SIM seule OU y ajouter une offre Recharge.
-           Prix de base SIM : 10 000 GNF.
+           Prix de base SIM : {{PRIX_SIM}} GNF. Réactivation : {{PRIX_REACT}} GNF.
            BOUTON continuer sans offre : data-ai-action="btn-continuer-offres"
            COMMANDES :
            - "sans offre" | "SIM seule" | "continuer" | "pas d'offre" → click "btn-continuer-offres"
@@ -207,7 +208,7 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
            - Si l'utilisateur dit un montant (ex: "cinq mille") → fill "select-offre-montant" value="5000"
            NE PAS mentionner réactivation ici.`
         : `STEP: Optional offer choice for new SIM (/borne/nouvelle-sim/offres).
-           Base SIM price: 10,000 GNF. User can add Recharge offer.
+           Base SIM price: {{PRIX_SIM}} GNF. Reactivation: {{PRIX_REACT}} GNF. User can add Recharge offer.
            BUTTON: btn-continuer-offres | COMMANDS: "no offer"/"continue"→click btn-continuer-offres
            "with recharge"→fill select-offre value=recharge | amount→fill select-offre-montant`;
 
@@ -295,11 +296,12 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
 
     case 'verification':
       return isFr
-        ? `ÉTAPE : Vérification des informations de la ligne (/borne/reactivation/verification).
-           Le système vérifie que les numéros fréquents correspondent aux données opérateur.
+        ? `ÉTAPE : Récapitulatif de la réactivation avant paiement (/borne/reactivation/verification).
+           L'écran affiche le numéro, le motif, le titulaire lu sur la pièce et le résultat de la vérification d'identité.
+           Si l'identité n'est pas vérifiée, le bouton continuer est désactivé : inviter à « Reprendre la vérification ».
            BOUTON continuer : data-ai-action="btn-continuer-verification"
            COMMANDES : "continuer" | "passer au paiement" | "suivant" → click "btn-continuer-verification".`
-        : `STEP: Line information verification (/borne/reactivation/verification).
+        : `STEP: Reactivation summary before payment (/borne/reactivation/verification). If identity is not verified, continue is disabled: suggest "Verify again".
            BUTTON: btn-continuer-verification | COMMANDS: "continue"→click btn-continuer-verification`;
 
     // ── RECHARGE ─────────────────────────────────────────────────────────────
@@ -367,10 +369,15 @@ export function buildSystemPrompt(
   profile: string | null,
   termsAccepted: boolean,
   service: string | null,
-  currentStep: string
+  currentStep: string,
+  tarifs: TarifsBorne = TARIFS_DEFAUT
 ): string {
   const isFr = language !== 'en';
-  const stepContext = getStepContext(currentStep, service, language || 'fr', isFr);
+  // Prix réglés par l'administrateur (Paramètres → Paiements), injectés dans le contexte de l'étape
+  const format = (n: number) => n.toLocaleString(isFr ? 'fr-FR' : 'en-US');
+  const stepContext = getStepContext(currentStep, service, language || 'fr', isFr)
+    .split('{{PRIX_SIM}}').join(format(tarifs.tarif_nouvelle_sim))
+    .split('{{PRIX_REACT}}').join(format(tarifs.tarif_reactivation));
 
   return `${BASE_RULES}
 
