@@ -5,124 +5,87 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { CheckCircle2, ChevronRight, ArrowLeft, Hourglass, Info, XCircle, AlertTriangle, ShieldCheck } from "lucide-react";
-import { StatusBadge } from "@/components/ui/StatusBadge";
+import { CheckCircle2, ChevronRight, ArrowLeft, XCircle, Loader2, RotateCcw } from "lucide-react";
 import { getKycResult } from "@/lib/kyc.storage";
-import type { KycReponse } from "@/types/kyc";
+import { identiteValidee, expliquerDecision } from "@/lib/kyc.decision";
+import { libelleNumeroPiece } from "@/lib/piece";
+import type { KycReponse, KycChampsExtraits } from "@/types/kyc";
 
+/**
+ * Récapitulatif de la réactivation avant paiement (même logique que la nouvelle SIM) :
+ * informations saisies + identité lue sur la pièce + résultat RÉEL de la vérification.
+ * Seule une identité validée permet de continuer vers le paiement.
+ */
 export default function Verification() {
   const router = useRouter();
   const [lang, setLang] = useState("fr");
-
-  // Données de la session (étape 1)
-  const [numero, setNumero] = useState("");
+  const [numero, setNumero] = useState("—");
   const [motif, setMotif] = useState("");
-
-  // Résultat KYC (extrait de IndexedDB)
+  const [typePiece, setTypePiece] = useState<string | null>(null);
   const [kycResult, setKycResult] = useState<KycReponse | null>(null);
-  const [identiteNom, setIdentiteNom] = useState<string>("");
+  const [champs, setChamps] = useState<KycChampsExtraits>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
-
-    // Récupérer les données saisies en étape 1
     setNumero(sessionStorage.getItem("reactivation_numero") || "—");
-    const motifVal = sessionStorage.getItem("reactivation_motif") || "";
-    setMotif(motifVal);
+    setMotif(sessionStorage.getItem("reactivation_motif") || "");
+    setTypePiece(sessionStorage.getItem("kiosk_doc_type"));
 
-    // Récupérer le résultat KYC (avec selfie) depuis IndexedDB
-    getKycResult().then((result) => {
-      if (result) {
-        setKycResult(result);
-        // Lire les champs depuis KYC complet
-        const c = result.champs ?? {};
-        const nom = c.nom ?? "";
-        const prenom = c.prenom ?? "";
-        const fullName = [prenom, nom].filter(Boolean).join(" ").toUpperCase();
-        if (fullName) {
-          setIdentiteNom(fullName);
-        } else {
-          // Fallback : champs extraits depuis la page pièce (sessionStorage)
+    getKycResult()
+      .then((result) => {
+        setKycResult(result ?? null);
+        let c: KycChampsExtraits = result?.champs ?? {};
+        // Repli : champs lus à l'étape « pièce d'identité »
+        if (!c.nom && !c.prenom) {
           try {
-            const champsJson = sessionStorage.getItem("kyc_champs");
-            if (champsJson) {
-              const champs = JSON.parse(champsJson);
-              const fallbackName = [champs.prenom ?? "", champs.nom ?? ""].filter(Boolean).join(" ").toUpperCase();
-              setIdentiteNom(fallbackName || "—");
-            } else {
-              setIdentiteNom("—");
-            }
-          } catch { setIdentiteNom("—"); }
+            const brut = sessionStorage.getItem("kyc_champs");
+            if (brut) c = JSON.parse(brut);
+          } catch { /* garder les champs vides */ }
         }
-      } else {
-        // Aucun résultat KYC complet — essayer le fallback sessionStorage
-        try {
-          const champsJson = sessionStorage.getItem("kyc_champs");
-          if (champsJson) {
-            const champs = JSON.parse(champsJson);
-            const fallbackName = [champs.prenom ?? "", champs.nom ?? ""].filter(Boolean).join(" ").toUpperCase();
-            setIdentiteNom(fallbackName || "—");
-          }
-        } catch { setIdentiteNom("—"); }
-      }
-    }).finally(() => setIsLoading(false));
+        setChamps(c);
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
+  const en = lang === "en";
   const motifLabel: Record<string, string> = {
-    perte: lang === "en" ? "Lost SIM card" : "Perte de la carte SIM",
-    inactivite: lang === "en" ? "Long inactivity period" : "Longue période d'inactivité",
-    desactivee: lang === "en" ? "Disabled SIM" : "Puce désactivée",
+    perte: en ? "Lost SIM card" : "Perte de la carte SIM",
+    inactivite: en ? "Long inactivity period" : "Longue période d'inactivité",
+    desactivee: en ? "Disabled SIM" : "Puce désactivée",
   };
 
   const t = {
-    title: lang === "en" ? "SIM Reactivation" : "Réactivation des puces",
-    subtitle: lang === "en" ? "We are verifying the information provided to secure your reactivation." : "Nous vérifions les informations fournies pour sécuriser votre réactivation.",
-    summary: lang === "en" ? "Information summary" : "Résumé des informations",
-    edit: lang === "en" ? "Edit" : "Modifier",
-    numberLabel: lang === "en" ? "Number to reactivate" : "Numéro à réactiver",
-    reason: lang === "en" ? "Reason" : "Motif",
-    identity: lang === "en" ? "Extracted identity" : "Identité extraite",
-    lineCheck: lang === "en" ? "Line check in progress" : "Contrôle de ligne en cours",
-    lineCheckSub: lang === "en" ? "We are verifying your line eligibility with the operator." : "Nous vérifions l'éligibilité de votre ligne auprès de l'opérateur.",
-    aiOk: lang === "en" ? "AI analysis successful" : "Analyse IA réussie",
-    aiOkSub: lang === "en" ? "Documents and selfie were analysed successfully." : "Les documents et le selfie ont été analysés avec succès.",
-    faceOk: lang === "en" ? "Face / document match validated" : "Correspondance visage / document validée",
-    faceOkSub: lang === "en" ? "Match confirmed by our AI system." : "La correspondance a été confirmée par notre système IA.",
-    faceKo: lang === "en" ? "Face / document match not confirmed" : "Correspondance visage / document non confirmée",
-    faceKoSub: lang === "en" ? "Manual verification required by an agent." : "Une vérification manuelle par un agent est requise.",
-    opCheck: lang === "en" ? "Operator verification in progress" : "Vérification opérateur en cours",
-    opCheckSub: lang === "en" ? "We are verifying your line eligibility with the operator." : "Nous vérifions l'éligibilité de votre ligne auprès de l'opérateur.",
-    wait: lang === "en" ? "Please wait, this may take a few moments." : "Veuillez patienter, cela peut prendre quelques instants.",
-    similarity: lang === "en" ? "Face similarity" : "Similarité faciale",
-    back: lang === "en" ? "Back" : "Retour",
-    continue: lang === "en" ? "Continue" : "Continuer",
-    loading: lang === "en" ? "Loading..." : "Chargement...",
-    noKyc: lang === "en" ? "No AI result — manual verification required." : "Aucun résultat IA — vérification manuelle requise.",
+    title: en ? "SIM Reactivation — Summary" : "Réactivation — Récapitulatif",
+    subtitle: en ? "Check that the information below is correct before payment." : "Vérifiez que les informations ci-dessous sont exactes avant le paiement.",
+    request: en ? "Your request" : "Votre demande",
+    numberLabel: en ? "Number to reactivate" : "Numéro à réactiver",
+    reason: en ? "Reason" : "Motif",
+    holder: en ? "Holder" : "Titulaire",
+    fullName: en ? "Full name" : "Nom et prénom",
+    birth: en ? "Date of birth" : "Date de naissance",
+    edit: en ? "Edit" : "Modifier",
+    verifiedTitle: en ? "Identity verified" : "Identité vérifiée",
+    verifiedSub: en ? "Your selfie matches the photo on your ID document." : "Votre selfie correspond à la photo de votre pièce d'identité.",
+    noResultTitle: en ? "Identity not verified" : "Identité non vérifiée",
+    noResultSub: en ? "Please scan your ID document and take your selfie again." : "Veuillez scanner à nouveau votre pièce d'identité et reprendre votre selfie.",
+    retry: en ? "Verify again" : "Reprendre la vérification",
+    back: en ? "Back" : "Retour",
+    continue: en ? "Continue to payment" : "Continuer vers le paiement",
+    loading: en ? "Loading..." : "Chargement...",
   };
 
-  // Déterminer si la correspondance visage/document est OK
-  const decisionUpper = (kycResult?.decision ?? "").toUpperCase();
-  const faceData = kycResult?.visage ?? kycResult?.face ?? null;
-  // Logique de match : on accepte si :
-  // 1. La décision contient "ACCEPT" (toutes langues) ou "VALID" ou "OK"
-  // 2. OU face.verifie === true
-  // 3. OU similarite >= 0.5 (50% — seuil raisonnable pour selfie kiosque)
-  const decisionNorm = decisionUpper
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, ""); // Enlève les accents (ACCEPTÉ → ACCEPTE)
-  const isFaceOk = 
-    decisionNorm.includes("ACCEPT") ||
-    decisionNorm.includes("VALID") ||
-    decisionNorm.includes(" OK") ||
-    faceData?.verifie === true ||
-    (faceData?.similarite ?? 0) >= 0.5;
-  const simPct = faceData?.similarite != null ? Math.round(faceData.similarite * 100) : null;
+  const valide = identiteValidee(kycResult);
+  const explication = kycResult && !valide ? expliquerDecision(kycResult, lang) : null;
+  const nomComplet = [champs.prenom, champs.nom].filter(Boolean).join(" ").toUpperCase() || "—";
+  const numeroPiece = champs.numero_identite || champs.numero_carte || champs.nin || "—";
 
-  // Statut identité selon résultat KYC
-  const identiteStatut = kycResult
-    ? (isFaceOk ? "VALIDEE" : "EN_ATTENTE_VALIDATION")
-    : "EN_ATTENTE_VALIDATION";
+  const ligne = (label: string, valeur: string) => (
+    <div key={label} className="flex justify-between items-center gap-4 p-4">
+      <p className="text-sm text-text-muted">{label}</p>
+      <p className="font-bold text-primary text-right">{valeur}</p>
+    </div>
+  );
 
   return (
     <Card className="w-full p-2">
@@ -132,117 +95,68 @@ export default function Verification() {
       </CardHeader>
 
       <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* ─── Résumé des informations ─── */}
-        <div>
-          <div className="flex justify-between items-center bg-gray-50 p-4 rounded-t-xl border border-b-0 border-border-light">
-            <h3 className="font-bold text-primary text-lg">{t.summary}</h3>
+        {/* Demande */}
+        <div className="border border-border-light rounded-xl overflow-hidden bg-white">
+          <div className="flex justify-between items-center bg-gray-50 px-4 py-3 border-b border-border-light">
+            <h3 className="font-bold text-primary">{t.request}</h3>
             <Button variant="secondary" size="sm" className="bg-white" onClick={() => router.push("/borne/reactivation/identification")}>{t.edit}</Button>
           </div>
-          <div className="border border-border-light rounded-b-xl overflow-hidden divide-y divide-border-light bg-white">
-            {/* Numéro */}
-            <div className="flex justify-between items-center p-4">
-              <div>
-                <p className="text-xs text-text-muted font-semibold">{t.numberLabel}</p>
-                <p className="font-bold text-primary">{numero || "—"}</p>
-              </div>
-              <StatusBadge status="CONFIRME" />
-            </div>
-            {/* Motif */}
-            <div className="flex justify-between items-center p-4">
-              <div>
-                <p className="text-xs text-text-muted font-semibold">{t.reason}</p>
-                <p className="font-bold text-primary">{motifLabel[motif] || motif || "—"}</p>
-              </div>
-              <StatusBadge status="CONFIRME" />
-            </div>
-            {/* Identité extraite par IA */}
-            <div className="flex justify-between items-center p-4">
-              <div>
-                <p className="text-xs text-text-muted font-semibold">{t.identity}</p>
-                <p className="font-bold text-primary">{isLoading ? "..." : (identiteNom || "—")}</p>
-                {simPct !== null && (
-                  <p className="text-xs text-text-muted mt-0.5">{t.similarity} : {simPct}%</p>
-                )}
-              </div>
-              <StatusBadge status={identiteStatut as any} />
-            </div>
+          <div className="divide-y divide-border-light">
+            {ligne(t.numberLabel, numero)}
+            {ligne(t.reason, motifLabel[motif] || motif || "—")}
           </div>
         </div>
 
-        {/* ─── Résultat KYC / Contrôle de ligne ─── */}
-        <div className="bg-accent/5 border border-accent/20 rounded-2xl p-6">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="bg-accent/20 p-3 rounded-full flex-shrink-0">
-              <Hourglass className="w-8 h-8 text-accent animate-pulse" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-primary">{t.lineCheck}</h3>
-              <p className="text-text-muted text-sm mt-1">{t.lineCheckSub}</p>
-            </div>
+        {/* Titulaire (lu sur la pièce) */}
+        <div className="border border-border-light rounded-xl overflow-hidden bg-white">
+          <div className="bg-gray-50 px-4 py-3 border-b border-border-light">
+            <h3 className="font-bold text-primary">{t.holder}</h3>
           </div>
-
-          <div className="flex flex-col gap-4 mb-4">
-            {/* Étape 1 : Analyse IA */}
-            <div className="flex gap-3">
-              {kycResult ? (
-                <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
-              ) : (
-                <Hourglass className="w-5 h-5 text-warning flex-shrink-0 mt-0.5 animate-pulse" />
-              )}
-              <div>
-                <p className="font-bold text-primary text-sm">{t.aiOk}</p>
-                <p className="text-xs text-text-muted">{kycResult ? t.aiOkSub : t.noKyc}</p>
-              </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 p-6 text-text-muted text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" /> {t.loading}
             </div>
-
-            {/* Étape 2 : Correspondance visage */}
-            <div className="flex gap-3">
-              {kycResult ? (
-                isFaceOk ? (
-                  <ShieldCheck className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-                )
-              ) : (
-                <div className="w-5 h-5 rounded-full border-2 border-border-light flex-shrink-0 mt-0.5" />
-              )}
-              <div>
-                <p className="font-bold text-primary text-sm">{isFaceOk ? t.faceOk : t.faceKo}</p>
-                <p className="text-xs text-text-muted">{isFaceOk ? t.faceOkSub : t.faceKoSub}</p>
-              </div>
-            </div>
-
-            {/* Étape 3 : Vérification opérateur */}
-            <div className="flex gap-3">
-              <Hourglass className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-primary text-sm">{t.opCheck}</p>
-                <p className="text-xs text-text-muted">{t.opCheckSub}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Bannière KYC rejeté */}
-          {kycResult && !isFaceOk && (
-            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-xs">
-              <XCircle className="w-4 h-4 flex-shrink-0" />
-              <span>La correspondance faciale n'a pas pu être confirmée. Un agent validera votre demande.</span>
+          ) : (
+            <div className="divide-y divide-border-light">
+              {ligne(t.fullName, nomComplet)}
+              {ligne(t.birth, champs.date_naissance || "—")}
+              {ligne(libelleNumeroPiece(typePiece, lang), numeroPiece)}
             </div>
           )}
-
-          <div className="bg-warning/10 p-4 rounded-xl flex items-center gap-3 text-warning border border-warning/20">
-            <Info className="w-5 h-5 flex-shrink-0" />
-            <p className="text-sm font-semibold">{t.wait}</p>
-          </div>
         </div>
 
-        {/* ─── Navigation ─── */}
-        <div className="col-span-1 lg:col-span-2 flex justify-between items-center pt-4 border-t border-border-light mt-4">
+        {/* Résultat réel de la vérification d'identité */}
+        {!isLoading && (
+          valide ? (
+            <div className="lg:col-span-2 p-4 bg-success/10 border border-success/30 rounded-xl flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-success flex-shrink-0" />
+              <div>
+                <p className="font-bold text-success">{t.verifiedTitle}</p>
+                <p className="text-sm text-green-800 mt-1">{t.verifiedSub}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="lg:col-span-2 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+              <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-bold text-red-700">{explication?.titre || t.noResultTitle}</p>
+                <p className="text-sm text-red-700/90 mt-1">{explication?.message || t.noResultSub}</p>
+                <Button variant="secondary" size="sm" className="mt-3 bg-white" onClick={() => router.push("/borne/reactivation/piece-identite")}>
+                  <RotateCcw className="w-4 h-4 mr-2" /> {t.retry}
+                </Button>
+              </div>
+            </div>
+          )
+        )}
+
+        {/* Navigation */}
+        <div className="col-span-1 lg:col-span-2 flex justify-between items-center pt-4 border-t border-border-light mt-2">
           <Button variant="secondary" onClick={() => router.back()}>
             <ArrowLeft className="w-5 h-5 mr-2" /> {t.back}
           </Button>
           <Button
             data-ai-action="btn-continuer-verification"
+            disabled={isLoading || !valide}
             onClick={() => {
               sessionStorage.setItem("reactivation_verified_ok", "1");
               router.push("/borne/reactivation/paiement");

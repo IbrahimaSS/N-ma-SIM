@@ -81,7 +81,7 @@ export default function VerificationSelfie() {
         visible={isAnalyzing}
         lang={lang}
         title={lang === "en" ? "Verifying your identity..." : "Vérification de votre identité..."}
-        subtitle={lang === "en" ? "Please wait, AI is comparing your selfie with your ID." : "Merci de patienter, l'IA compare votre selfie avec votre pièce d'identité."}
+        subtitle={lang === "en" ? "Please wait, the system is comparing your selfie with your ID." : "Merci de patienter, le système compare votre selfie avec votre pièce d'identité."}
       />
       <input ref={selfieInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="hidden" onChange={handleFileSelect} />
       <CardHeader className="pb-6">
