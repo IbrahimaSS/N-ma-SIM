@@ -7,9 +7,9 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Microchip, Smartphone, Banknote, ChevronRight, ArrowLeft, CheckCircle2, Loader2, AlertCircle, ShoppingCart } from "lucide-react";
 import { jouerAudioLocal } from "@/lib/soussou-audio";
+import { chargerTarifs } from "@/lib/tarifs";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
-const PRIX_NOUVELLE_SIM = 10000; // Prix fixe de la carte SIM
 
 interface OffreDB {
   id: string;
@@ -32,9 +32,12 @@ export default function Offres() {
   const [rechargeMontant, setRechargeMontant] = useState<number | null>(null);
   const [customMontant, setCustomMontant] = useState<string>("");
   const [lang, setLang] = useState("fr");
+  // Prix de la carte SIM réglé par l'administrateur (Paramètres → Paiements)
+  const [prixSim, setPrixSim] = useState<number | null>(null);
 
   useEffect(() => {
     setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+    chargerTarifs().then((t) => setPrixSim(t.nouvelleSim));
     
     fetch(`${BACKEND_URL}/api/offres`)
       .then((res) => {
@@ -92,7 +95,7 @@ export default function Offres() {
   const selectedOfferObj = offres.find((o) => o.id === selectedOffer);
   const isRecharge = selectedOfferObj?.type === "RECHARGE";
   const montantOffre = isRecharge ? finalMontantRecharge : 0;
-  const totalAPayer = PRIX_NOUVELLE_SIM + montantOffre;
+  const totalAPayer = (prixSim ?? 0) + montantOffre;
 
   const handleContinue = () => {
     sessionStorage.setItem("kiosk_offer", JSON.stringify({
@@ -102,13 +105,13 @@ export default function Offres() {
       prixGNF: totalAPayer, // Le total calculé est transmis au paiement
       type: selectedOfferObj?.type || "AUCUNE",
       detailsRecharge: isRecharge ? montantOffre : 0,
-      prixBaseSim: PRIX_NOUVELLE_SIM
+      prixBaseSim: prixSim
     }));
     
     router.push("/borne/nouvelle-sim/paiement");
   };
 
-  if (isLoading) {
+  if (isLoading || prixSim === null) {
     return (
       <div className="flex flex-col items-center justify-center w-full py-20 gap-4">
         <Loader2 className="w-12 h-12 text-accent animate-spin" />
@@ -152,7 +155,7 @@ export default function Offres() {
           <div>
             <p className="text-sm font-semibold text-text-main">Récapitulatif de commande</p>
             <div className="text-xs text-text-muted mt-1 flex flex-col gap-1">
-              <span>Nouvelle SIM : <strong className="text-primary">{PRIX_NOUVELLE_SIM.toLocaleString('fr-FR')} GNF</strong></span>
+              <span>Nouvelle SIM : <strong className="text-primary">{prixSim.toLocaleString('fr-FR')} GNF</strong></span>
               <span>Offre ({isRecharge ? 'Recharge' : 'Aucune'}) : <strong className="text-primary">{montantOffre > 0 ? `+ ${montantOffre.toLocaleString('fr-FR')} GNF` : '0 GNF'}</strong></span>
             </div>
           </div>

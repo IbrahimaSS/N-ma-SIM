@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2 } from "lucide-react";
 import { SuccessScreen } from "@/components/borne/SuccessScreen";
 import { RecuImprimable } from "@/components/borne/RecuImprimable";
+import { PRIX_REACTIVATION } from "@/lib/tarifs";
 
 export default function RecuReactivation() {
   return (
@@ -27,7 +28,7 @@ function RecuContent() {
   const [demandeId, setDemandeId] = useState("");
   const [isFinishing, setIsFinishing] = useState(false);
   const [lang, setLang] = useState("fr");
-  const [montantPaye, setMontantPaye] = useState("10 000");
+  const [montantPaye, setMontantPaye] = useState(PRIX_REACTIVATION.toLocaleString("fr-FR"));
   const [dateRecu, setDateRecu] = useState("");
 
   useEffect(() => {
