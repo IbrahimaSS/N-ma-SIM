@@ -76,6 +76,7 @@ Dans le terminal de la borne (`npm run dev`), chaque scan affiche une ligne de c
 | Symptôme | Solution |
 |---|---|
 | « Scanner introuvable » | Imprimante branchée et allumée ? Si le nom ne contient pas « DeskJet », modifier `NOM_SCANNER` dans `scanner.py` (mettre `""` pour prendre le premier scanner trouvé). |
+| « Le scanner est occupé » / « Le périphérique WIA est occupé » | Un autre programme tient le scanner : fermer Numérisation Windows, Télécopie et numérisation, HP Smart ou le logiciel de l'imprimante ; vérifier qu'une seule fenêtre `demarrer.bat` est ouverte. Le script réessaie déjà 3 fois (2 s d'écart). Si ça persiste : éteindre puis rallumer l'imprimante. |
 | Le scan ne répond pas / reste bloqué | Fermer **HP Smart** ou tout autre logiciel qui utilise le scanner. |
 | `injoignable → repli sur wia-scan.ps1` | L'API n'est pas lancée : relancer `demarrer.bat` et garder sa fenêtre ouverte. |
 | Port 8000 déjà utilisé | Lancer avec un autre port : `set SCANNER_API_PORT=8010` puis `python api_scanner.py`, et mettre `SCANNER_API_URL=http://127.0.0.1:8010` dans `frontend/.env.local`. |

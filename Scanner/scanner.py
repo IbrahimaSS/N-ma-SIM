@@ -16,6 +16,7 @@ import os
 import shutil
 import tempfile
 import threading
+import time
 
 import cv2
 import requests
@@ -96,8 +97,42 @@ def set_prop(item, prop_id, value):
     return value
 
 
+# WIA_ERROR_BUSY (0x80210006) : « Le périphérique WIA est occupé » — autre programme de
+# numérisation ouvert, API lancée deux fois, ou scan précédent pas encore relâché par Windows
+WIA_ERROR_BUSY = -2145320954
+ESSAIS_SI_OCCUPE = 3
+ATTENTE_SI_OCCUPE_S = 2
+
+
+def _scanner_occupe(e):
+    """Vrai si l'exception COM est WIA_ERROR_BUSY (code dans l'exception ou dans son excepinfo)."""
+    args = getattr(e, "args", ())
+    if args and args[0] == WIA_ERROR_BUSY:
+        return True
+    infos = args[2] if len(args) > 2 and isinstance(args[2], tuple) else ()
+    return len(infos) > 5 and infos[5] == WIA_ERROR_BUSY
+
+
 def scanner():
-    """Scanne la vitre entière et retourne l'image en mémoire (aucun fichier gardé)."""
+    """Scanne la vitre entière et retourne l'image en mémoire (aucun fichier gardé).
+    Scanner occupé → nouvel essai, jusqu'à ESSAIS_SI_OCCUPE fois."""
+    import pywintypes
+    for essai in range(1, ESSAIS_SI_OCCUPE + 1):
+        try:
+            return _scanner_une_fois()
+        except pywintypes.com_error as e:
+            if not _scanner_occupe(e):
+                raise
+            print(f"[SCANNER] Occupé (essai {essai}/{ESSAIS_SI_OCCUPE}), nouvel essai dans {ATTENTE_SI_OCCUPE_S} s")
+            if essai < ESSAIS_SI_OCCUPE:
+                time.sleep(ATTENTE_SI_OCCUPE_S)
+    raise RuntimeError(
+        "Le scanner est occupé par un autre programme. Fermez les logiciels de numérisation ouverts "
+        "(Numérisation Windows, HP Smart…) et vérifiez que l'API scanner n'est lancée qu'une seule fois."
+    )
+
+
+def _scanner_une_fois():
     import pythoncom
     with _VERROU_SCAN:
         pythoncom.CoInitialize()
