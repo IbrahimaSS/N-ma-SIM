@@ -94,14 +94,15 @@ export default function DetailDemande() {
 
   useEffect(() => { fetchDemande(); }, [fetchDemande]);
 
-  // Activation manuelle (échec à la borne) : l'agent saisit l'IMSI imprimé sur la carte remise au client
+  // Relance manuelle d'une opération OPS en échec à la borne. Quand une carte a été remise au client
+  // (nouvelle SIM, réactivation après perte), l'agent saisit l'IMSI imprimé dessus.
   const [imsiSaisie, setImsiSaisie] = useState("");
   const [activationLoading, setActivationLoading] = useState(false);
-  const activerManuellement = async () => {
+  const relancerOperation = async (route: string, avecCarte: boolean) => {
     setActivationLoading(true);
     try {
-      const res = await apiFetch(`/api/demandes/${id}/activer-sim`, { method: "POST", body: JSON.stringify({ imsi: imsiSaisie }) });
-      setToast({ msg: `Ligne ${res.data.numero} activée`, ok: true });
+      const res = await apiFetch(`/api/demandes/${id}/${route}`, { method: "POST", body: JSON.stringify(avecCarte ? { imsi: imsiSaisie } : {}) });
+      setToast({ msg: res.message || "Opération effectuée", ok: true });
       setImsiSaisie("");
       fetchDemande();
     } catch (e: any) {
@@ -127,6 +128,33 @@ export default function DetailDemande() {
 
   const isTerminal = demande?.statut === "VALIDEE" || demande?.statut === "REJETEE";
   const isRecharge = demande?.type === "RECHARGE";
+
+  // Opération sur la ligne chez l'opérateur (OPS) selon le service ; null = rien à faire (eSIM…)
+  const dateOp = demande?.activeeLe ? formatDate(demande.activeeLe) : null;
+  const montantPaye = (Array.isArray(demande?.paiement) ? demande.paiement[0] : demande?.paiement)?.montant;
+  const opLigne: { route: string; carte: boolean; fait: string; echec: string; aFaire: string; bouton: string; lignes: [string, string | null][] } | null =
+    demande?.type === "NOUVELLE_SIM" && demande.formatSim !== "ESIM" ? {
+      route: "activer-sim", carte: true, fait: "Activée", echec: "Échec d'activation", aFaire: "À activer", bouton: "Activer la ligne",
+      lignes: [["Numéro attribué", demande.numeroAttribue], ["IMSI de la carte", demande.imsi], ["Activée le", dateOp]],
+    }
+    : demande?.type === "REACTIVATION" && demande.formatSim !== "ESIM" ? {
+      route: "reactiver-ligne", carte: demande.motifReactivation === "perte",
+      fait: "Réactivée", echec: "Échec de réactivation", aFaire: "À réactiver", bouton: "Réactiver la ligne",
+      lignes: [
+        ["Numéro réactivé", demande.numeroAReactiver],
+        ["Carte", demande.motifReactivation === "perte" ? (demande.imsi ? `Nouvelle carte · IMSI ${demande.imsi}` : "Nouvelle carte (perte)") : "Carte conservée par le client"],
+        ["Réactivée le", dateOp],
+      ],
+    }
+    : demande?.type === "RECHARGE" ? {
+      route: "recharger-ligne", carte: false, fait: "Créditée", echec: "Échec du crédit", aFaire: "À créditer", bouton: "Créditer la ligne",
+      lignes: [
+        ["Numéro rechargé", demande.numeroAReactiver],
+        ["Montant", montantPaye ? `${Number(montantPaye).toLocaleString("fr-FR")} GNF` : null],
+        ["Créditée le", dateOp],
+      ],
+    }
+    : null;
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
@@ -277,8 +305,8 @@ export default function DetailDemande() {
             </>
           )}
 
-          {/* Ligne opérateur : carte délivrée (IMSI) et numéro créé via OPS — nouvelle SIM physique */}
-          {demande.type === "NOUVELLE_SIM" && demande.formatSim !== "ESIM" && (
+          {/* Ligne opérateur : opération OPS de la demande (création, réactivation ou recharge) + relance manuelle */}
+          {opLigne && (
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
               <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
                 <Zap size={18} style={{ color: "#4F46E5" }} /> Ligne opérateur
@@ -288,29 +316,29 @@ export default function DetailDemande() {
                     : demande.statutActivation === "ECHEC" ? { background: "#FEE2E2", color: "#991B1B" }
                     : { background: "#FEF3C7", color: "#92400E" }),
                 }}>
-                  {demande.statutActivation === "ACTIVEE" ? "Activée" : demande.statutActivation === "ECHEC" ? "Échec d'activation" : "À activer"}
+                  {demande.statutActivation === "ACTIVEE" ? opLigne.fait : demande.statutActivation === "ECHEC" ? opLigne.echec : opLigne.aFaire}
                 </span>
               </h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                <InfoRow label="Numéro attribué" value={demande.numeroAttribue} />
-                <InfoRow label="IMSI de la carte" value={demande.imsi} />
-                <InfoRow label="Activée le" value={demande.activeeLe ? formatDate(demande.activeeLe) : null} />
+                {opLigne.lignes.map(([label, value]) => <InfoRow key={label} label={label} value={value} />)}
                 <InfoRow label="Réponse de l'opérateur" value={demande.messageActivation} />
               </div>
               {demande.statutActivation !== "ACTIVEE" && demande.statut !== "REJETEE" && (
                 <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
-                  <input
-                    value={imsiSaisie}
-                    onChange={(e) => setImsiSaisie(e.target.value.replace(/\D/g, ""))}
-                    placeholder="IMSI imprimé sur la carte (10 chiffres)"
-                    style={{ flex: 1, minWidth: 220, padding: "10px 14px", borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, fontFamily: "monospace" }}
-                  />
+                  {opLigne.carte && (
+                    <input
+                      value={imsiSaisie}
+                      onChange={(e) => setImsiSaisie(e.target.value.replace(/\D/g, ""))}
+                      placeholder="IMSI imprimé sur la carte remise (10 chiffres)"
+                      style={{ flex: 1, minWidth: 220, padding: "10px 14px", borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, fontFamily: "monospace" }}
+                    />
+                  )}
                   <button
-                    onClick={activerManuellement}
-                    disabled={activationLoading || imsiSaisie.length !== 10}
-                    style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 18px", height: 42, borderRadius: 10, border: "none", background: "#2656A2", color: "white", fontWeight: 600, fontSize: 13, cursor: "pointer", opacity: activationLoading || imsiSaisie.length !== 10 ? 0.5 : 1 }}
+                    onClick={() => relancerOperation(opLigne.route, opLigne.carte)}
+                    disabled={activationLoading || (opLigne.carte && imsiSaisie.length !== 10)}
+                    style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 18px", height: 42, borderRadius: 10, border: "none", background: "#2656A2", color: "white", fontWeight: 600, fontSize: 13, cursor: "pointer", opacity: activationLoading || (opLigne.carte && imsiSaisie.length !== 10) ? 0.5 : 1 }}
                   >
-                    {activationLoading ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> : <Zap size={15} />} Activer la ligne
+                    {activationLoading ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> : <Zap size={15} />} {opLigne.bouton}
                   </button>
                 </div>
               )}
