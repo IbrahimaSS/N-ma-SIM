@@ -163,6 +163,7 @@ model DemandeSIM {
   // Opération sur la ligne chez l'opérateur (OPS Orange — simulé par ops-mock pour l'instant) :
   // nouvelle SIM = création de la ligne, réactivation = remise en service, recharge = ligne confirmée
   imsi              String?           @unique // IMSI de la carte délivrée (10 chiffres) — nouvelle SIM, réactivation sur perte
+  iccid             String?           @unique // n° de série de la puce, lu par le distributeur SK-AD3
   numeroAttribue    String?           @unique // numéro de téléphone créé (9 chiffres)
   statutActivation  StatutActivation?
   messageActivation String? // réponse ou erreur OPS

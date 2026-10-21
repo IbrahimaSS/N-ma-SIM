@@ -58,33 +58,42 @@ function RecuContent() {
       console.error("[TERMINER]", err);
     }
 
-    // Remise en service du numéro, sans action du client. Perte → la borne délivre une
-    // nouvelle carte (lue au passage) ; autres motifs → le client garde sa carte.
-    const nouvelleCarte = sessionStorage.getItem("reactivation_motif") === "perte";
-    let reactivee = false;
-    try {
-      if (nouvelleCarte) {
-        const sortie = await fetch("/api/materiel/ejecter-puce", { method: "POST" });
-        if (!sortie.ok) {
-          const data = await sortie.json().catch(() => ({}));
-          setFinishError(`${data.message || "La carte n'a pas pu être délivrée."} — veuillez contacter un technicien.`);
-          setIsFinishing(false);
-          return;
-        }
+    // Remise en service du numéro, sans action du client.
+    if (sessionStorage.getItem("reactivation_motif") === "perte") {
+      // Perte : le distributeur SK-AD3 lit une nouvelle carte, le numéro est remis en service
+      // sur cette carte, puis elle est présentée au client (refus → carte au bac de rejet).
+      try {
+        const res = await fetch("/api/materiel/distribuer-sim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ demandeId, service: "reactivation" }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) throw new Error(data.message || "La carte n'a pas pu être délivrée.");
+      } catch (err) {
+        console.error("[DISTRIBUER-SIM]", err);
+        setFinishError(`${err instanceof Error ? err.message : "La carte n'a pas pu être délivrée."} — veuillez contacter un agent.`);
+        setIsFinishing(false);
+        return;
       }
-      const res = await fetch("/api/reactiver-ligne", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ demandeId, nouvelleCarte }),
-      });
-      const data = await res.json().catch(() => ({}));
-      reactivee = res.ok;
-      if (!res.ok) console.error("[REACTIVER-LIGNE]", data.error);
-    } catch (err) {
-      console.error("[REACTIVER-LIGNE]", err);
+    } else {
+      // Autres motifs : le client garde sa carte. Échec → la demande reste « Échec » dans
+      // l'admin et un agent relance ; le client n'a rien à faire.
+      let reactivee = false;
+      try {
+        const res = await fetch("/api/reactiver-ligne", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ demandeId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        reactivee = res.ok;
+        if (!res.ok) console.error("[REACTIVER-LIGNE]", data.error);
+      } catch (err) {
+        console.error("[REACTIVER-LIGNE]", err);
+      }
+      if (!reactivee) sessionStorage.setItem("kiosk_activation_differee", "1");
     }
-    // Échec : la demande reste « Échec » dans l'admin et un agent relance
-    if (!reactivee) sessionStorage.setItem("kiosk_activation_differee", "1");
     setIsFinishing(false);
     router.push("?success=true");
   };

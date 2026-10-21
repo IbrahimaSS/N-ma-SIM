@@ -135,7 +135,7 @@ export default function DetailDemande() {
   const opLigne: { route: string; carte: boolean; fait: string; echec: string; aFaire: string; bouton: string; lignes: [string, string | null][] } | null =
     demande?.type === "NOUVELLE_SIM" && demande.formatSim !== "ESIM" ? {
       route: "activer-sim", carte: true, fait: "Activée", echec: "Échec d'activation", aFaire: "À activer", bouton: "Activer la ligne",
-      lignes: [["Numéro attribué", demande.numeroAttribue], ["IMSI de la carte", demande.imsi], ["Activée le", dateOp]],
+      lignes: [["Numéro attribué", demande.numeroAttribue], ["IMSI de la carte", demande.imsi], ["ICCID de la puce", demande.iccid], ["Activée le", dateOp]],
     }
     : demande?.type === "REACTIVATION" && demande.formatSim !== "ESIM" ? {
       route: "reactiver-ligne", carte: demande.motifReactivation === "perte",

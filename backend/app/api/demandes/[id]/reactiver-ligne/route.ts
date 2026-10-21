@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser, apiSuccess, apiError } from '@/lib/auth'
-import { operationSurLigne, normaliserImsi } from '@/lib/ops'
+import { operationSurLigne, normaliserImsi, normaliserIccid } from '@/lib/ops'
 
 /**
  * @swagger
@@ -23,7 +23,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params
     const body = await request.json().catch(() => ({}))
     const imsi = body?.imsi ? normaliserImsi(body.imsi) : null
-    if (body?.imsi && !imsi) return apiError('IMSI de la carte invalide : 10 chiffres attendus.', 400)
+    if (body?.imsi && !imsi) return apiError('IMSI de la carte invalide : 10 ou 15 chiffres attendus.', 400)
+    const iccid = imsi ? normaliserIccid(body?.iccid) : null // nouvelle carte lue par le distributeur SK-AD3
 
     const demande = await prisma.demandeSIM.findUnique({
       where: { id },
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       where: { id },
       data: {
         ...(imsi ? { imsi } : {}),
+        ...(iccid ? { iccid } : {}),
         statutActivation: 'ACTIVEE', messageActivation: resultat.message, activeeLe: new Date(), updatedAt: demande.updatedAt,
       },
     })

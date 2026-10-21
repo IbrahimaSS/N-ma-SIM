@@ -1,16 +1,17 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser, apiSuccess, apiError } from '@/lib/auth'
-import { activerLigne, normaliserImsi } from '@/lib/ops'
+import { activerLigne, normaliserImsi, normaliserIccid } from '@/lib/ops'
 
 /**
  * @swagger
  * /api/demandes/{id}/activer-sim:
  *   post:
- *     summary: Active la ligne de la carte SIM délivrée (IMSI lu au code-barres) via OPS
+ *     summary: Active la ligne de la carte SIM en cours de délivrance (IMSI + ICCID lus dans la puce) via OPS
  *     description: |
- *       Appel interne de la borne (x-internal-service) après la sortie de la carte, ou par un
- *       admin / agent pour relancer une activation en échec. { imsi } → numéro attribué.
+ *       Appel interne de la borne (x-internal-service) pendant que la carte est au lecteur du
+ *       distributeur, ou par un admin / agent pour relancer une activation en échec.
+ *       { imsi, iccid? } → numéro attribué.
  *       Idempotent : une demande déjà activée avec la même carte renvoie son numéro.
  *     tags: [Demandes]
  */
@@ -23,7 +24,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params
     const body = await request.json().catch(() => ({}))
     const imsi = normaliserImsi(body?.imsi)
-    if (!imsi) return apiError('Code-barres illisible : l\'IMSI de la carte doit contenir 10 chiffres.', 400)
+    if (!imsi) return apiError('IMSI de la carte invalide : 10 ou 15 chiffres attendus.', 400)
+    const iccid = normaliserIccid(body?.iccid) // lu dans la puce par le distributeur SK-AD3
 
     const demande = await prisma.demandeSIM.findUnique({
       where: { id },
@@ -61,7 +63,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     await prisma.demandeSIM.update({
       where: { id },
-      data: { imsi, numeroAttribue: resultat.numero, statutActivation: 'ACTIVEE', messageActivation: resultat.message, activeeLe: new Date(), updatedAt: demande.updatedAt },
+      data: { imsi, ...(iccid ? { iccid } : {}), numeroAttribue: resultat.numero, statutActivation: 'ACTIVEE', messageActivation: resultat.message, activeeLe: new Date(), updatedAt: demande.updatedAt },
     })
     await prisma.log.create({
       data: {
