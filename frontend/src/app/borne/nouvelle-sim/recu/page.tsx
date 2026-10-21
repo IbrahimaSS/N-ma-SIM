@@ -218,44 +218,32 @@ function RecuContent() {
       }
     }
 
-    // Déclencher la sortie physique de la puce sur l'équipement de la borne
-    try {
-      const res = await fetch("/api/materiel/ejecter-puce", { method: "POST" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Équipement indisponible.");
-      }
-    } catch (e: any) {
-      console.error("[EJECTER-PUCE]", e);
-      setDispenserError(
-        e?.message
-          ? `${e.message} — veuillez contacter un technicien.`
-          : "La puce n'a pas pu être délivrée — veuillez contacter un technicien."
-      );
+    // Sans demande enregistrée, aucune ligne ne peut être activée : on ne délivre pas de carte
+    if (!demandeId) {
+      setDispenserError("Votre demande n'a pas pu être enregistrée — veuillez contacter un agent.");
       setIsTerminating(false);
       return;
     }
 
-    // Carte délivrée : activation automatique de sa ligne. En cas d'échec, le client n'a rien
-    // à faire : la demande reste « Échec d'activation » dans l'admin et un agent la reprend.
-    if (demandeId) {
-      setActivationEnCours(true);
-      try {
-        const res = await fetch("/api/activer-sim", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ demandeId }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data.numero) sessionStorage.setItem("kiosk_numero_attribue", data.numero);
-        else {
-          console.error("[ACTIVER-SIM]", data.error);
-          sessionStorage.setItem("kiosk_activation_differee", "1");
-        }
-      } catch (e) {
-        console.error("[ACTIVER-SIM]", e);
-        sessionStorage.setItem("kiosk_activation_differee", "1");
-      }
+    // Distributeur SK-AD3 : la carte passe au lecteur, sa ligne est activée chez l'opérateur, puis
+    // elle est présentée au client — sans action de sa part. Si l'activation échoue, la carte part
+    // au bac de rejet : le client ne repart jamais avec une carte inactive.
+    setActivationEnCours(true);
+    try {
+      const res = await fetch("/api/materiel/distribuer-sim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ demandeId, service: "nouvelle-sim" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || "La carte n'a pas pu être délivrée.");
+      if (data.numero) sessionStorage.setItem("kiosk_numero_attribue", data.numero);
+    } catch (e) {
+      console.error("[DISTRIBUER-SIM]", e);
+      setDispenserError(`${e instanceof Error ? e.message : "La carte n'a pas pu être délivrée."} — veuillez contacter un agent.`);
+      setActivationEnCours(false);
+      setIsTerminating(false);
+      return;
     }
     router.push("?success=true");
   };

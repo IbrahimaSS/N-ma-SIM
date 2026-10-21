@@ -25,6 +25,12 @@ export function normaliserImsi(saisie: unknown): string | null {
   return /^\d{10}$/.test(court) ? court : null
 }
 
+/** ICCID lu dans la puce : 18 à 20 chiffres (ex. 89224010000123456789), sinon null. */
+export function normaliserIccid(saisie: unknown): string | null {
+  const brut = String(saisie ?? '').replace(/\D/g, '')
+  return /^\d{18,20}$/.test(brut) ? brut : null
+}
+
 function plageNumeros(): [number, number] {
   const m = (process.env.OPS_PLAGE_NUMEROS || '620900000-620999999').match(/^(\d{9})-(\d{9})$/)
   const debut = m ? Number(m[1]) : 620900000
