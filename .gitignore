@@ -15,3 +15,7 @@ venv/
 # ailleurs (stockage objet, Git LFS, serveur de modèles...) et à télécharger au
 # déploiement du service nma_vocal_malinké.
 nma_vocal_malinké/modeles_par_page/**/*.safetensors
+
+# Mock opérateur local et outils
+operateur/
+

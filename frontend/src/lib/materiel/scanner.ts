@@ -28,6 +28,7 @@ export async function scannerPiece(typePiece?: TypePiece): Promise<ResultatScan>
   const url = `${SCANNER_API_URL}/scan`;
   console.log(`[SCANNER] Appel API Scanner : ${url} (type: ${typePiece || "cni"})`);
 
+  const timeoutMs = Number(process.env.SCANNER_TIMEOUT_MS) || 90000;
   let res: Response;
   try {
     const form = new FormData();
@@ -37,8 +38,9 @@ export async function scannerPiece(typePiece?: TypePiece): Promise<ResultatScan>
     res = await fetch(url, {
       method: "POST",
       body: form,
-      signal: AbortSignal.timeout(TIMEOUT_MS + 15000),
+      signal: AbortSignal.timeout(timeoutMs + 30000),
     });
+
   } catch (fetchErr) {
     const msg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
     console.error(`[SCANNER] API ${url} injoignable : ${msg}`);

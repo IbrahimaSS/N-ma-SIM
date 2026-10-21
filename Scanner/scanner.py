@@ -29,8 +29,9 @@ from scanner_passeport import decouper_passeport
 from scanner_permis import decouper_permis
 
 # ---------- RÉGLAGES ----------
-NOM_SCANNER = "DeskJet"     # partie du nom du scanner WIA ("" = premier scanner trouvé)
-DPI = 300
+NOM_SCANNER = os.environ.get("NOM_SCANNER", "").strip()     # Vide = détection auto intelligente
+DPI = int(os.environ.get("SCANNER_DPI", "200"))            # 200 DPI par défaut (rapide et net pour l'OCR)
+
 
 # Mode ligne de commande uniquement (la borne N'ma SIM passe par api_scanner.py)
 URL_MODELE = os.environ.get("URL_MODELE", "")
@@ -132,6 +133,44 @@ def scanner():
     )
 
 
+def _trouver_scanner(dm):
+    """Détecte automatiquement le scanner connecté.
+    Priorité :
+    1. Si NOM_SCANNER est défini, cherche ce nom précis.
+    2. Sinon, cherche en priorité la HP DeskJet 2875 / 2800 / Advantage branchée en USB.
+    3. Puis tout scanner branché en USB.
+    4. En dernier recours, le premier scanner WIA disponible.
+    """
+    scanners = [info for info in dm.DeviceInfos if info.Type == 1]
+    if not scanners:
+        return None
+
+    # Si l'utilisateur a configuré un nom précis
+    if NOM_SCANNER:
+        for info in scanners:
+            if NOM_SCANNER.lower() in info.Properties("Name").Value.lower():
+                return info
+
+    # Priorité DeskJet 2875 / 2800 USB
+    mots_cles = ["2875", "2800", "deskjet", "advantage"]
+    for info in scanners:
+        nom = info.Properties("Name").Value.lower()
+        if any(m in nom for m in mots_cles) and "usb" in nom:
+            return info
+
+    for info in scanners:
+        nom = info.Properties("Name").Value.lower()
+        if any(m in nom for m in mots_cles):
+            return info
+
+    # Tout scanner USB
+    for info in scanners:
+        if "usb" in info.Properties("Name").Value.lower():
+            return info
+
+    return scanners[0]
+
+
 def _scanner_une_fois():
     import pythoncom
     with _VERROU_SCAN:
@@ -140,12 +179,14 @@ def _scanner_une_fois():
         dossier = tempfile.mkdtemp()
         try:
             dm = win32com.client.Dispatch("WIA.DeviceManager")
-            for info in dm.DeviceInfos:
-                if info.Type == 1 and NOM_SCANNER in info.Properties("Name").Value:
-                    device = info.Connect()
-                    break
-            if device is None:
-                raise RuntimeError("Scanner introuvable. Vérifiez que l'imprimante est branchée et allumée.")
+            info_scanner = _trouver_scanner(dm)
+            if info_scanner is None:
+                raise RuntimeError("Scanner introuvable. Vérifiez que l'imprimante HP est branchée en USB et allumée.")
+
+            nom_detecte = info_scanner.Properties("Name").Value
+            print(f"[SCANNER] Scanner détecté automatiquement : {nom_detecte}")
+            device = info_scanner.Connect()
+
 
             item = device.Items.Item(1)
             set_prop(item, WIA_INTENT, WIA_INTENT_COULEUR)
