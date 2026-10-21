@@ -18,8 +18,17 @@ export function SuccessScreen({ type = "nouvelle-sim", ticketRef = "NMA-2026-000
   const [phase, setPhase] = useState<"felicitations" | "maxit">("felicitations");
   const [countdown, setCountdown] = useState(FELICITATIONS_DURATION);
   const [lang, setLang] = useState("fr");
+  // Numéro créé à l'activation de la carte (nouvelle SIM physique), format guinéen 620 12 34 56
+  const [numero, setNumero] = useState<string | null>(null);
+  // Activation automatique en échec : un agent la reprend depuis l'admin, le client n'a rien à faire
+  const [activationDifferee, setActivationDifferee] = useState(false);
 
-  useEffect(() => { setLang(sessionStorage.getItem("kiosk_lang") || "fr"); }, []);
+  useEffect(() => {
+    setLang(sessionStorage.getItem("kiosk_lang") || "fr");
+    const n = sessionStorage.getItem("kiosk_numero_attribue");
+    if (n && /^\d{9}$/.test(n)) setNumero(`${n.slice(0, 3)} ${n.slice(3, 5)} ${n.slice(5, 7)} ${n.slice(7)}`);
+    setActivationDifferee(sessionStorage.getItem("kiosk_activation_differee") === "1");
+  }, []);
 
   const isReactivation = type === "reactivation";
   const duration = phase === "felicitations" ? FELICITATIONS_DURATION : MAXIT_DURATION;
@@ -125,6 +134,27 @@ export function SuccessScreen({ type = "nouvelle-sim", ticketRef = "NMA-2026-000
                 ? (lang === "en" ? "Your network will be active in a few minutes. You can collect your receipt at the bottom of the kiosk." : "Votre réseau sera actif dans quelques minutes. Vous pouvez récupérer votre reçu en bas de la borne.")
                 : (lang === "en" ? "Please collect your SIM Card and your receipt at the bottom of the kiosk." : "Veuillez récupérer votre Carte SIM et votre reçu en bas de la borne.")}
             </p>
+
+            {numero && !isReactivation && (
+              <div style={{
+                background: "#2656A2", borderRadius: 16, padding: "14px 32px", marginBottom: 16,
+                boxShadow: "0 8px 20px rgba(38,86,162,0.25)",
+              }}>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", margin: "0 0 4px 0", textTransform: "uppercase", letterSpacing: 2, fontWeight: 600 }}>
+                  {lang === "en" ? "Your new number" : "Votre nouveau numéro"}
+                </p>
+                <p style={{ fontSize: 30, fontWeight: 900, color: "#F5BB02", margin: 0, letterSpacing: 2 }}>
+                  {numero}
+                </p>
+              </div>
+            )}
+            {!numero && activationDifferee && !isReactivation && (
+              <p style={{ fontSize: 14, color: "#92400E", background: "#FEF3C7", borderRadius: 12, padding: "10px 18px", margin: "0 0 16px 0" }}>
+                {lang === "en"
+                  ? "Your line will be activated in a few minutes. Dial *145# to see your number."
+                  : "Votre ligne sera activée dans quelques minutes. Composez *145# pour connaître votre numéro."}
+              </p>
+            )}
 
             {/* Référence ticket */}
             <div style={{

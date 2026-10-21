@@ -160,6 +160,13 @@ model DemandeSIM {
   numeroAReactiver  String?
   motifReactivation String?
 
+  // Activation de la ligne chez l'opérateur (OPS Orange — simulé par ops-mock pour l'instant)
+  imsi              String?           @unique // IMSI imprimé sur la carte (10 chiffres, lu au code-barres)
+  numeroAttribue    String?           @unique // numéro de téléphone créé (9 chiffres)
+  statutActivation  StatutActivation?
+  messageActivation String? // réponse ou erreur OPS
+  activeeLe         DateTime?
+
   // Résultat vérification IA (à connecter plus tard)
   scoreVerification  Float?
   verificationOCR    Boolean?
@@ -186,6 +193,11 @@ enum TypeDemande {
 enum FormatSim {
   PHYSIQUE
   ESIM
+}
+
+enum StatutActivation {
+  ACTIVEE
+  ECHEC
 }
 
 enum StatutDemande {

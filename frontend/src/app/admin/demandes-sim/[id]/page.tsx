@@ -94,6 +94,24 @@ export default function DetailDemande() {
 
   useEffect(() => { fetchDemande(); }, [fetchDemande]);
 
+  // Activation manuelle (échec à la borne) : l'agent saisit l'IMSI imprimé sur la carte remise au client
+  const [imsiSaisie, setImsiSaisie] = useState("");
+  const [activationLoading, setActivationLoading] = useState(false);
+  const activerManuellement = async () => {
+    setActivationLoading(true);
+    try {
+      const res = await apiFetch(`/api/demandes/${id}/activer-sim`, { method: "POST", body: JSON.stringify({ imsi: imsiSaisie }) });
+      setToast({ msg: `Ligne ${res.data.numero} activée`, ok: true });
+      setImsiSaisie("");
+      fetchDemande();
+    } catch (e: any) {
+      setToast({ msg: e.message, ok: false });
+      fetchDemande();
+    } finally {
+      setActivationLoading(false);
+    }
+  };
+
   const handleAction = async (_statut: "VALIDEE" | "REJETEE") => {
     // Les demandes sont validées automatiquement — cette fonction est conservée pour compatibilité
     console.info("[ADMIN] Traitement automatique, validation manuelle désactivée.");
@@ -259,6 +277,46 @@ export default function DetailDemande() {
             </>
           )}
 
+          {/* Ligne opérateur : carte délivrée (IMSI) et numéro créé via OPS — nouvelle SIM physique */}
+          {demande.type === "NOUVELLE_SIM" && demande.formatSim !== "ESIM" && (
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
+              <h3 style={{ fontWeight: 700, color: "#2656A2", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                <Zap size={18} style={{ color: "#4F46E5" }} /> Ligne opérateur
+                <span style={{
+                  marginLeft: "auto", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600,
+                  ...(demande.statutActivation === "ACTIVEE" ? { background: "#DCFCE7", color: "#166534" }
+                    : demande.statutActivation === "ECHEC" ? { background: "#FEE2E2", color: "#991B1B" }
+                    : { background: "#FEF3C7", color: "#92400E" }),
+                }}>
+                  {demande.statutActivation === "ACTIVEE" ? "Activée" : demande.statutActivation === "ECHEC" ? "Échec d'activation" : "À activer"}
+                </span>
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                <InfoRow label="Numéro attribué" value={demande.numeroAttribue} />
+                <InfoRow label="IMSI de la carte" value={demande.imsi} />
+                <InfoRow label="Activée le" value={demande.activeeLe ? formatDate(demande.activeeLe) : null} />
+                <InfoRow label="Réponse de l'opérateur" value={demande.messageActivation} />
+              </div>
+              {demande.statutActivation !== "ACTIVEE" && demande.statut !== "REJETEE" && (
+                <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
+                  <input
+                    value={imsiSaisie}
+                    onChange={(e) => setImsiSaisie(e.target.value.replace(/\D/g, ""))}
+                    placeholder="IMSI imprimé sur la carte (10 chiffres)"
+                    style={{ flex: 1, minWidth: 220, padding: "10px 14px", borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 14, fontFamily: "monospace" }}
+                  />
+                  <button
+                    onClick={activerManuellement}
+                    disabled={activationLoading || imsiSaisie.length !== 10}
+                    style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 18px", height: 42, borderRadius: 10, border: "none", background: "#2656A2", color: "white", fontWeight: 600, fontSize: 13, cursor: "pointer", opacity: activationLoading || imsiSaisie.length !== 10 ? 0.5 : 1 }}
+                  >
+                    {activationLoading ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> : <Zap size={15} />} Activer la ligne
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Offre & Paiement — seulement pour non-recharge */}
           {!isRecharge && (
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(31,2,112,0.06)", border: "1px solid #EAECF5" }}>
@@ -393,6 +451,7 @@ export default function DetailDemande() {
                 { date: formatDate(demande.createdAt), label: "Demande créée", color: "#059669" },
                 paiement.statut === "CONFIRME" && { date: formatDate(paiement.updatedAt || demande.createdAt), label: "Paiement confirmé", color: "#059669" },
                 { date: formatDate(demande.updatedAt), label: demande.statut === "VALIDEE" ? "Demande validée" : demande.statut === "REJETEE" ? "Demande rejetée" : "En attente de validation", color: demande.statut === "VALIDEE" ? "#059669" : demande.statut === "REJETEE" ? "#DC2626" : "#D97706" },
+                demande.activeeLe && { date: formatDate(demande.activeeLe), label: `Ligne ${demande.numeroAttribue} activée`, color: "#2656A2" },
               ].filter(Boolean).map((h: any, i: number) => (
                 <div key={i} style={{ display: "flex", gap: 14, marginBottom: 14, position: "relative" }}>
                   <div style={{ width: 16, height: 16, borderRadius: "50%", background: h.color, flexShrink: 0, zIndex: 1, marginTop: 2, border: "2px solid white", boxShadow: `0 0 0 2px ${h.color}` }} />
