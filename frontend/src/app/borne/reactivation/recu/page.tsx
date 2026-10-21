@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { SuccessScreen } from "@/components/borne/SuccessScreen";
 import { RecuImprimable } from "@/components/borne/RecuImprimable";
 import { PRIX_REACTIVATION } from "@/lib/tarifs";
@@ -27,6 +27,7 @@ function RecuContent() {
   const [ticketRef, setTicketRef] = useState("NMA-RE-0000");
   const [demandeId, setDemandeId] = useState("");
   const [isFinishing, setIsFinishing] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
   const [lang, setLang] = useState("fr");
   const [montantPaye, setMontantPaye] = useState(PRIX_REACTIVATION.toLocaleString("fr-FR"));
   const [dateRecu, setDateRecu] = useState("");
@@ -49,16 +50,43 @@ function RecuContent() {
     setIsFinishing(true);
     try {
       await fetch(`/api/terminer-demande`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ demandeId }),
       });
     } catch (err) {
       console.error("[TERMINER]", err);
-    } finally {
-      setIsFinishing(false);
-      router.push("?success=true");
     }
+
+    // Remise en service du numéro, sans action du client. Perte → la borne délivre une
+    // nouvelle carte (lue au passage) ; autres motifs → le client garde sa carte.
+    const nouvelleCarte = sessionStorage.getItem("reactivation_motif") === "perte";
+    let reactivee = false;
+    try {
+      if (nouvelleCarte) {
+        const sortie = await fetch("/api/materiel/ejecter-puce", { method: "POST" });
+        if (!sortie.ok) {
+          const data = await sortie.json().catch(() => ({}));
+          setFinishError(`${data.message || "La carte n'a pas pu être délivrée."} — veuillez contacter un technicien.`);
+          setIsFinishing(false);
+          return;
+        }
+      }
+      const res = await fetch("/api/reactiver-ligne", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ demandeId, nouvelleCarte }),
+      });
+      const data = await res.json().catch(() => ({}));
+      reactivee = res.ok;
+      if (!res.ok) console.error("[REACTIVER-LIGNE]", data.error);
+    } catch (err) {
+      console.error("[REACTIVER-LIGNE]", err);
+    }
+    // Échec : la demande reste « Échec » dans l'admin et un agent relance
+    if (!reactivee) sessionStorage.setItem("kiosk_activation_differee", "1");
+    setIsFinishing(false);
+    router.push("?success=true");
   };
 
   const handlePrintPDF = () => {
@@ -151,6 +179,17 @@ function RecuContent() {
         </Card>
       </div>
 
+      {/* Erreur équipement (carte non délivrée, motif perte) */}
+      {finishError && (
+        <div className="print:hidden mb-4 bg-error/10 border border-error/20 rounded-xl p-4 flex items-start gap-3 text-left">
+          <AlertTriangle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-error mb-1">{lang === "en" ? "The SIM card could not be delivered" : "La carte n'a pas pu être délivrée"}</p>
+            <p className="text-sm text-error/80">{finishError}</p>
+          </div>
+        </div>
+      )}
+
       {/* Footer Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
         <div className="flex gap-4">
@@ -169,7 +208,7 @@ function RecuContent() {
              <Printer className="w-5 h-5 mr-2" /> {lang === "en" ? "Print" : "Imprimer"}
            </Button>
            <Button variant="primary" className="flex-1 h-14" onClick={handleFinish} disabled={isFinishing}>
-             {isFinishing ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> {lang === "en" ? "Finalizing..." : "Finalisation..."}</> : <><CheckCircle2 className="w-5 h-5 mr-2" /> {lang === "en" ? "Finish" : "Terminer"}</>}
+             {isFinishing ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> {lang === "en" ? "Reactivating your line..." : "Réactivation de votre ligne..."}</> : <><CheckCircle2 className="w-5 h-5 mr-2" /> {lang === "en" ? "Finish" : "Terminer"}</>}
            </Button>
         </div>
       </div>

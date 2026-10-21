@@ -129,6 +129,27 @@ export async function POST(request: Request) {
       body: JSON.stringify({ statut: "VALIDEE", traitePar: "borne" }),
     });
 
+    // ─── 6. Créditer la ligne (OPS + solde N'ma SIM) ──────────────────────
+    // Le montant crédité est relu côté backend sur le paiement confirmé. En cas d'échec,
+    // la demande reste « Échec » dans l'admin et un agent relance : on ne bloque pas le client.
+    let solde: number | null = null;
+    let credite = false;
+    try {
+      const rechargeRes = await fetch(`${BACKEND_URL}/api/demandes/${demandeId}/recharger-ligne`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-internal-service": "kiosk-borne" },
+      });
+      const rechargeData = await rechargeRes.json().catch(() => ({}));
+      if (rechargeRes.ok) {
+        credite = true;
+        solde = rechargeData.data?.solde ?? null;
+      } else {
+        console.error("[RECHARGE] Crédit non appliqué:", rechargeData?.message);
+      }
+    } catch (e) {
+      console.error("[RECHARGE] Crédit non appliqué:", e);
+    }
+
     return NextResponse.json({
       success: true,
       numeroDossier: numDossierRetour,
@@ -136,6 +157,8 @@ export async function POST(request: Request) {
       demandeId,
       numero,
       montant: Number(montant),
+      credite,
+      solde,
     });
 
   } catch (error) {

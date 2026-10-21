@@ -21,6 +21,9 @@ export default function RechargePaiement() {
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [isDone, setIsDone] = useState(false);
   const [numeroDossier, setNumeroDossier] = useState("");
+  // Crédit appliqué sur la ligne (OPS + solde N'ma SIM) ; false → un agent relancera
+  const [credite, setCredite] = useState(true);
+  const [solde, setSolde] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -75,6 +78,8 @@ export default function RechargePaiement() {
       }
 
       setNumeroDossier(data.numeroDossier || "NMA-RC-0000");
+      setCredite(data.credite !== false);
+      setSolde(typeof data.solde === "number" ? data.solde : null);
       setIsDone(true);
 
       // Nettoyage sessionStorage
@@ -137,6 +142,19 @@ export default function RechargePaiement() {
             <p className="text-sm text-text-muted mt-1">
               {t.paidWith} <span className="font-semibold text-primary">{methodLabel}</span>
             </p>
+            {credite && solde !== null && (
+              <p className="text-sm text-text-muted mt-3">
+                {lang === "en" ? "New balance" : "Nouveau solde"} :{" "}
+                <span className="font-bold text-primary">{solde.toLocaleString("fr-FR")} GNF</span>
+              </p>
+            )}
+            {!credite && (
+              <p className="text-sm mt-3 px-4 py-2 rounded-xl" style={{ background: "#FEF3C7", color: "#92400E" }}>
+                {lang === "en"
+                  ? "Your payment is recorded. The credit will reach your number in a few minutes."
+                  : "Votre paiement est enregistré. Le crédit arrivera sur votre numéro dans quelques minutes."}
+              </p>
+            )}
           </div>
 
           {/* Numéro de dossier */}

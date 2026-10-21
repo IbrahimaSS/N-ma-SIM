@@ -160,8 +160,9 @@ model DemandeSIM {
   numeroAReactiver  String?
   motifReactivation String?
 
-  // Activation de la ligne chez l'opérateur (OPS Orange — simulé par ops-mock pour l'instant)
-  imsi              String?           @unique // IMSI imprimé sur la carte (10 chiffres, lu au code-barres)
+  // Opération sur la ligne chez l'opérateur (OPS Orange — simulé par ops-mock pour l'instant) :
+  // nouvelle SIM = création de la ligne, réactivation = remise en service, recharge = ligne confirmée
+  imsi              String?           @unique // IMSI de la carte délivrée (10 chiffres) — nouvelle SIM, réactivation sur perte
   numeroAttribue    String?           @unique // numéro de téléphone créé (9 chiffres)
   statutActivation  StatutActivation?
   messageActivation String? // réponse ou erreur OPS
@@ -198,6 +199,14 @@ enum FormatSim {
 enum StatutActivation {
   ACTIVEE
   ECHEC
+}
+
+// Crédit d'appel par numéro, tenu par N'ma SIM : OPS (action ACTIVATION) n'a pas de champ montant,
+// la recharge est confirmée côté opérateur et le montant cumulé ici (simulation).
+model SoldeLigne {
+  numero    String   @id // 9 chiffres
+  solde     Float    @default(0) // GNF
+  updatedAt DateTime @updatedAt
 }
 
 enum StatutDemande {
