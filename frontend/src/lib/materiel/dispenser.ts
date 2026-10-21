@@ -98,8 +98,17 @@ function getConnection(): Promise<DispenserConnection> {
  * Déclenche la sortie physique de la puce SIM en envoyant "E", la commande
  * lue char-par-char par le sketch Arduino (cmd == 'E' || cmd == 'e').
  * Résout uniquement après réception de la ligne de fin de cycle du moteur.
+ *
+ * SIM_DISPENSER_MODE=simulation (.env.local d'un PC de développement, jamais sur la borne) :
+ * pas d'Arduino, la sortie de la carte est simulée (~1 s) pour tester la suite du parcours.
  */
 export async function ejecterPuce(): Promise<{ success: true }> {
+  if (process.env.SIM_DISPENSER_MODE === "simulation") {
+    console.log("[DISPENSER] Mode simulation : sortie de carte simulée");
+    await new Promise((r) => setTimeout(r, 1000));
+    return { success: true };
+  }
+
   const connection = await getConnection();
   await connection.ready;
 

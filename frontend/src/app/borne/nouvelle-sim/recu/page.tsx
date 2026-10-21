@@ -50,6 +50,8 @@ function RecuContent() {
   const [kycRejete, setKycRejete] = useState(false);
   // SIM réservée refusée par le serveur (code déjà utilisé, passeport différent…) : pas de délivrance
   const [reservationErreur, setReservationErreur] = useState<string | null>(null);
+  // Après la sortie de la carte : activation automatique de sa ligne (lecture IMSI + OPS), sans action du client
+  const [activationEnCours, setActivationEnCours] = useState(false);
 
   // ✅ Anti-double-submit : on utilise une ref persistante entre les re-renders (imperméable au StrictMode)
   const hasSubmitted = useRef(false);
@@ -234,7 +236,27 @@ function RecuContent() {
       return;
     }
 
-    // Naviguer vers l'écran de succès
+    // Carte délivrée : activation automatique de sa ligne. En cas d'échec, le client n'a rien
+    // à faire : la demande reste « Échec d'activation » dans l'admin et un agent la reprend.
+    if (demandeId) {
+      setActivationEnCours(true);
+      try {
+        const res = await fetch("/api/activer-sim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ demandeId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.numero) sessionStorage.setItem("kiosk_numero_attribue", data.numero);
+        else {
+          console.error("[ACTIVER-SIM]", data.error);
+          sessionStorage.setItem("kiosk_activation_differee", "1");
+        }
+      } catch (e) {
+        console.error("[ACTIVER-SIM]", e);
+        sessionStorage.setItem("kiosk_activation_differee", "1");
+      }
+    }
     router.push("?success=true");
   };
 
@@ -405,7 +427,7 @@ function RecuContent() {
            </Button>
            <Button variant="primary" className="flex-1 h-12" onClick={handleTerminer} disabled={isTerminating || kycRejete || !!reservationErreur}>
              {isTerminating
-               ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Validation...</>
+               ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> {activationEnCours ? "Activation de votre ligne..." : "Validation..."}</>
                : <><CheckCircle2 className="w-5 h-5 mr-2" /> Terminer</>
              }
            </Button>
