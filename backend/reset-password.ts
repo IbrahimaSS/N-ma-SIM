@@ -1,5 +1,5 @@
 import { prisma } from './lib/prisma';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 async function reset() {
   const users = await prisma.utilisateur.findMany({ select: { id: true, email: true, nom: true, role: true } });
