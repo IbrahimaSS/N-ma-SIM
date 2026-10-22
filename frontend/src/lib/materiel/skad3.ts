@@ -11,6 +11,7 @@ const STX = 0xf2, ETX = 0x03, ACK = 0x06, NAK = 0x15, ENQ = 0x05;
 
 // Déplacements (CM 0x32)
 export const POS_FRONT_HOLD = 0x30; // avant, carte maintenue : le client la retire
+export const POS_FRONT_EJECT = 0x39; // ejection complete, sans maintien
 export const POS_IC = 0x31; // lecteur de puce (contact)
 export const POS_CAPTURE = 0x33; // bac de capture (rejet)
 // Initialisation (CM 0x30)

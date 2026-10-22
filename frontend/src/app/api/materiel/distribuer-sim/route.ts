@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { distribuerCarte, ErreurActivation } from "@/lib/materiel/distributeur";
+import { distribuerCarte, ejecterCarte, ErreurActivation } from "@/lib/materiel/distributeur";
 import { ErreurSKAD3, ErreurCommunication } from "@/lib/materiel/skad3";
 
 // serialport nécessite le runtime Node (pas edge).
@@ -21,6 +21,11 @@ export async function POST(request: Request) {
     const route = ROUTES[service as keyof typeof ROUTES];
     if (!demandeId || !route) {
       return NextResponse.json({ success: false, message: "demandeId et service (nouvelle-sim | reactivation) requis" }, { status: 400 });
+    }
+
+    if (process.env.SIM_DISPENSER_MODE === "ejection") {
+      await ejecterCarte();
+      return NextResponse.json({ success: true, mode: "ejection", activee: false });
     }
 
     const { carte, resultat } = await distribuerCarte(async (carte) => {

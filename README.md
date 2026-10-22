@@ -1,56 +1,48 @@
-# 📱 N'ma SIM Kiosk Platform
+# N'ma SIM
 
-![N'ma SIM Banner](frontend/public/logo-transparent.png) <!-- Assure-toi que ce chemin correspond à ton logo -->
+Plateforme de borne interactive pour les parcours SIM : nouvelle souscription, réactivation, recharge et vérification d'identité. Le dépôt regroupe l'interface de la borne, l'API métier, ainsi que des services optionnels pour le KYC, la reconnaissance vocale, le scan de documents et le matériel.
 
-N'ma SIM est une plateforme innovante de gestion de bornes interactives développée pour simplifier et sécuriser les opérations liées aux cartes SIM. La plateforme intègre des technologies avancées de vérification d'identité (KYC) par Intelligence Artificielle (OCR & Reconnaissance faciale) et offre une expérience utilisateur fluide, bilingue et hautement sécurisée.
+## Composants
 
----
+| Composant | Dossier | Rôle |
+|---|---|---|
+| Interface de la borne | `frontend/` | Application Next.js, port `3000` |
+| API métier | `backend/` | Application Next.js et Prisma, port `3001`, PostgreSQL |
+| API KYC | `nma_kyc_api/nma_kyc_api/` | OCR et vérification d'identité, port `8000` |
+| API vocale Poular | `nma_vocal_api_poular/nma_vocal_api_poular/` | Reconnaissance vocale, port `8200` |
+| API vocale Malinké et Soussou | `nma_vocal_malinké/` | Reconnaissance vocale locale, port `8301` |
+| API vocale Soussou historique | `nma_vocal_api/nma_vocal_api (1)/nma_vocal_api/` | Ancienne API indépendante, port `8100` |
+| API scanner | `Scanner/` | Scan local sous Windows via WIA, port `8010` |
+| Mock opérateur OPS | `ops-mock/` | Simulation de provisioning, port `8089` |
+| Pilote distributeur SK-AD3 | `pilote_SK-AD3_NmaSIM/` | Pilote Python et simulateur du distributeur SIM |
 
-## 🚀 Fonctionnalités Principales
+Les services KYC, vocaux, scanner et OPS sont facultatifs en fonction du parcours et du matériel déployés. Les clés, mots de passe, URL de base de données et autres secrets doivent rester dans des fichiers d'environnement locaux non versionnés.
 
-### 1. 🛡️ Vérification d'Identité Avancée (KYC)
-- **Scan de Documents** : Prise en charge des CNI, Passeports et Cartes d'électeur via la caméra de la borne ou par import de fichier.
-- **Extraction Automatique (OCR)** : Extraction intelligente des données des pièces d'identité grâce à l'IA (intégré avec l'API Groq).
-- **Vérification Biométrique** : Capture de selfie en temps réel et comparaison faciale pour s'assurer que l'utilisateur correspond bien au document présenté.
-- **Logique de Profiling** : Gestion différenciée entre les profils "Résident" et "Étranger" (ex: limitation au passeport pour les étrangers).
+## Démarrage et installation
 
-### 2. 🔄 Modules Opérationnels
-- **Nouvelle SIM** : Parcours complet d'enrôlement avec KYC, choix du numéro et paiement.
-- **Réactivation** : Parcours sécurisé pour récupérer une puce perdue ou désactivée, avec vérification des numéros fréquemment appelés.
-- **Recharge** : Achat de crédit rapide avec saisie intuitive du montant.
-- **Vérification de Profil** : Permet à l'utilisateur de consulter l'état de son compte et les numéros actifs liés à sa pièce d'identité.
+Consulter le [guide d'installation et d'intégration](docs/guide-installation-integration.md) pour les prérequis, l'installation des dépendances de chaque service, la configuration locale, l'ordre de démarrage et les vérifications.
 
-### 3. 💳 Intégration des Paiements
-- **Orange Money** : Paiement mobile rapide avec validation par code OTP.
-- **Carte Bancaire (VISA)** : Saisie manuelle sécurisée ou scan de la carte par la caméra.
+Les principales commandes de développement, depuis la racine du dépôt :
 
-### 4. 🌍 Accessibilité et UX
-- **Bilinguisme Intégral** : Interface entièrement traduisible à la volée (Français / Anglais).
-- **Design Adaptatif** : Interface optimisée pour une utilisation tactile sur borne (composants larges, boutons clairs, feedback visuel et haptique simulé).
-- **Reçus Numériques** : Génération de reçus avec code QR et option d'impression directe.
+```powershell
+cd backend
+npm ci
+npm run dev
+```
 
----
+Dans un deuxième terminal :
 
-## 🛠️ Stack Technique
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
 
-Le projet est divisé en plusieurs couches pour garantir scalabilité et séparation des préoccupations :
+L'interface est disponible sur http://localhost:3000 et l'API métier sur http://localhost:3001. Une base PostgreSQL et les variables d'environnement décrites dans le guide sont nécessaires au fonctionnement complet.
 
-* **Frontend** : [Next.js](https://nextjs.org/) (React) + [Tailwind CSS](https://tailwindcss.com/) pour une interface réactive et moderne.
-* **Backend Kiosk API** : Node.js (probablement Express/NestJS) gérant la logique métier, les paiements et le stockage local des sessions.
-* **Microservice KYC (`nma_kyc_api`)** : Service dédié au traitement des images, à l'OCR et à la reconnaissance faciale.
-* **Intégrations IA** : Utilisation de modèles d'IA pour le traitement des données (ex: Groq).
+## Documentation existante
 
----
-
-## 📂 Structure du Projet
-
-```text
-nma-sim-dev/
-├── frontend/             # Application Next.js pour l'interface de la borne
-│   ├── src/app/borne/    # Parcours client (Accueil, Nouvelle SIM, Réactivation, etc.)
-│   ├── src/components/   # Composants UI réutilisables (Cards, Buttons, CameraCapture...)
-│   └── src/lib/          # Utilitaires (kyc.client.ts, stockage, etc.)
-├── backend/              # Serveur principal (logique métier)
-├── nma_kyc_api/          # Microservice d'analyse d'images et d'IA
-├── .env                  # Variables d'environnement sécurisées (API Keys, DB URIs)
-└── .gitignore            # Fichiers ignorés par Git (secrets, node_modules, etc.)
+- [Guide du distributeur SK-AD3](docs/guide-distributeur-sk-ad3.md)
+- [Documentation du scanner](Scanner/README.md)
+- [Documentation du mock OPS](ops-mock/README.md)
+- Les README et guides d'intégration propres aux API KYC et vocales se trouvent dans leurs dossiers respectifs.

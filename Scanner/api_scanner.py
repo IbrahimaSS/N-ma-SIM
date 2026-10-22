@@ -110,6 +110,9 @@ def _repondre(img, type_carte, format_retour, decoupe):
 
 
 def _decouper_ou_echouer(img_brut, type_carte, format_retour, brut_si_echec, message):
+    gris = cv2.cvtColor(img_brut, cv2.COLOR_BGR2GRAY)
+    if np.percentile(gris, 99.5) < 20:
+        raise HTTPException(status_code=422, detail="Image noire : placez la face de la piece contre la vitre, fermez le capot et recommencez.")
     carte = decouper(img_brut, type_carte=type_carte)
     if carte is not None:
         return _repondre(carte, type_carte, format_retour, True)

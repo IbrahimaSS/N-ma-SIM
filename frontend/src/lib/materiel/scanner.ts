@@ -34,7 +34,7 @@ export async function scannerPiece(typePiece?: TypePiece): Promise<ResultatScan>
     const form = new FormData();
     form.set("type_carte", typePiece || "cni");
     form.set("format_retour", "image");
-    form.set("brut_si_echec", "true");
+    form.set("brut_si_echec", "false");
     res = await fetch(url, {
       method: "POST",
       body: form,

@@ -1,7 +1,7 @@
 import { randomInt } from "crypto";
 import { SerialPort } from "serialport";
 import {
-  SKAD3, ErreurSKAD3, ErreurApdu, POS_IC, POS_FRONT_HOLD, POS_CAPTURE, VCC_5V_ISO, VCC_3V_ISO,
+  SKAD3, ErreurSKAD3, ErreurApdu, POS_IC, POS_FRONT_HOLD, POS_FRONT_EJECT, POS_CAPTURE, VCC_5V_ISO, VCC_3V_ISO,
   empileurVide, empileurBas, captureePleine,
 } from "./skad3";
 
@@ -141,6 +141,24 @@ async function distribuerSimulation<T>(activer: (carte: CarteLue) => Promise<T>)
  * Délivre une carte SIM ACTIVE. Si une carte est illisible ou refusée par l'opérateur
  * (`carteEnCause`), elle est rejetée et on essaie la suivante, au plus `cartesMax` cartes.
  */
+export function ejecterCarte(): Promise<void> {
+  return enFile(async () => {
+    if (process.env.SIM_DISPENSER_MODE === "simulation") {
+      throw new Error("Desactivez le mode simulation pour ejecter une carte physique.");
+    }
+    const c = await connexion();
+    if (!c.initialise) {
+      await c.skad3.initialiser();
+      c.initialise = true;
+    }
+    const etat = await c.skad3.etat();
+    if (empileurVide(etat)) throw new ErreurSKAD3("A0", 0x31, 0x30);
+    // Pas de lecture ICCID/IMSI, d'activation ou de nouvelle tentative d'ejection.
+    await c.skad3.deplacer(POS_FRONT_EJECT);
+    console.log("[SK-AD3] Carte ejectee sans lecture ni activation");
+  });
+}
+
 export function distribuerCarte<T>(activer: (carte: CarteLue) => Promise<T>, cartesMax = 2): Promise<{ carte: CarteLue; resultat: T }> {
   return enFile(async () => {
     let derniere: unknown = null;

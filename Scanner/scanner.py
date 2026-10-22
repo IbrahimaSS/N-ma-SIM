@@ -27,6 +27,7 @@ from scanner_carte_identite import decouper_identite
 from scanner_carte_electeur import decouper_electeur, _reduire, _ordonner_quad  # noqa: F401 (utilisés par borne.py)
 from scanner_passeport import decouper_passeport
 from scanner_permis import decouper_permis
+from decoupe_fond import decouper_fond
 
 # ---------- RÉGLAGES ----------
 NOM_SCANNER = os.environ.get("NOM_SCANNER", "").strip()     # Vide = détection auto intelligente
@@ -47,7 +48,7 @@ FORMAT_PNG = "{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"
 # Propriétés WIA de l'item de scan
 WIA_INTENT, WIA_XRES, WIA_YRES = 6146, 6147, 6148
 WIA_XPOS, WIA_YPOS, WIA_XEXTENT, WIA_YEXTENT = 6149, 6150, 6151, 6152
-WIA_INTENT_COULEUR = 2
+WIA_INTENT_COULEUR = 1
 WIA_SUBTYPE_RANGE, WIA_SUBTYPE_LIST = 1, 2
 
 # Un seul scan à la fois (le scanner est une ressource unique)
@@ -221,6 +222,11 @@ def decouper(img, dpi=DPI, type_carte="identite"):
                  (ou cni | carte_electeur, noms utilisés par la borne)
     """
     t = normaliser_type(type_carte)
+    if img is None or img.size == 0:
+        return None
+    carte = decouper_fond(img)
+    if carte is not None:
+        return carte
     if t == "electeur":
         return decouper_electeur(img, dpi)
     if t == "passeport":

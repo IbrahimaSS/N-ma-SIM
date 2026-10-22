@@ -3,7 +3,7 @@
 Ce dossier scanne la pièce posée sur la vitre de l'imprimante, **trouve la carte, la redresse et la découpe** (OpenCV), puis la renvoie à la borne. Tout se passe **en local, sur le PC branché à l'imprimante** : rien ne passe par Internet.
 
 ```
-Borne (navigateur)  →  Next.js (localhost:3000)  →  API Scanner (127.0.0.1:8000)  →  Imprimante HP (WIA)
+Borne (navigateur)  →  Next.js (localhost:3000)  →  API Scanner (127.0.0.1:8010)  →  Imprimante HP (WIA)
                                                    ←  carte découpée et redressée  ←
 ```
 
@@ -16,10 +16,10 @@ Si l'API n'est pas lancée, la borne utilise automatiquement l'ancien scan (`fro
 - **Windows** (le scan utilise WIA, intégré à Windows).
 - **Imprimante branchée en USB et allumée**, pilote HP installé : elle doit apparaître dans *Paramètres → Bluetooth et appareils → Imprimantes et scanners*.
 - **Python 3.10 ou plus récent** — à l'installation, cocher **« Add Python to PATH »**. Vérifier dans un terminal : `python --version`.
-- **Node.js 18 ou plus récent** pour la borne — vérifier : `node --version`.
+- **Node.js 20.9 ou plus récent** pour la borne — vérifier : `node --version`.
 - Le projet à jour :
   ```
-  git pull origin Soumah
+  git pull
   ```
 
 ## 2. Lancer l'API du scanner
@@ -27,7 +27,7 @@ Si l'API n'est pas lancée, la borne utilise automatiquement l'ancien scan (`fro
 **Méthode simple** : double-cliquer sur **`Scanner\demarrer.bat`**.
 Il installe les dépendances (`requirements.txt`) puis lance l'API. La fenêtre doit afficher :
 ```
-🚀  API Scanner : http://127.0.0.1:8000
+API Scanner : http://127.0.0.1:8010
 ```
 **Laisser cette fenêtre ouverte** pendant toute l'utilisation de la borne.
 
@@ -36,11 +36,11 @@ Il installe les dépendances (`requirements.txt`) puis lance l'API. La fenêtre 
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python api_scanner.py
+python lancer_api.py
 ```
 
-**Vérifier** : ouvrir http://127.0.0.1:8000/status dans le navigateur → `{"status":"ok", ...}`.
-La documentation interactive est sur http://127.0.0.1:8000/docs (on peut y tester `/scan` directement).
+**Vérifier** : ouvrir http://127.0.0.1:8010/status dans le navigateur → `{"status":"ok", ...}`.
+La documentation interactive est sur http://127.0.0.1:8010/docs (on peut y tester `/scan` directement).
 
 ## 3. Lancer la borne
 
@@ -52,9 +52,9 @@ npm run dev
 ```
 Puis ouvrir http://localhost:3000/borne/accueil.
 
-Rien à configurer : la borne appelle `http://127.0.0.1:8000` par défaut. Pour une autre adresse ou un autre port, ajouter dans `frontend/.env.local` :
+Rien à configurer : la borne appelle `http://127.0.0.1:8010` par défaut. Pour une autre adresse ou un autre port, ajouter dans `frontend/.env.local` :
 ```
-SCANNER_API_URL=http://127.0.0.1:8000
+SCANNER_API_URL=http://127.0.0.1:8010
 ```
 
 ## 4. Utilisation
@@ -68,7 +68,7 @@ Dans le terminal de la borne (`npm run dev`), chaque scan affiche une ligne de c
 ```
 [SCANNER] API : 1031x650 (pièce découpée)                ← tout va bien
 [SCANNER] API : 2550x3507 (scan complet, pièce non trouvée)  ← la borne recadre elle-même
-[SCANNER] API http://127.0.0.1:8000 injoignable → repli sur wia-scan.ps1   ← l'API n'est pas lancée
+[SCANNER] API http://127.0.0.1:8010 injoignable → repli sur wia-scan.ps1   ← l'API n'est pas lancée
 ```
 
 ## 5. Problèmes fréquents
@@ -79,7 +79,7 @@ Dans le terminal de la borne (`npm run dev`), chaque scan affiche une ligne de c
 | « Le scanner est occupé » / « Le périphérique WIA est occupé » | Un autre programme tient le scanner : fermer Numérisation Windows, Télécopie et numérisation, HP Smart ou le logiciel de l'imprimante ; vérifier qu'une seule fenêtre `demarrer.bat` est ouverte. Le script réessaie déjà 3 fois (2 s d'écart). Si ça persiste : éteindre puis rallumer l'imprimante. |
 | Le scan ne répond pas / reste bloqué | Fermer **HP Smart** ou tout autre logiciel qui utilise le scanner. |
 | `injoignable → repli sur wia-scan.ps1` | L'API n'est pas lancée : relancer `demarrer.bat` et garder sa fenêtre ouverte. |
-| Port 8000 déjà utilisé | Lancer avec un autre port : `set SCANNER_API_PORT=8010` puis `python api_scanner.py`, et mettre `SCANNER_API_URL=http://127.0.0.1:8010` dans `frontend/.env.local`. |
+| Port 8010 déjà utilisé | Définir `SCANNER_API_PORT` avec un port libre avant de lancer `demarrer.bat`, et mettre la même adresse dans `SCANNER_API_URL` dans `frontend/.env.local`. |
 | `python` n'est pas reconnu | Réinstaller Python en cochant « Add Python to PATH », ou utiliser `py` à la place de `python`. |
 | Carte non détectée | Pièce bien à plat, capot fermé, pas collée au bord de la vitre. La borne recadre quand même le scan complet. |
 
@@ -88,7 +88,7 @@ Dans le terminal de la borne (`npm run dev`), chaque scan affiche une ligne de c
 | Fichier | Rôle |
 |---|---|
 | `api_scanner.py` | API locale (FastAPI) : `/scan`, `/scan-camera`, `/scan-base64`, `/status`. N'écoute que sur `127.0.0.1`. |
-| `scanner.py` | Pilotage du scanner WIA (300 DPI, vitre entière) + choix de l'algorithme selon le type de pièce. |
+| `scanner.py` | Pilotage du scanner WIA (200 DPI par défaut, vitre entière) + choix de l'algorithme selon le type de pièce. |
 | `scanner_carte_identite.py` / `scanner_carte_electeur.py` / `scanner_passeport.py` / `scanner_permis.py` | **Seule copie** de chaque algorithme de découpe : c'est ici qu'on les ajuste. |
 | `borne.py` | Petite interface de test autonome (Tkinter), sans la borne Next.js : `python borne.py`. |
 | `demarrer.bat` | Installe les dépendances et lance l'API. |
