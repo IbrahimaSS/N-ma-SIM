@@ -14,6 +14,8 @@ import { scannerViaImprimante } from "@/lib/materiel/scanner.client";
 import { jouerAudioLocal } from "@/lib/soussou-audio";
 import { recadrerPiece, type StatutRecadrage } from "@/lib/kyc.recadrage";
 import { useLancementAuto, useSelectionFichier } from "@/lib/useLancementAuto";
+import { useDetectionPiece, REGLE_VERSO } from "@/lib/useDetectionPiece";
+import { DetectionPiece } from "@/components/borne/DetectionPiece";
 
 // Helper pour déclencher l'audio local (Soussou / Malinké) des instructions recto/verso
 function direInstructions(lang: string, type: "recto" | "verso", service: "nouvelle-sim" | "reactivation") {
@@ -23,14 +25,15 @@ function direInstructions(lang: string, type: "recto" | "verso", service: "nouve
   }
 }
 
-type DocType = "cni" | "passeport" | "carte_electeur" | "permis" | null;
 type CameraTarget = "recto" | "verso";
 
 export default function ReactivationPieceIdentite() {
   const router = useRouter();
   const [lang, setLang] = useState("fr");
   const [profile, setProfile] = useState("resident");
-  const [docType, setDocType] = useState<DocType>(null);
+  // Type de pièce reconnu automatiquement sur le recto (choix manuel seulement en secours)
+  const detection = useDetectionPiece({ lang, etranger: profile === "etranger" });
+  const docType = detection.type;
   const [rectoFile, setRectoFile] = useState<File | null>(null);
   const [rectoPreviewUrl, setRectoPreviewUrl] = useState<string | null>(null);
   const [versoFile, setVersoFile] = useState<File | null>(null);
@@ -57,7 +60,8 @@ export default function ReactivationPieceIdentite() {
     const savedProfile = sessionStorage.getItem("kiosk_profile") || "resident";
     setLang(savedLang);
     setProfile(savedProfile);
-    if (savedProfile === "etranger") setDocType("passeport");
+    // Plus de choix du type : on demande directement le recto
+    direInstructions(savedLang, "recto", "reactivation");
   }, []);
 
   useEffect(() => {
@@ -90,6 +94,7 @@ export default function ReactivationPieceIdentite() {
     cancelCamera: lang === "en" ? "Cancel" : "Annuler",
     previewRecto: lang === "en" ? "Front (recto)" : "Recto (face avant)",
     previewVerso: lang === "en" ? "Back (verso)" : "Verso (face arrière)",
+    optional: lang === "en" ? "optional" : "facultatif",
     aiAnalysis: lang === "en" ? "AI / OCR Analysis" : "Analyse IA / OCR",
     readable: lang === "en" ? "Document ready" : "Document prêt",
     waitingDoc: lang === "en" ? "Waiting for document..." : "En attente du document...",
@@ -114,20 +119,26 @@ export default function ReactivationPieceIdentite() {
     autoLaunch: (s: number) => lang === "en" ? `Analysis starts automatically in ${s} s...` : `L'analyse démarre automatiquement dans ${s} s...`,
   };
 
-  const needsVerso = docType === "cni" || docType === "passeport" || docType === "permis";
+  // Verso selon la pièce reconnue : électeur = aucun, CNI / permis = obligatoire, passeport = facultatif
+  const regleVerso = detection.regleVerso;
+  const needsVerso = regleVerso === "obligatoire" || regleVerso === "facultatif"; // zone verso affichée
   const hasRecto = !!rectoFile;
   const hasVerso = !!versoFile;
-  const canContinue = hasRecto && (!needsVerso || hasVerso);
+  const canContinue = hasRecto && !!docType && detection.etat !== "en-cours" && (regleVerso !== "obligatoire" || hasVerso);
   // Une face où aucune pièce n'a été détectée bloque le lancement automatique
-  const pieceIntrouvable = statuts.recto === "introuvable" || (needsVerso && statuts.verso === "introuvable");
+  const pieceIntrouvable = statuts.recto === "introuvable" || (needsVerso && hasVerso && statuts.verso === "introuvable");
 
-  /** Toute image (import, caméra, scanner) passe par ici : recadrage sur la pièce puis aperçu */
+  /** Toute image (import, caméra, scanner) passe par ici : recadrage sur la pièce puis aperçu.
+   *  Un nouveau recto relance la reconnaissance du type de pièce. */
   const definirImage = async (target: CameraTarget, brut: File) => {
     setRecadrageEnCours(target);
     const { file, statut } = await recadrerPiece(brut);
     if (target === "recto") {
       if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
       setRectoFile(file); setRectoPreviewUrl(URL.createObjectURL(file));
+      // Le verso d'une autre pièce ne doit pas rester attaché au nouveau recto
+      if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
+      setVersoFile(null); setVersoPreviewUrl(null);
     } else {
       if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
       setVersoFile(file); setVersoPreviewUrl(URL.createObjectURL(file));
@@ -135,6 +146,10 @@ export default function ReactivationPieceIdentite() {
     setStatuts((s) => ({ ...s, [target]: statut }));
     setSaveError(null);
     setRecadrageEnCours(null);
+    if (target === "recto") {
+      const reconnu = await detection.detecter(file);
+      if (reconnu && REGLE_VERSO[reconnu] !== "aucun") direInstructions(lang, "verso", "reactivation");
+    }
   };
 
   const handleRectoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,14 +220,6 @@ export default function ReactivationPieceIdentite() {
     }, "image/jpeg", 0.92);
   };
 
-  const handleDocTypeChange = (type: DocType) => {
-    setDocType(type);
-    if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
-    if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
-    setRectoFile(null); setRectoPreviewUrl(null); setVersoFile(null); setVersoPreviewUrl(null); setStatuts({}); setSaveError(null);
-    direInstructions(lang, "recto", "reactivation");
-  };
-
   const handleContinue = async () => {
     if (!rectoFile || isSaving) return;
     setIsSaving(true); setSaveError(null);
@@ -223,7 +230,10 @@ export default function ReactivationPieceIdentite() {
       // Appel KYC — extraction pièce uniquement (sans selfie à ce stade)
       // On NE sauvegarde PAS le résultat ici pour ne pas écraser celui du selfie.
       // On stocke seulement les champs extraits pour pré-remplissage.
-      const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
+      // Sans verso, l'analyse du recto faite pour reconnaître la pièce est déjà complète
+      const result = !versoFile && detection.resultatRecto.current
+        ? detection.resultatRecto.current
+        : await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       if (result.champs) {
         sessionStorage.setItem("kyc_champs", JSON.stringify(result.champs));
       }
@@ -239,7 +249,8 @@ export default function ReactivationPieceIdentite() {
   // Extraction lancée toute seule 5 s après que toutes les faces requises sont prêtes
   const { restant: lancementDans, annuler: annulerLancement } = useLancementAuto(
     canContinue ? `${docType}|${rectoPreviewUrl}|${needsVerso ? versoPreviewUrl : ""}` : null,
-    canContinue && !cameraMode && !recadrageEnCours && !scanningTarget && !pieceIntrouvable && !selection.ouverte,
+    // Passeport sans verso : pas de lancement automatique (verso facultatif à ajouter, ou extraction lancée par le client)
+    canContinue && (regleVerso !== "facultatif" || hasVerso) && !cameraMode && !recadrageEnCours && !scanningTarget && !pieceIntrouvable && !selection.ouverte,
     isSaving,
     handleContinue,
   );
@@ -306,38 +317,33 @@ export default function ReactivationPieceIdentite() {
           />
         ) : (
           <>
-            {/* Choix du type de document */}
-            {profile !== "etranger" && (
-              <div className="mb-6">
-                <p className="font-semibold text-text-main mb-1">{t.docTypeLabel}</p>
-                <p className="text-sm text-text-muted mb-3">{t.docTypeSub}</p>
-                <div className="flex gap-3 flex-wrap">
-                  {(["cni", "passeport", "carte_electeur", "permis"] as DocType[]).map((type) => (
-                    <button key={type}
-                      data-ai-action={type === "cni" ? "btn-cni" : type === "passeport" ? "btn-passeport" : type === "carte_electeur" ? "btn-electeur" : "btn-permis"}
-                      onClick={() => handleDocTypeChange(type)}
-                      className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${docType === type ? "border-primary bg-primary/10 text-primary" : "border-border-light text-text-muted hover:border-primary/50"}`}>
-                      {type === "cni" ? t.cni : type === "passeport" ? t.passeport : type === "carte_electeur" ? t.carteElecteur : t.permis}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Zones de capture : recto d'abord, verso selon la pièce reconnue */}
+            <div className={`grid gap-4 mb-4 ${needsVerso ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 max-w-md mx-auto w-full"}`}>
+              <CaptureZone label={t.previewRecto} previewUrl={rectoPreviewUrl}
+                onImport={() => selection.ouvrir(rectoInputRef)} onCamera={() => openCamera("recto")}
+                onScan={() => handleScan("recto")} isScanning={scanningTarget === "recto"}
+                isProcessing={recadrageEnCours === "recto"} statut={statuts.recto} />
+              {needsVerso && (
+                <CaptureZone label={regleVerso === "facultatif" ? `${t.previewVerso} — ${t.optional}` : t.previewVerso} previewUrl={versoPreviewUrl}
+                  onImport={() => selection.ouvrir(versoInputRef)} onCamera={() => openCamera("verso")}
+                  onScan={() => handleScan("verso")} isScanning={scanningTarget === "verso"}
+                  isProcessing={recadrageEnCours === "verso"} statut={statuts.verso} />
+              )}
+            </div>
 
-            {docType && (
-              <div className={`grid gap-4 mb-4 ${needsVerso ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 max-w-md mx-auto w-full"}`}>
-                <CaptureZone label={t.previewRecto} previewUrl={rectoPreviewUrl}
-                  onImport={() => selection.ouvrir(rectoInputRef)} onCamera={() => openCamera("recto")}
-                  onScan={() => handleScan("recto")} isScanning={scanningTarget === "recto"}
-                  isProcessing={recadrageEnCours === "recto"} statut={statuts.recto} />
-                {needsVerso && (
-                  <CaptureZone label={t.previewVerso} previewUrl={versoPreviewUrl}
-                    onImport={() => selection.ouvrir(versoInputRef)} onCamera={() => openCamera("verso")}
-                    onScan={() => handleScan("verso")} isScanning={scanningTarget === "verso"}
-                    isProcessing={recadrageEnCours === "verso"} statut={statuts.verso} />
-                )}
-              </div>
-            )}
+            {/* Reconnaissance automatique du type de pièce (+ choix manuel de secours) */}
+            <DetectionPiece
+              lang={lang}
+              etat={detection.etat}
+              type={detection.type}
+              message={detection.message}
+              regleVerso={regleVerso}
+              choixManuelPropose={detection.choixManuelPropose}
+              onChoisir={(type) => {
+                detection.choisir(type);
+                if (REGLE_VERSO[type] !== "aucun") direInstructions(lang, "verso", "reactivation");
+              }}
+            />
 
             {/* Panneau IA */}
             <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex items-start gap-3 mb-4">

@@ -332,7 +332,7 @@ function fallbackResponse(lang: string | null, step: string, isFr: boolean) {
     'esim-recapitulatif':    ["Vérifiez le récapitulatif de votre commande eSIM avant de passer au paiement.", "Review your eSIM order summary before proceeding to payment."],
     'esim-generation':       ["Votre profil eSIM est en cours de génération. Veuillez patienter et ne rien retirer.", "Your eSIM profile is being generated. Please wait and do not remove anything."],
     'esim-qr-code':          ["Votre eSIM est prête. Scannez le QR code avec votre téléphone, ou recevez-le par e-mail.", "Your eSIM is ready. Scan the QR code with your phone, or receive it by email."],
-    'scan-piece':            ["Veuillez choisir le type de pièce et la placer sur le scanner.", "Please choose your document type and place it on the scanner."],
+    'scan-piece':            ["Posez votre pièce d'identité sur le scanner et scannez le recto : la borne la reconnaît toute seule.", "Place your ID document on the scanner and scan the front: the kiosk recognises it automatically."],
     'confirmation-infos':    ["Vérifiez les informations extraites et corrigez si nécessaire.", "Verify the extracted information and correct if needed."],
     'selfie':                ["Regardez la caméra et prenez votre selfie pour la vérification.", "Look at the camera and take your selfie for verification."],
     'choix-offre':           ["Choisissez une offre ou continuez avec la SIM seule.", "Choose an offer or continue with SIM only."],
