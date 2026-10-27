@@ -15,6 +15,8 @@ import { jouerAudioLocal } from "@/lib/soussou-audio";
 import { recadrerPiece, type StatutRecadrage } from "@/lib/kyc.recadrage";
 import { useLancementAuto, useSelectionFichier } from "@/lib/useLancementAuto";
 import { lireReservation, verifierReservation } from "@/lib/reservation.client";
+import { useDetectionPiece, REGLE_VERSO } from "@/lib/useDetectionPiece";
+import { DetectionPiece } from "@/components/borne/DetectionPiece";
 
 // Helper pour déclencher l'audio local (Soussou / Malinké) des instructions recto/verso
 function direInstructions(lang: string, type: "recto" | "verso", service: "nouvelle-sim" | "reactivation") {
@@ -23,7 +25,6 @@ function direInstructions(lang: string, type: "recto" | "verso", service: "nouve
   }
 }
 
-type DocType = "cni" | "passeport" | "carte_electeur" | "permis" | null;
 type CameraTarget = "recto" | "verso";
 
 export default function ScanPiece() {
@@ -31,8 +32,9 @@ export default function ScanPiece() {
   const [lang, setLang] = useState("fr");
   const [profile, setProfile] = useState("resident");
 
-  // Type de document sélectionné
-  const [docType, setDocType] = useState<DocType>(null);
+  // Type de pièce reconnu automatiquement sur le recto (choix manuel seulement en secours)
+  const detection = useDetectionPiece({ lang, etranger: profile === "etranger" });
+  const docType = detection.type;
 
   // Fichiers capturés
   const [rectoFile, setRectoFile] = useState<File | null>(null);
@@ -67,10 +69,8 @@ export default function ScanPiece() {
     const savedProfile = sessionStorage.getItem("kiosk_profile") || "resident";
     setLang(savedLang);
     setProfile(savedProfile);
-    // Si l'utilisateur est étranger, seul le passeport est accepté → présélection auto
-    if (savedProfile === "etranger") {
-      setDocType("passeport");
-    }
+    // Plus de choix du type : on demande directement le recto
+    direInstructions(savedLang, "recto", "nouvelle-sim");
   }, []);
 
   // Nettoyer stream caméra à la fermeture
@@ -103,6 +103,7 @@ export default function ScanPiece() {
     cancelCamera: lang === "en" ? "Cancel" : "Annuler",
     previewRecto: lang === "en" ? "Front (recto)" : "Recto (face avant)",
     previewVerso: lang === "en" ? "Back (verso)" : "Verso (face arrière)",
+    optional: lang === "en" ? "optional" : "facultatif",
     aiAnalysis: lang === "en" ? "AI / OCR Analysis" : "Analyse IA / OCR",
     readable: lang === "en" ? "Document ready" : "Document prêt",
     waitingDoc: lang === "en" ? "Waiting for document..." : "En attente du document...",
@@ -134,16 +135,18 @@ export default function ScanPiece() {
     autoLaunch: (s: number) => lang === "en" ? `Analysis starts automatically in ${s} s...` : `L'analyse démarre automatiquement dans ${s} s...`,
   };
 
-  // Le verso est obligatoire pour CNI, passeport et permis
-  const needsVerso = docType === "cni" || docType === "passeport" || docType === "permis";
+  // Verso selon la pièce reconnue : électeur = aucun, CNI / permis = obligatoire, passeport = facultatif
+  const regleVerso = detection.regleVerso;
+  const needsVerso = regleVerso === "obligatoire" || regleVerso === "facultatif"; // zone verso affichée
   const hasRecto = !!rectoFile;
   const hasVerso = !!versoFile;
-  // Prêt à continuer : recto obligatoire, verso obligatoire seulement si needsVerso
-  const canContinue = hasRecto && (!needsVerso || hasVerso);
+  // Prêt à continuer : recto + pièce reconnue, verso seulement s'il est obligatoire
+  const canContinue = hasRecto && !!docType && detection.etat !== "en-cours" && (regleVerso !== "obligatoire" || hasVerso);
   // Une face où aucune pièce n'a été détectée bloque le lancement automatique
-  const pieceIntrouvable = statuts.recto === "introuvable" || (needsVerso && statuts.verso === "introuvable");
+  const pieceIntrouvable = statuts.recto === "introuvable" || (needsVerso && hasVerso && statuts.verso === "introuvable");
 
-  /** Toute image (import, caméra, scanner) passe par ici : recadrage sur la pièce puis aperçu */
+  /** Toute image (import, caméra, scanner) passe par ici : recadrage sur la pièce puis aperçu.
+   *  Un nouveau recto relance la reconnaissance du type de pièce. */
   const definirImage = async (target: CameraTarget, brut: File) => {
     setRecadrageEnCours(target);
     const { file, statut } = await recadrerPiece(brut);
@@ -151,6 +154,10 @@ export default function ScanPiece() {
       if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
       setRectoFile(file);
       setRectoPreviewUrl(URL.createObjectURL(file));
+      // Le verso d'une autre pièce ne doit pas rester attaché au nouveau recto
+      if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
+      setVersoFile(null);
+      setVersoPreviewUrl(null);
     } else {
       if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
       setVersoFile(file);
@@ -159,6 +166,10 @@ export default function ScanPiece() {
     setStatuts((s) => ({ ...s, [target]: statut }));
     setSaveError(null);
     setRecadrageEnCours(null);
+    if (target === "recto") {
+      const reconnu = await detection.detecter(file);
+      if (reconnu && REGLE_VERSO[reconnu] !== "aucun") direInstructions(lang, "verso", "nouvelle-sim");
+    }
   };
 
   /** Import fichier recto */
@@ -251,9 +262,9 @@ export default function ScanPiece() {
     }, "image/jpeg", 0.92);
   };
 
-  /** Changer le type de document → reset les fichiers */
-  const handleDocTypeChange = (type: DocType) => {
-    setDocType(type);
+  /** Nouvelle pièce (ex. limite de 5 SIM atteinte) → tout recommencer, y compris la reconnaissance */
+  const recommencer = () => {
+    detection.reinitialiser();
     if (rectoPreviewUrl) URL.revokeObjectURL(rectoPreviewUrl);
     if (versoPreviewUrl) URL.revokeObjectURL(versoPreviewUrl);
     setRectoFile(null);
@@ -275,11 +286,14 @@ export default function ScanPiece() {
       await saveKycImage("kyc_recto", rectoFile);
       if (versoFile) await saveKycImage("kyc_verso", versoFile);
 
-      // Sauvegarder le type de document sélectionné par l'utilisateur (source de vérité)
+      // Type de pièce reconnu (ou choisi en secours) : source de vérité pour la suite du parcours
       if (docType) sessionStorage.setItem("kiosk_doc_type", docType);
 
-      // Appel de l'API pour extraire les informations (sans selfie)
-      const result = await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
+      // Extraction des informations (sans selfie). Sans verso, l'analyse du recto faite pour
+      // reconnaître la pièce est déjà complète : on la réutilise au lieu de relancer l'OCR.
+      const result = !versoFile && detection.resultatRecto.current
+        ? detection.resultatRecto.current
+        : await verifierKYC(rectoFile, null, versoFile ?? undefined, docType ?? undefined);
       await saveKycResult(result);
 
       // SIM réservée : le passeport scanné doit correspondre à la réservation (numéro LU sur la
@@ -327,9 +341,12 @@ export default function ScanPiece() {
 
   // Extraction lancée toute seule 5 s après que toutes les faces requises sont prêtes
   // (le client peut encore appuyer sur « Changer » pendant ce délai).
+  // Passeport sans verso : pas de lancement automatique, le client a le temps d'ajouter le verso
+  // facultatif ou lance lui-même l'extraction.
   const { restant: lancementDans, annuler: annulerLancement } = useLancementAuto(
     canContinue ? `${docType}|${rectoPreviewUrl}|${needsVerso ? versoPreviewUrl : ""}` : null,
-    canContinue && !cameraMode && !recadrageEnCours && !scanningTarget && !pieceIntrouvable && !selection.ouverte,
+    canContinue && (regleVerso !== "facultatif" || hasVerso)
+      && !cameraMode && !recadrageEnCours && !scanningTarget && !pieceIntrouvable && !selection.ouverte,
     isSaving,
     handleContinue,
   );
@@ -452,9 +469,8 @@ export default function ScanPiece() {
 
       <CardContent>
 
-        {/* ── 1. Sélection du type de document ── */}
-        {profile === "etranger" ? (
-          // Étranger : bandeau informatif — Passeport présélectionné automatiquement
+        {/* ── 1. Étranger : seul le passeport est accepté (vérifié à la reconnaissance) ── */}
+        {profile === "etranger" && (
           <div className="mb-5 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
             <span style={{ fontSize: 22 }}>🌍</span>
             <div>
@@ -472,32 +488,10 @@ export default function ScanPiece() {
               </div>
             </div>
           </div>
-        ) : (
-          // Résident : sélecteur normal
-          <div className="mb-5">
-            <p className="font-bold text-text-main mb-1">{t.docTypeLabel}</p>
-            <p className="text-xs text-text-muted mb-3">{t.docTypeSub}</p>
-            <div className="flex gap-3 flex-wrap">
-              {(["cni", "passeport", "carte_electeur", "permis"] as DocType[]).map((type) => (
-                <button
-                  key={type}
-                  data-ai-action={type === "cni" ? "btn-cni" : type === "passeport" ? "btn-passeport" : type === "carte_electeur" ? "btn-electeur" : "btn-permis"}
-                  onClick={() => handleDocTypeChange(type)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${
-                    docType === type
-                      ? "bg-primary text-white border-primary"
-                      : "bg-white text-text-main border-border-light hover:border-primary hover:text-primary"
-                  }`}
-                >
-                  {type === "cni" ? t.cni : type === "passeport" ? t.passeport : type === "carte_electeur" ? t.carteElecteur : t.permis}
-                </button>
-              ))}
-            </div>
-          </div>
         )}
 
-        {/* ── 2. Zones de capture (visibles seulement après sélection du type) ── */}
-        {docType && (
+        {/* ── 2. Zones de capture : recto d'abord, verso selon la pièce reconnue ── */}
+        {(
           <>
             {/* === MODE CAMÉRA AVEC GUIDE AUTO-CAPTURE === */}
             {cameraMode && (
@@ -529,7 +523,7 @@ export default function ScanPiece() {
                 />
                 {needsVerso && (
                   <CaptureZone
-                    label={t.previewVerso}
+                    label={regleVerso === "facultatif" ? `${t.previewVerso} — ${t.optional}` : t.previewVerso}
                     previewUrl={versoPreviewUrl}
                     onImport={() => selection.ouvrir(versoInputRef)}
                     onCamera={() => openCamera("verso")}
@@ -540,6 +534,22 @@ export default function ScanPiece() {
                   />
                 )}
               </div>
+            )}
+
+            {/* Reconnaissance automatique du type de pièce (+ choix manuel de secours) */}
+            {!cameraMode && (
+              <DetectionPiece
+                lang={lang}
+                etat={detection.etat}
+                type={detection.type}
+                message={detection.message}
+                regleVerso={regleVerso}
+                choixManuelPropose={detection.choixManuelPropose}
+                onChoisir={(type) => {
+                  detection.choisir(type);
+                  if (REGLE_VERSO[type] !== "aucun") direInstructions(lang, "verso", "nouvelle-sim");
+                }}
+              />
             )}
 
             {/* Erreur de scan matériel */}
@@ -606,7 +616,7 @@ export default function ScanPiece() {
               <p className="font-bold text-red-700 text-sm mb-1">{saveError}</p>
               <p className="text-red-600 text-xs mb-3">{t.errorMaxSimHelp}</p>
               <button
-                onClick={() => handleDocTypeChange(profile === "etranger" ? "passeport" : null)}
+                onClick={recommencer}
                 className="inline-flex items-center gap-2 bg-white border border-red-300 text-red-700 text-xs font-bold px-3 py-2 rounded-lg hover:bg-red-100 transition-colors"
               >
                 {t.errorMaxSimAction}

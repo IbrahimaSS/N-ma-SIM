@@ -42,6 +42,26 @@ FORMAT STRICT — Retourne uniquement ce JSON, sans markdown :
 {"answer": "Ta réponse courte (max 2 phrases)","action": {"type": "none|navigate|click|fill","target": "","value": ""}}
 `;
 
+// Scan de la pièce (nouvelle SIM, eSIM, réactivation) : le type de pièce est reconnu
+// automatiquement sur le recto ; les boutons de type n'apparaissent qu'en secours.
+const CONSIGNE_SCAN_PIECE_FR = `L'utilisateur NE CHOISIT PLUS son type de pièce : il scanne le RECTO, la borne reconnaît la pièce toute seule, puis demande le verso si besoin.
+           Faces : Carte d'électeur = recto seul | CNI et Permis biométrique = recto + verso | Passeport = recto, verso facultatif.
+           Si profil ÉTRANGER : seul le Passeport est accepté.
+           Si la pièce n'est pas reconnue deux fois, des boutons de choix apparaissent en secours :
+           data-ai-action="btn-cni" | "btn-passeport" | "btn-electeur" | "btn-permis".
+           COMMANDES VOCALES (seulement si ces boutons sont affichés) :
+           - "carte d'identité" | "CNI" → click "btn-cni"
+           - "passeport" → click "btn-passeport"
+           - "carte d'électeur" → click "btn-electeur"
+           - "permis" | "permis biométrique" | "permis de conduire" → click "btn-permis"`;
+const CONSIGNE_SCAN_PIECE_EN = `The user NO LONGER chooses the document type: they scan the FRONT, the kiosk recognises the document by itself, then asks for the back if needed.
+           Sides: Voter ID = front only | National ID (CNI) and Biometric Licence = front + back | Passport = front, back optional.
+           FOREIGNER profile: only Passport accepted.
+           If the document is not recognised twice, fallback buttons appear:
+           data-ai-action="btn-cni" | "btn-passeport" | "btn-electeur" | "btn-permis".
+           VOICE COMMANDS (only when those buttons are shown): "ID card"/"CNI"→click btn-cni | "passport"→click btn-passeport
+           "voter ID"→click btn-electeur | "licence"/"biometric licence"/"driving licence"→click btn-permis`;
+
 function getStepContext(step: string, service: string | null, lang: string, isFr: boolean): string {
   switch (step) {
 
@@ -161,21 +181,10 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
     case 'scan-piece':
       return isFr
         ? `ÉTAPE : Scan de la pièce d'identité (service: ${service || 'nouvelle-sim'}).
-           L'utilisateur doit : 1) Choisir le type (CNI, Passeport, Carte d'électeur, Permis biométrique). 2) Capturer le recto (et verso uniquement pour CNI/Passeport ; recto seul pour Carte d'électeur et Permis biométrique).
-           Si profil ÉTRANGER : seul le Passeport est accepté.
-           BOUTONS : data-ai-action="btn-cni" | "btn-passeport" | "btn-electeur" | "btn-permis".
-           COMMANDES VOCALES :
-           - "carte d'identité" | "CNI" → click "btn-cni"
-           - "passeport" → click "btn-passeport"
-           - "carte d'électeur" → click "btn-electeur"
-           - "permis" | "permis biométrique" | "permis de conduire" → click "btn-permis"
+           ${CONSIGNE_SCAN_PIECE_FR}
            NE PAS mentionner le selfie ici. Juste scanner la pièce.`
         : `STEP: ID document scan (service: ${service || 'nouvelle-sim'}).
-           User must: 1) Choose doc type (National ID / CNI, Passport, Voter ID, Biometric Licence). 2) Capture front (back only for CNI/Passport; front only for Voter ID and Biometric Licence).
-           FOREIGNER profile: only Passport accepted.
-           BUTTONS: data-ai-action="btn-cni" | "btn-passeport" | "btn-electeur" | "btn-permis".
-           VOICE COMMANDS: "ID card"/"CNI"→click btn-cni | "passport"→click btn-passeport
-           "voter ID"→click btn-electeur | "licence"/"biometric licence"/"driving licence"→click btn-permis`;
+           ${CONSIGNE_SCAN_PIECE_EN}`;
 
     case 'confirmation-infos':
       return isFr
@@ -277,21 +286,10 @@ function getStepContext(step: string, service: string | null, lang: string, isFr
     case 'piece-identite':
       return isFr
         ? `ÉTAPE : Scan de la pièce d'identité pour réactivation (/borne/reactivation/piece-identite).
-           L'utilisateur doit : 1) Choisir le type (CNI, Passeport, Carte d'électeur, Permis biométrique). 2) Capturer le recto (et verso uniquement pour CNI/Passeport ; recto seul pour Carte d'électeur et Permis biométrique).
-           Si profil ÉTRANGER : seul le Passeport est accepté.
-           BOUTONS : data-ai-action="btn-cni" | "btn-passeport" | "btn-electeur" | "btn-permis".
-           COMMANDES VOCALES :
-           - "carte d'identité" | "CNI" → click "btn-cni"
-           - "passeport" → click "btn-passeport"
-           - "carte d'électeur" → click "btn-electeur"
-           - "permis" | "permis biométrique" | "permis de conduire" → click "btn-permis"
+           ${CONSIGNE_SCAN_PIECE_FR}
            NE PAS mentionner nouvelle SIM ou offres.`
         : `STEP: ID document scan for reactivation (/borne/reactivation/piece-identite).
-           User must: 1) Choose doc type (National ID / CNI, Passport, Voter ID, Biometric Licence). 2) Capture front (back only for CNI/Passport; front only for Voter ID and Biometric Licence).
-           FOREIGNER profile: only Passport accepted.
-           BUTTONS: data-ai-action="btn-cni" | "btn-passeport" | "btn-electeur" | "btn-permis".
-           VOICE COMMANDS: "ID card"/"CNI"→click btn-cni | "passport"→click btn-passeport
-           "voter ID"→click btn-electeur | "licence"/"biometric licence"/"driving licence"→click btn-permis
+           ${CONSIGNE_SCAN_PIECE_EN}
            No mention of new SIM or offers.`;
 
     case 'reservation-code':
