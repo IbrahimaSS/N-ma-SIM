@@ -102,17 +102,21 @@ def set_prop(item, prop_id, value):
 # WIA_ERROR_BUSY (0x80210006) : « Le périphérique WIA est occupé » — autre programme de
 # numérisation ouvert, API lancée deux fois, ou scan précédent pas encore relâché par Windows
 WIA_ERROR_BUSY = -2145320954
+# ERROR_BUSY (0x800700AA) : « La ressource demandée est en cours d'utilisation » — renvoyé par
+# le scanner eSCL quand l'imprimante HP imprime (même liaison USB que l'impression)
+ERREUR_RESSOURCE_OCCUPEE = -2147024726
+CODES_OCCUPE = (WIA_ERROR_BUSY, ERREUR_RESSOURCE_OCCUPEE)
 ESSAIS_SI_OCCUPE = 3
 ATTENTE_SI_OCCUPE_S = 2
 
 
 def _scanner_occupe(e):
-    """Vrai si l'exception COM est WIA_ERROR_BUSY (code dans l'exception ou dans son excepinfo)."""
+    """Vrai si l'exception COM signale un scanner occupé (code dans l'exception ou dans son excepinfo)."""
     args = getattr(e, "args", ())
-    if args and args[0] == WIA_ERROR_BUSY:
+    if args and args[0] in CODES_OCCUPE:
         return True
     infos = args[2] if len(args) > 2 and isinstance(args[2], tuple) else ()
-    return len(infos) > 5 and infos[5] == WIA_ERROR_BUSY
+    return len(infos) > 5 and infos[5] in CODES_OCCUPE
 
 
 def scanner():
@@ -130,7 +134,8 @@ def scanner():
                 time.sleep(ATTENTE_SI_OCCUPE_S)
     raise RuntimeError(
         "Le scanner est occupé par un autre programme. Fermez les logiciels de numérisation ouverts "
-        "(Numérisation Windows, HP Smart…) et vérifiez que l'API scanner n'est lancée qu'une seule fois."
+        "(Numérisation Windows, HP Smart…), attendez la fin de l'impression en cours sur l'imprimante HP, "
+        "et vérifiez que l'API scanner n'est lancée qu'une seule fois."
     )
 
 
@@ -142,7 +147,9 @@ def _trouver_scanner(dm):
     3. Puis tout scanner branché en USB.
     4. En dernier recours, le premier scanner WIA disponible.
     """
-    scanners = [info for info in dm.DeviceInfos if info.Type == 1]
+    # Type 1 = scanner ; le scanner eSCL (USB partagé avec l'impression) se déclare en 65535.
+    # On écarte seulement les caméras (2) et la vidéo (3).
+    scanners = [info for info in dm.DeviceInfos if info.Type not in (2, 3)]
     if not scanners:
         return None
 
