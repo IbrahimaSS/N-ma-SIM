@@ -12,6 +12,7 @@ interface CameraCaptureProps {
 }
 
 const COUNTDOWN_SEC = 5; // secondes avant capture auto (augmenté pour laisser le temps)
+const DOCUMENT_FRAME_WIDTH = 0.8;
 
 /**
  * CameraCapture — flux caméra live avec guide visuel + capture automatique.
@@ -94,8 +95,8 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
 
     ctx.drawImage(video, 0, 0, W, H);
 
-    // Zone de détection (correspond exactement au guide visuel de 55% pour document, 40% pour selfie)
-    const zoneW = Math.floor(W * (mode === "document" ? 0.55 : 0.40));
+    // Zone de détection correspondant exactement au guide visuel.
+    const zoneW = Math.floor(W * (mode === "document" ? DOCUMENT_FRAME_WIDTH : 0.40));
     const zoneH = Math.floor(zoneW / (mode === "document" ? 1.586 : 0.75));
     const zoneX = Math.floor((W - zoneW) / 2);
     const zoneY = Math.floor((H - zoneH) / 2);
@@ -197,11 +198,11 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
     fullCtx.drawImage(video, 0, 0, W, H);
 
     // ── Étape 2 : Recadrage sur la zone du guide (même coords que l'analyse) ─
-    // Guide document : 55% de large, centré, ratio 1.586:1 (carte ID ISO)
+    // Guide document : 80% de large, centré, ratio 1.586:1 (carte ID ISO)
     let cropX: number, cropY: number, cropW: number, cropH: number;
 
     if (mode === "document") {
-      cropW = Math.floor(W * 0.55);
+      cropW = Math.floor(W * DOCUMENT_FRAME_WIDTH);
       cropH = Math.floor(cropW / 1.586);
       cropX = Math.floor((W - cropW) / 2);
       cropY = Math.floor((H - cropH) / 2);
@@ -300,7 +301,7 @@ export function CameraCapture({ mode, label, onCapture, onCancel }: CameraCaptur
             /* Guide rectangulaire pour carte d'identité — ratio ISO 85.6×53.98mm ≈ 1.586:1 */
             <div
               style={{
-                width: "55%", // Cadre plus grand pour faciliter le placement de la pièce
+                width: `${DOCUMENT_FRAME_WIDTH * 100}%`,
                 aspectRatio: "1.586",
                 border: `3px solid ${guideColor}`,
                 borderRadius: "12px",
