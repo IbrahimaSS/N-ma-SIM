@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "predev": "prisma generate",
-    "dev": "next dev --port 3001",
+    "dev": "next dev --webpack --port 3001",
     "build": "next build",
     "start": "next start --port 3001",
     "seed": "ts-node -P tsconfig.scripts.json prisma/seed.ts",
