@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+import { BoutonVideoDemo } from "./BoutonVideoDemo";
 import gsap from "gsap";
 import { ArrowRight, PlayCircle } from "lucide-react";
 import { BornePhoto } from "./BornePhoto";
@@ -68,12 +68,11 @@ export function Hero() {
             >
               Découvrir la solution <ArrowRight size={16} />
             </a>
-            <Link
-              href="/borne/accueil"
+            <BoutonVideoDemo
               className="hero-cta inline-flex items-center gap-2 justify-center rounded-xl bg-transparent border border-white/30 text-white font-semibold text-sm h-12 px-6 hover:bg-white/10 transition-colors w-full sm:w-auto"
             >
               <PlayCircle size={18} /> Voir la démonstration
-            </Link>
+            </BoutonVideoDemo>
           </div>
 
           <div className="hero-trust flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2">

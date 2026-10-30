@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { CheckCircle2, Info, Eye, Home, Printer, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Info, Printer, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { SuccessScreen } from "@/components/borne/SuccessScreen";
 import { RecuImprimable } from "@/components/borne/RecuImprimable";
 import { PRIX_REACTIVATION } from "@/lib/tarifs";
@@ -200,18 +200,7 @@ function RecuContent() {
       )}
 
       {/* Footer Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
-        <div className="flex gap-4">
-           <Button variant="outline" className="flex-1 bg-white h-14" onClick={() => {
-              const el = document.getElementById("receipt-content");
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-           }}>
-             <Eye className="w-5 h-5 mr-2" /> {lang === "en" ? "View receipt" : "Voir le reçu"}
-           </Button>
-           <Button variant="primary" className="flex-1 h-14" onClick={() => router.push("/borne/accueil")}>
-             <Home className="w-5 h-5 mr-2" /> {lang === "en" ? "Back to home" : "Retour à l'accueil"}
-           </Button>
-        </div>
+      <div className="print:hidden max-w-2xl w-full mx-auto">
         <div className="flex gap-4">
            <Button variant="outline" className="flex-1 bg-white h-14" onClick={handlePrintPDF}>
              <Printer className="w-5 h-5 mr-2" /> {lang === "en" ? "Print" : "Imprimer"}
