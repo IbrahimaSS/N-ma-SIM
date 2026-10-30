@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { Mail, Phone, ArrowRight, MessageSquare, MessageCircle, X } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { QrCode } from "@/components/QrCode";
+import { BoutonVideoDemo } from "./BoutonVideoDemo";
 
 const SUPPORT_PHONE = "+224621003302";
 
@@ -40,12 +40,11 @@ export function AboutCtaFooter() {
           </h2>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
-            <Link
-              href="/borne/accueil"
+            <BoutonVideoDemo
               className="inline-flex items-center gap-2 justify-center rounded-xl bg-accent text-primary font-semibold text-sm h-12 px-6 hover:brightness-95 transition-[filter] w-full sm:w-auto"
             >
               Découvrir N&apos;ma SIM <ArrowRight size={16} />
-            </Link>
+            </BoutonVideoDemo>
             <a
               href="mailto:support.nmasim@gmail.com"
               className="inline-flex items-center gap-2 justify-center rounded-xl bg-white/10 border border-white/20 text-white font-semibold text-sm h-12 px-6 hover:bg-white/15 transition-colors w-full sm:w-auto"
