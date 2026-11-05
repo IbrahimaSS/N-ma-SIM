@@ -17,8 +17,8 @@ export function BornePhoto({
       <Image
         src="/borne-photo.png"
         alt={alt}
-        width={349}
-        height={913}
+        width={702}
+        height={1600}
         sizes="(min-width: 1024px) 240px, 45vw"
         priority={priority}
         className={`relative z-10 h-full w-auto drop-shadow-[0_18px_28px_rgba(0,0,0,0.25)] ${imgClassName}`}
